@@ -1105,6 +1105,11 @@ async function _doLogin(){
     }
     _sbToken = data.access_token;
     _sbUser  = data.user;
+    // Desk 전용 메뉴 표시 제어
+    var _adminEmails = ['desk@willgrow.local','sue@willgrow.local','jaycee@willgrow.local'];
+    var isDesk = (_sbUser && _adminEmails.indexOf(_sbUser.email) !== -1);
+    var tuitionBtn = document.querySelector('[data-mode="tuition"]');
+    if(tuitionBtn) tuitionBtn.style.display = isDesk ? '' : 'none';
     var screen = document.getElementById('loginScreen');
     if(screen){ screen.style.transition='opacity 0.4s'; screen.style.opacity='0'; setTimeout(function(){ screen.style.display='none'; },400); }
   } catch(e) {
@@ -1487,7 +1492,11 @@ function navigateTo(mode){
   else if(mode==="comments"){ currentMode="comments"; screenId="commentsScreen"; }
   else if(mode==="bookorderboard"){ currentMode="bookorderboard"; screenId="bookOrderBoardScreen"; }
   else if(mode==="studentlist"){ currentMode="studentlist"; screenId="studentListScreen"; }
-  else if(mode==="tuition"){ currentMode="tuition"; screenId="tuitionScreen"; }
+  else if(mode==="tuition"){
+    var _adminList = ['desk@willgrow.local','sue@willgrow.local','jaycee@willgrow.local'];
+    if(!_sbUser || _adminList.indexOf(_sbUser.email) === -1){ showToast("접근 권한이 없습니다."); return; }
+    currentMode="tuition"; screenId="tuitionScreen";
+  }
   else if(mode==="lessonplan"){ currentMode="lessonplan"; screenId="lessonPlanScreen"; }
   else if(mode==="newstudent"){ currentMode="newstudent"; screenId="newStudentScreen"; }
   else { currentMode=null; screenId="modeScreen"; }
