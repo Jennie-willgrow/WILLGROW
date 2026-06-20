@@ -4097,21 +4097,21 @@ function submitLessonPlan(){
   }
 }
 </script>
-<div id="fullReportModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);overflow-y:auto;padding:20px 16px">
-  <div style="background:white;border-radius:16px;width:100%;max-width:520px;margin:0 auto;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
-    <div style="background:#4A5240;padding:16px 18px;display:flex;align-items:center;justify-content:space-between">
+<div id="fullReportModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px">
+  <div style="background:white;border-radius:16px;width:100%;max-width:520px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+    <div style="background:#4A5240;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border-radius:16px 16px 0 0">
       <input id="fr_title" type="text" placeholder="e.g. 3:30 3B Sue (6/20)" style="background:transparent;border:none;outline:none;color:white;font-size:15px;font-weight:700;font-family:inherit;width:calc(100% - 40px);caret-color:white" />
       <button onclick="closeFullReportModal()" style="background:rgba(255,255,255,0.18);border:none;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;color:white;flex-shrink:0">×</button>
     </div>
     <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
       <div>
-        <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Class</label>
+        <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Class <span style="color:#EF4444">*</span></label>
         <select id="fr_class" style="width:100%;padding:11px 36px 11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;appearance:none;-webkit-appearance:none;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 13px center;background-size:10px;box-sizing:border-box;outline:none;font-family:inherit">
           <option value="">-- Select Class --</option>
         </select>
       </div>
       <div>
-        <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Book</label>
+        <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Book <span style="color:#EF4444">*</span></label>
         <input id="fr_book" type="text" placeholder="Book name..." style="width:100%;padding:11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;box-sizing:border-box;font-family:inherit;outline:none">
       </div>
       <div style="background:#F7F8F2;border-left:3px solid #CBD3BC;border-radius:0 8px 8px 0;padding:12px 14px">
@@ -4131,7 +4131,7 @@ function submitLessonPlan(){
       <div>
         <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Attitude</label>
         <select id="fr_attitude" style="width:100%;padding:11px 36px 11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;appearance:none;-webkit-appearance:none;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 13px center;background-size:10px;box-sizing:border-box;outline:none;font-family:inherit">
-          <option value="">-- Select Attitude --</option><option>⭐⭐⭐⭐⭐</option><option>⭐⭐⭐⭐</option><option>⭐⭐⭐</option><option>⭐⭐</option><option>⭐</option>
+          <option value="">-- Select Attitude --</option><option>Excellent</option><option>Great</option><option>Good</option><option>Needs Improvement</option><option>Poor</option>
         </select>
       </div>
       <div>
@@ -4147,11 +4147,11 @@ function submitLessonPlan(){
         <div id="fr_moreSection" style="display:none;margin-top:12px;flex-direction:column;gap:12px">
           <div>
             <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Comments</label>
-            <textarea id="fr_comments" rows="2" placeholder="Additional comments..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none"></textarea>
+            <textarea id="fr_comments" rows="3" placeholder="Class comments..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none"></textarea>
           </div>
           <div>
             <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Book Orders</label>
-            <input id="fr_bookorders" type="text" placeholder="Book order requests..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:13px;box-sizing:border-box;font-family:inherit;outline:none">
+            <textarea id="fr_bookorders" rows="2" placeholder="Book order request..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none"></textarea>
           </div>
         </div>
       </div>
@@ -4179,21 +4179,22 @@ function openFullReportModal(){
   ['fr_class','fr_test','fr_attitude'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value='';
   });
-  // Populate class select
+  // Populate class select (always reload)
   var classEl = document.getElementById('fr_class');
-  if(classEl && classEl.options.length <= 1){
+  if(classEl){
+    classEl.innerHTML = '<option value="">-- Select Class --</option>';
     google.script.run.withSuccessHandler(function(classes){
       if(!classes) return;
-      classEl.innerHTML = '<option value="">-- 반 선택 (선택사항) --</option>';
       classes.forEach(function(c){ classEl.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>'; });
     }).fetchClassList();
   }
-    // Reset more section
+  // Reset more section
   var more = document.getElementById('fr_moreSection');
   if(more) more.style.display = 'none';
   var moreBtn = document.getElementById('fr_moreBtn');
   if(moreBtn) moreBtn.textContent = '+ More (Comments / Book Orders)';
-  modal.style.display = 'flex';
+  modal.style.display = 'block';
+  modal.scrollTop = 0;
 }
 
 function closeFullReportModal(){
@@ -4204,11 +4205,12 @@ function closeFullReportModal(){
 function submitFullReport(){
   var title = (document.getElementById('fr_title')||{}).value||'';
   title = title.trim();
-  if(!title){ showToast('제목을 입력해주세요.'); return; }
+  if(!title){ showToast('Please enter a title.'); return; }
+  var classId = (document.getElementById('fr_class')||{}).value||'';
+  if(!classId){ showToast('Please select a class.'); return; }
   var teacherEl = document.getElementById('tsel');
   var teacherId = teacherEl ? teacherEl.value : '';
-  if(!teacherId){ showToast('먼저 선생님을 선택해주세요.'); return; }
-  var classId    = (document.getElementById('fr_class')||{}).value||'';
+  if(!teacherId){ showToast('Please select a teacher first.'); return; }
   var test       = (document.getElementById('fr_test')||{}).value||'';
   var attitude   = (document.getElementById('fr_attitude')||{}).value||'';
   var lastLesson = ((document.getElementById('fr_lastLesson')||{}).value||'').trim();
@@ -4220,31 +4222,31 @@ function submitFullReport(){
   var bookOrders = ((document.getElementById('fr_bookorders')||{}).value||'').trim();
   var dateStr    = typeof selectedDate !== 'undefined' ? selectedDate : new Date().toISOString().split('T')[0];
   var btn = document.getElementById('fr_submitBtn');
-  if(btn){ btn.disabled=true; btn.textContent='저장 중...'; }
+  if(btn){ btn.disabled=true; btn.textContent='Saving...'; }
   google.script.run
   .withSuccessHandler(function(r){
     if(!r||!r.success||!r.pageId){
-      if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
-      showToast('리포트 생성 실패: '+(r&&r.error||''));
+      if(btn){ btn.disabled=false; btn.textContent='✅ Save Report'; }
+      showToast('Failed to create report: '+(r&&r.error||''));
       return;
     }
     google.script.run
     .withSuccessHandler(function(r2){
-      if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
+      if(btn){ btn.disabled=false; btn.textContent='✅ Save Report'; }
       closeFullReportModal();
-      showToast('✅ 리포트 저장 완료!');
+      showToast('✅ Report saved!');
       setTimeout(function(){ loadReports(); }, 800);
     })
     .withFailureHandler(function(e){
-      if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
-      showToast('저장 실패: '+e.message);
+      if(btn){ btn.disabled=false; btn.textContent='✅ Save Report'; }
+      showToast('Save failed: '+e.message);
     })
     .submitReport({ pageId:r.pageId, classId:classId, test:test, attitude:attitude,
       todayLesson:todayLesson, homework:homework, book:book, comments:comments, bookOrders:bookOrders });
   })
   .withFailureHandler(function(e){
-    if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
-    showToast('저장 실패: '+e.message);
+    if(btn){ btn.disabled=false; btn.textContent='✅ Save Report'; }
+    showToast('Save failed: '+e.message);
   })
   .createBlankReport({ title:title, teacherId:teacherId, classId:classId,
     dateStr:dateStr, lastLesson:lastLesson, lastHW:lastHW });
