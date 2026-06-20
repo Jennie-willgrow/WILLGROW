@@ -955,6 +955,23 @@ async function updateLessonPlanStatus(pageId, status) {
   return true;
 }
 
+async function updateLessonPlanFull(pageId, data, b64, fname, mime) {
+  try {
+    var u={};
+    if(data.title)   u.textbook=data.title;
+    if(data.status)  u.status=data.status;
+    if(data.classId) u.class_id=data.classId;
+    if(b64 && fname){
+      var blob=_b64toBlob(b64, mime||'application/octet-stream');
+      var path=_uniquePath('lesson-plans', fname);
+      u.file_url=await sbUploadFile('Willgrow', path, blob, mime||'application/octet-stream');
+      u.file_name=fname;
+    }
+    if(Object.keys(u).length) await sbPatch('lesson_plans','id='+_eq(pageId),u);
+    return { success:true };
+  } catch(e){ return { success:false, error:e.message }; }
+}
+
 async function createLessonPlan(data) {
   try {
     var insert={ textbook:data.title||'', status:data.status||'In Progress', date:new Date().toISOString() };
@@ -995,7 +1012,7 @@ var _serverFunctions = {
   updateParentMsg, updateExtNote, fetchExtSupmatOptions,
   fetchExtraOrders, submitExtraOrder, updateExtraOrderStatus, updateExtraNote,
   deleteOrder,
-  fetchLessonPlans, updateLessonPlanStatus, createLessonPlan,
+  fetchLessonPlans, updateLessonPlanStatus, updateLessonPlanFull, createLessonPlan,
   initMemoSchema: async function(){ return; }
 };
 
@@ -3822,7 +3839,10 @@ function renderLessonPlanList(){
     return "<div style='background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 5px rgba(0,0,0,0.08);border-left:4px solid #7b61ff'>"
       + "<div style='display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px'>"
       + "<div style='font-size:14px;font-weight:700;color:#363D2E;flex:1'>"+(r.title||"(제목없음)")+"</div>"
-      + "<div style='font-size:11px;color:#999;white-space:nowrap;margin-left:8px'>"+(r.date||"")+"</div>"
+      + "<div style='display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px'>"
+      + "<div style='font-size:11px;color:#999;white-space:nowrap'>"+(r.date||"")+"</div>"
+      + "<button onclick='editLessonPlan(\""+r.id+"\","+i+")' style='background:#F2F4EC;color:#4A5240;border:1px solid #E2E8D8;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer'>✏️ 수정</button>"
+      + "</div>"
       + "</div>"
       + (r.className ? "<div style='margin-bottom:8px'><span style='background:#ede7f6;color:#4a148c;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600'>🏫 "+r.className+"</span></div>" : "")
       + "<div style='display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap'>"+statBtns+"</div>"
@@ -3844,7 +3864,9 @@ function setLpStatus(pid,status,idx){
   .updateLessonPlanStatus(pid,status);
 }
 function filterLessonPlan(){ _lpStatusFilter=["In Progress"]; renderLpStatusBtns(); renderLessonPlanList(); }
+var _lpEditId = null;
 function openLessonPlanModal(){
+  _lpEditId = null;
   var m=document.getElementById("lpAddModal"); if(!m) return;
   m.style.display="flex";
   _lpFileBase64=""; _lpFileName=""; _lpFileMime="";
@@ -3852,6 +3874,8 @@ function openLessonPlanModal(){
   var st=document.getElementById("lpFormStatus"); if(st) st.value="진행 중";
   var fi=document.getElementById("lpFormFile"); if(fi) fi.value="";
   var lbl=document.getElementById("lpFormFileLabel"); if(lbl) lbl.textContent="파일 선택 (PDF)";
+  var mTitle=document.getElementById("lpModalTitle"); if(mTitle) mTitle.textContent="📋 레슨플랜 추가";
+  var btn=document.getElementById("lpFormSubmit"); if(btn) btn.textContent="추가";
   var csel=document.getElementById("lpFormClass");
   if(csel){
     if(_lpClassList.length){
@@ -3883,6 +3907,36 @@ function lpFileChange(input){
     if(lbl) lbl.textContent=fname;
   });
 }
+function editLessonPlan(id, idx){
+  _lpEditId = id;
+  var r = _lessonPlanAll.find(function(x){ return x.id===id; }) || _lessonPlanAll[idx];
+  if(!r) return;
+  var m=document.getElementById("lpAddModal"); if(!m) return;
+  m.style.display="flex";
+  _lpFileBase64=""; _lpFileName=""; _lpFileMime="";
+  var ti=document.getElementById("lpFormTitle"); if(ti) ti.value=r.title||"";
+  var st=document.getElementById("lpFormStatus"); if(st) st.value=r.status||"In Progress";
+  var fi=document.getElementById("lpFormFile"); if(fi) fi.value="";
+  var lbl=document.getElementById("lpFormFileLabel");
+  if(lbl) lbl.textContent=(r.files&&r.files.length) ? "📎 "+r.files[0].name+" (새 파일로 교체하려면 선택)" : "파일 선택 (PDF)";
+  var mTitle=document.getElementById("lpModalTitle"); if(mTitle) mTitle.textContent="✏️ 레슨플랜 수정";
+  var btn=document.getElementById("lpFormSubmit"); if(btn) btn.textContent="저장";
+  var csel=document.getElementById("lpFormClass");
+  if(csel){
+    if(_lpClassList.length){
+      csel.innerHTML="<option value=''>반 선택...</option>"+_lpClassList.map(function(c){ return "<option value='"+c.id+"'"+(c.name===r.className?" selected":"")+">"+(c.name)+"</option>"; }).join("");
+    } else {
+      csel.innerHTML="<option value=''>로딩 중...</option>";
+      google.script.run
+      .withSuccessHandler(function(list){
+        _lpClassList=list||[];
+        var cs=document.getElementById("lpFormClass");
+        if(cs) cs.innerHTML="<option value=''>반 선택...</option>"+_lpClassList.map(function(c){ return "<option value='"+c.id+"'"+(c.name===r.className?" selected":"")+">"+(c.name)+"</option>"; }).join("");
+      })
+      .fetchClassesForLP();
+    }
+  }
+}
 function submitLessonPlan(){
   var classId=document.getElementById("lpFormClass")?document.getElementById("lpFormClass").value:"";
   var title=(document.getElementById("lpFormTitle")?document.getElementById("lpFormTitle").value:"").trim();
@@ -3890,17 +3944,32 @@ function submitLessonPlan(){
   if(!title){ showToast("교재명을 입력해주세요."); return; }
   var btn=document.getElementById("lpFormSubmit");
   if(btn){ btn.disabled=true; btn.textContent="저장 중..."; }
-  google.script.run
-  .withSuccessHandler(function(){
-    if(btn){ btn.disabled=false; btn.textContent="추가"; }
-    closeLessonPlanModal();
-    showToast("레슨플랜 추가됨!");
-    initLessonPlanScreen();
-  })
-  .withFailureHandler(function(){
-    if(btn){ btn.disabled=false; btn.textContent="추가"; }
-    showToast("추가 실패");
-  })
-  .createLessonPlan({classId:classId,title:title,status:status},_lpFileBase64,_lpFileName,_lpFileMime);
+  if(_lpEditId){
+    google.script.run
+    .withSuccessHandler(function(){
+      if(btn){ btn.disabled=false; btn.textContent="저장"; }
+      closeLessonPlanModal();
+      showToast("✅ 수정됐어요!");
+      initLessonPlanScreen();
+    })
+    .withFailureHandler(function(e){
+      if(btn){ btn.disabled=false; btn.textContent="저장"; }
+      showToast("저장 실패: "+(e&&e.message||""));
+    })
+    .updateLessonPlanFull(_lpEditId,{classId:classId,title:title,status:status},_lpFileBase64,_lpFileName,_lpFileMime);
+  } else {
+    google.script.run
+    .withSuccessHandler(function(){
+      if(btn){ btn.disabled=false; btn.textContent="추가"; }
+      closeLessonPlanModal();
+      showToast("레슨플랜 추가됨!");
+      initLessonPlanScreen();
+    })
+    .withFailureHandler(function(e){
+      if(btn){ btn.disabled=false; btn.textContent="추가"; }
+      showToast("저장 실패: "+(e&&e.message||""));
+    })
+    .createLessonPlan({classId:classId,title:title,status:status,b64:_lpFileBase64,fileName:_lpFileName,mimeType:_lpFileMime});
+  }
 }
 </script></body></html>
