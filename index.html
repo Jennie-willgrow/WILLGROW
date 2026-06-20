@@ -628,15 +628,15 @@ async function createMemo(data) {
   return result ? { success:true, id:result.id } : { success:false };
 }
 
-async function createMemoWithFile(data) {
+async function createMemoWithFile(data, b64, fname, mime) {
   try {
     var insert = { content: data.content||'', type: data.type||null, author: data.author||null, written_at: new Date().toISOString() };
-    if (data.b64 && data.fileName) {
-      var blob = _b64toBlob(data.b64, data.mimeType||'application/octet-stream');
-      var path = _uniquePath('memos', data.fileName);
-      var fileUrl = await sbUploadFile('Willgrow', path, blob, data.mimeType||'application/octet-stream');
+    if (b64 && fname) {
+      var blob = _b64toBlob(b64, mime||'application/octet-stream');
+      var path = _uniquePath('memos', fname);
+      var fileUrl = await sbUploadFile('Willgrow', path, blob, mime||'application/octet-stream');
       insert.file_url = fileUrl;
-      insert.file_name = data.fileName;
+      insert.file_name = fname;
     }
     var result = await sbInsert('korean_memos', insert);
     return result ? { success:true, id:result.id } : { success:false };
@@ -2706,20 +2706,19 @@ function submitNewReport(){
 
 var _msgCalMonth = null;
 function renderMsgCal(orders){
-  var inner = document.getElementById('msgCalInner');
+  var inner = document.getElementById("msgCalInner");
   if(!inner) return;
   if(!_msgCalMonth){
     var now = new Date(Date.now() + 9*60*60*1000);
     _msgCalMonth = { year: now.getUTCFullYear(), month: now.getUTCMonth() };
   }
   var year = _msgCalMonth.year, month = _msgCalMonth.month;
-  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   var now2 = new Date(Date.now() + 9*60*60*1000);
   var todayY = now2.getUTCFullYear(), todayM = now2.getUTCMonth(), todayD = now2.getUTCDate();
   var firstDow = new Date(year, month, 1).getDay();
   var daysInMonth = new Date(year, month+1, 0).getDate();
-  // Build sendDate map (startDate - 10 days)
   var sendDays = {};
   var sendList = [];
   orders.forEach(function(o){
@@ -2728,7 +2727,7 @@ function renderMsgCal(orders){
     if(isNaN(dt.getTime())) return;
     dt.setDate(dt.getDate() - 10);
     var sy = dt.getFullYear(), sm = dt.getMonth(), sd = dt.getDate();
-    var ds = sy+'-'+String(sm+1).padStart(2,'0')+'-'+String(sd).padStart(2,'0');
+    var ds = sy+"-"+String(sm+1).padStart(2,"0")+"-"+String(sd).padStart(2,"0");
     if(sy===year && sm===month){
       if(!sendDays[sd]) sendDays[sd]=[];
       sendDays[sd].push(o);
@@ -2736,46 +2735,43 @@ function renderMsgCal(orders){
     sendList.push({ dateStr: ds, order: o, y: sy, m: sm, d: sd });
   });
   sendList.sort(function(a,b){ return a.dateStr.localeCompare(b.dateStr); });
-  // Header
-  var html = '<div class='cal-header'>';
-  html += '<button class='cal-nav-btn' onclick='changeMsgCalMonth(-1)'>&#8249;</button>';
-  html += '<div class='cal-month-lbl'>' + MONTHS[month] + ' ' + year + '</div>';
-  html += '<button class='cal-nav-btn' onclick='changeMsgCalMonth(1)'>&#8250;</button>';
-  html += '</div>';
-  // Day headers
-  html += '<div class='cal-grid'>';
-  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){ html += '<div class='cal-day-hdr'>'+d+'</div>'; });
-  for(var i=0;i<firstDow;i++) html += '<div class='cal-cell'></div>';
+  var html = "<div class=\"cal-header\">";
+  html += "<button class=\"cal-nav-btn\" onclick=\"changeMsgCalMonth(-1)\">&#8249;</button>";
+  html += "<div class=\"cal-month-lbl\">" + MONTHS[month] + " " + year + "</div>";
+  html += "<button class=\"cal-nav-btn\" onclick=\"changeMsgCalMonth(1)\">&#8250;</button>";
+  html += "</div>";
+  html += "<div class=\"cal-grid\">";
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(function(d){ html += "<div class=\"cal-day-hdr\">"+d+"</div>"; });
+  for(var i=0;i<firstDow;i++) html += "<div class=\"cal-cell\"></div>";
   for(var d=1;d<=daysInMonth;d++){
     var isToday=(year===todayY&&month===todayM&&d===todayD);
     var hasSend=!!sendDays[d];
-    var cls='cal-cell'+(isToday?' cal-today':'')+(hasSend?' cal-has-appt cal-clickable':'');
-    var ds2=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    html += '<div class=''+cls+'''+(hasSend?' onclick='scrollToMsgDate(''+ds2+'')'' :'')+' >';
-    html += '<span class='cal-day-num'>'+d+'</span>';
-    if(hasSend) html += '<span class='cal-dot' style='background:#E07A00'>'+sendDays[d].length+'</span>';
-    html += '</div>';
+    var cls="cal-cell"+(isToday?" cal-today":"")+(hasSend?" cal-has-appt cal-clickable":"");
+    var ds2=year+"-"+String(month+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    html += "<div class=\""+cls+"\"" + (hasSend?" onclick=\"scrollToMsgDate('"+ds2+"')\"":"") + ">";
+    html += "<span class=\"cal-day-num\">"+d+"</span>";
+    if(hasSend) html += "<span class=\"cal-dot\" style=\"background:#E07A00\">"+sendDays[d].length+"</span>";
+    html += "</div>";
   }
-  html += '</div>';
-  // Send list for this month
+  html += "</div>";
   var thisMonthList = sendList.filter(function(s){ return s.y===year && s.m===month; });
   if(thisMonthList.length){
-    html += '<div class='appt-list'>';
-    html += '<div style='font-size:11px;font-weight:700;color:#8A9178;margin-bottom:6px;letter-spacing:0.5px'>📨 이번 달 발송 예정</div>';
-    var prevDs = '';
+    html += "<div class=\"appt-list\">";
+    html += "<div style=\"font-size:11px;font-weight:700;color:#8A9178;margin-bottom:6px\">📨 이번 달 발송 예정</div>";
+    var prevDs = "";
     thisMonthList.forEach(function(s){
       if(s.dateStr !== prevDs){
-        var dp = s.dateStr.split('-');
+        var dp = s.dateStr.split("-");
         var dn = new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]));
-        html += '<div class='appt-date-hdr' id='msg-'+s.dateStr+''>'+s.dateStr+' ('+DAYS[dn.getDay()]+')</div>';
+        html += "<div class=\"appt-date-hdr\" id=\"msg-"+s.dateStr+"\">"+s.dateStr+" ("+DAYS[dn.getDay()]+")</div>";
         prevDs = s.dateStr;
       }
-      html += '<div class='appt-card' style='background:#FFF8E7'>';
-      html += '<div class='appt-name'>'+s.order.className+'</div>';
-      html += '<div style='font-size:11px;color:#92600A'>'+(s.order.bookName||'교재 미확인')+'</div>';
-      html += '</div>';
+      html += "<div class=\"appt-card\" style=\"background:#FFF8E7\">";
+      html += "<div class=\"appt-name\">"+s.order.className+"</div>";
+      html += "<div style=\"font-size:11px;color:#92600A\">"+(s.order.bookName||"교재 미확인")+"</div>";
+      html += "</div>";
     });
-    html += '</div>';
+    html += "</div>";
   }
   inner.innerHTML = html;
 }
@@ -4110,4 +4106,80 @@ function submitLessonPlan(){
     </div>
   </div>
 </div>
+
+function openFullReportModal(){
+  var modal = document.getElementById('fullReportModal');
+  if(!modal) return;
+  // Reset fields
+  ['fr_title','fr_lastLesson','fr_lastHW','fr_lesson','fr_hw','fr_book','fr_comments','fr_bookorders'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value='';
+  });
+  ['fr_class','fr_test','fr_attitude'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value='';
+  });
+  // Populate class select
+  var classEl = document.getElementById('fr_class');
+  if(classEl && classEl.options.length <= 1){
+    google.script.run.withSuccessHandler(function(classes){
+      if(!classes) return;
+      classEl.innerHTML = '<option value="">-- 반 선택 (선택사항) --</option>';
+      classes.forEach(function(c){ classEl.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>'; });
+    }).fetchClassList();
+  }
+  modal.style.display = 'flex';
+}
+
+function closeFullReportModal(){
+  var modal = document.getElementById('fullReportModal');
+  if(modal) modal.style.display = 'none';
+}
+
+function submitFullReport(){
+  var title = (document.getElementById('fr_title')||{}).value||'';
+  title = title.trim();
+  if(!title){ showToast('제목을 입력해주세요.'); return; }
+  var teacherEl = document.getElementById('tsel');
+  var teacherId = teacherEl ? teacherEl.value : '';
+  if(!teacherId){ showToast('먼저 선생님을 선택해주세요.'); return; }
+  var classId    = (document.getElementById('fr_class')||{}).value||'';
+  var test       = (document.getElementById('fr_test')||{}).value||'';
+  var attitude   = (document.getElementById('fr_attitude')||{}).value||'';
+  var lastLesson = ((document.getElementById('fr_lastLesson')||{}).value||'').trim();
+  var lastHW     = ((document.getElementById('fr_lastHW')||{}).value||'').trim();
+  var todayLesson= ((document.getElementById('fr_lesson')||{}).value||'').trim();
+  var homework   = ((document.getElementById('fr_hw')||{}).value||'').trim();
+  var book       = ((document.getElementById('fr_book')||{}).value||'').trim();
+  var comments   = ((document.getElementById('fr_comments')||{}).value||'').trim();
+  var bookOrders = ((document.getElementById('fr_bookorders')||{}).value||'').trim();
+  var dateStr    = typeof selectedDate !== 'undefined' ? selectedDate : new Date().toISOString().split('T')[0];
+  var btn = document.getElementById('fr_submitBtn');
+  if(btn){ btn.disabled=true; btn.textContent='저장 중...'; }
+  google.script.run
+  .withSuccessHandler(function(r){
+    if(!r||!r.success||!r.pageId){
+      if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
+      showToast('리포트 생성 실패: '+(r&&r.error||''));
+      return;
+    }
+    google.script.run
+    .withSuccessHandler(function(r2){
+      if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
+      closeFullReportModal();
+      showToast('✅ 리포트 저장 완료!');
+      setTimeout(function(){ loadReports(); }, 800);
+    })
+    .withFailureHandler(function(e){
+      if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
+      showToast('저장 실패: '+e.message);
+    })
+    .submitReport({ pageId:r.pageId, classId:classId, test:test, attitude:attitude,
+      todayLesson:todayLesson, homework:homework, book:book, comments:comments, bookOrders:bookOrders });
+  })
+  .withFailureHandler(function(e){
+    if(btn){ btn.disabled=false; btn.textContent='✅ 리포트 저장'; }
+    showToast('저장 실패: '+e.message);
+  })
+  .createBlankReport({ title:title, teacherId:teacherId, classId:classId,
+    dateStr:dateStr, lastLesson:lastLesson, lastHW:lastHW });
+}
 </body></html>
