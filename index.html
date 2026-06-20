@@ -2592,6 +2592,28 @@ function saveExtraNote(pid, inputId){
 function initParentMsgScreen(){
   loadParentMsgs();
 }
+function _getSendDate(startDate){
+  if(!startDate) return null;
+  var dt = new Date(startDate);
+  if(isNaN(dt.getTime())) return null;
+  dt.setDate(dt.getDate() - 14);
+  return dt.toISOString().split('T')[0];
+}
+function _renderMsgCard(o){
+  var msgCls = o.parentMsg==="Yes"?"stat-yes":"stat-no";
+  var sendDate = _getSendDate(o.startDate);
+  return "<div class='bok-card'>"
+    + "<div class='bok-row'>"
+    + "<div><div class='bok-name'>"+o.className+"</div>"
+    + "<div class='bok-meta'>"+(o.bookName||"교재 미확인")+"</div></div>"
+    + "<div style='text-align:right;flex-shrink:0'><div style='font-size:10px;color:#AAAAAA'>주문일 "+(o.orderDate||"")+"</div></div></div>"
+    + "<div style='display:flex;align-items:center;gap:6px;margin-bottom:4px'><span style='font-size:11px;font-weight:700;color:#4A5240'>📅 교재 시작일</span><span style='font-size:13px;font-weight:600;color:#1E2218'>"+(o.startDate||"미정")+"</span></div>"
+    + (sendDate ? "<div style='display:flex;align-items:center;gap:6px;margin-bottom:8px;background:#FFF8E7;border-radius:7px;padding:6px 10px'><span style='font-size:11px;font-weight:700;color:#92600A'>📨 발송 예정일</span><span style='font-size:13px;font-weight:600;color:#92600A'>"+sendDate+"</span><span style='font-size:10px;color:#B07A2A;margin-left:2px'>(시작일 2주 전)</span></div>" : "")
+    + "<div class='bok-meta'>학생 "+(o.qty||0)+"부 · 교사 "+(o.teacherCopy||0)+"부</div>"
+    + "<div class='bok-statuses'>"
+    + "<button class='bok-stat-btn "+msgCls+"' onclick='toggleParentMsg(\""+o.id+"\",\""+o.parentMsg+"\",\""+(o.bookName||"").replace(/"/g,"")+"\"," +(o.qty||0)+")'>메세지 발송 "+o.parentMsg+"</button>"
+    + "</div></div>";
+}
 function loadParentMsgs(){
   var c = document.getElementById("parentMsgList");
   c.innerHTML = "<div class='loading'>Loading...</div>";
@@ -2599,23 +2621,40 @@ function loadParentMsgs(){
   .withSuccessHandler(function(orders){
     renderMsgCal(orders);
     if(!orders.length){ c.innerHTML = "<div class='empty'>주문 내역이 없습니다.</div>"; return; }
-    c.innerHTML = orders.map(function(o){
-      var msgCls = o.parentMsg==="Yes"?"stat-yes":"stat-no";
-      return "<div class='bok-card'>"
-        + "<div class='bok-row'>"
-        + "<div><div class='bok-name'>"+o.className+"</div>"
-        + "<div class='bok-meta'>"+(o.bookName||"교재 미확인")+"</div></div>"
-        + "<div style='text-align:right;flex-shrink:0'><div style='font-size:10px;color:#AAAAAA'>주문일 "+(o.orderDate||"")+"</div></div></div>"
-        + "<div style='display:flex;align-items:center;gap:6px;margin-bottom:4px'><span style='font-size:11px;font-weight:700;color:#4A5240'>📅 교재 시작일</span><span style='font-size:13px;font-weight:600;color:#1E2218'>"+(o.startDate||"미정")+"</span></div>"
-        + (o.startDate ? "<div style='display:flex;align-items:center;gap:6px;margin-bottom:8px;background:#FFF8E7;border-radius:7px;padding:6px 10px'><span style='font-size:11px;font-weight:700;color:#92600A'>📨 발송 예정일</span><span style='font-size:13px;font-weight:600;color:#92600A'>"+(function(d){ var dt=new Date(d); dt.setDate(dt.getDate()-10); return dt.toISOString().split('T')[0]; })(o.startDate)+"</span><span style='font-size:10px;color:#B07A2A;margin-left:2px'>(시작일 10일 전)</span></div>" : "")
-        + "<div class='bok-meta'>학생 "+(o.qty||0)+"부 · 교사 "+(o.teacherCopy||0)+"부</div>"
-        + "<div class='bok-statuses'>"
-        + "<button class='bok-stat-btn "+msgCls+"' onclick='toggleParentMsg(\""+o.id+"\",\""+o.parentMsg+"\",\""+( o.bookName||"").replace(/"/g,"")+"\"," +(o.qty||0)+")'>메세지 발송 "+o.parentMsg+"</button>"
+    // 미발송: 발송 예정일 순 정렬 (빠른 것 먼저)
+    var unsent = orders.filter(function(o){ return o.parentMsg !== "Yes"; });
+    var sent   = orders.filter(function(o){ return o.parentMsg === "Yes"; });
+    unsent.sort(function(a,b){
+      var da = _getSendDate(a.startDate)||"9999";
+      var db = _getSendDate(b.startDate)||"9999";
+      return da.localeCompare(db);
+    });
+    var html = "";
+    if(unsent.length){
+      html += "<div style='font-size:12px;font-weight:700;color:#92600A;margin:14px 0 8px;padding-left:2px'>📨 미발송 ("+unsent.length+")</div>";
+      html += unsent.map(_renderMsgCard).join("");
+    } else {
+      html += "<div style='text-align:center;color:#8A9178;padding:20px;font-size:13px'>✅ 모두 발송 완료됐습니다!</div>";
+    }
+    if(sent.length){
+      html += "<div style='margin-top:18px'>"
+        + "<button onclick='toggleSentList()' id='sentToggleBtn' style='background:#f0f0f0;color:#666;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer'>✅ 전송 완료 ("+sent.length+") ▼</button>"
+        + "<div id='sentList' style='display:none;margin-top:10px'>"
+        + sent.map(_renderMsgCard).join("")
         + "</div></div>";
-    }).join("");
+    }
+    c.innerHTML = html;
   })
   .withFailureHandler(function(){ c.innerHTML = "<div class='empty'>Error. Please try again.</div>"; })
   .fetchExternalOrders();
+}
+function toggleSentList(){
+  var el = document.getElementById('sentList');
+  var btn = document.getElementById('sentToggleBtn');
+  if(!el) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if(btn) btn.textContent = btn.textContent.replace(open ? '▲' : '▼', open ? '▼' : '▲');
 }
 function toggleParentMsg(pid, current, bookName, qty){
   var next = current==="Yes"?"No":"Yes";
@@ -2767,7 +2806,7 @@ function renderMsgCal(orders){
     if(!o.startDate) return;
     var dt = new Date(o.startDate);
     if(isNaN(dt.getTime())) return;
-    dt.setDate(dt.getDate() - 10);
+    dt.setDate(dt.getDate() - 14);
     var sy = dt.getFullYear(), sm = dt.getMonth(), sd = dt.getDate();
     var ds = sy+"-"+String(sm+1).padStart(2,"0")+"-"+String(sd).padStart(2,"0");
     if(sy===year && sm===month){
@@ -2796,25 +2835,6 @@ function renderMsgCal(orders){
     html += "</div>";
   }
   html += "</div>";
-  var thisMonthList = sendList.filter(function(s){ return s.y===year && s.m===month; });
-  if(thisMonthList.length){
-    html += "<div class=\"appt-list\">";
-    html += "<div style=\"font-size:11px;font-weight:700;color:#8A9178;margin-bottom:6px\">📨 이번 달 발송 예정</div>";
-    var prevDs = "";
-    thisMonthList.forEach(function(s){
-      if(s.dateStr !== prevDs){
-        var dp = s.dateStr.split("-");
-        var dn = new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]));
-        html += "<div class=\"appt-date-hdr\" id=\"msg-"+s.dateStr+"\">"+s.dateStr+" ("+DAYS[dn.getDay()]+")</div>";
-        prevDs = s.dateStr;
-      }
-      html += "<div class=\"appt-card\" style=\"background:#FFF8E7\">";
-      html += "<div class=\"appt-name\">"+s.order.className+"</div>";
-      html += "<div style=\"font-size:11px;color:#92600A\">"+(s.order.bookName||"교재 미확인")+"</div>";
-      html += "</div>";
-    });
-    html += "</div>";
-  }
   inner.innerHTML = html;
 }
 function changeMsgCalMonth(delta){
