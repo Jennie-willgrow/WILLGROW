@@ -2703,6 +2703,96 @@ function submitNewReport(){
   })
   .createBlankReport({ title:title, dateStr:dateStr, teacherId:teacherId, classId:classId, lastLesson:lastLesson, lastHW:lastHW });
 }
+
+var _msgCalMonth = null;
+function renderMsgCal(orders){
+  var inner = document.getElementById('msgCalInner');
+  if(!inner) return;
+  if(!_msgCalMonth){
+    var now = new Date(Date.now() + 9*60*60*1000);
+    _msgCalMonth = { year: now.getUTCFullYear(), month: now.getUTCMonth() };
+  }
+  var year = _msgCalMonth.year, month = _msgCalMonth.month;
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var now2 = new Date(Date.now() + 9*60*60*1000);
+  var todayY = now2.getUTCFullYear(), todayM = now2.getUTCMonth(), todayD = now2.getUTCDate();
+  var firstDow = new Date(year, month, 1).getDay();
+  var daysInMonth = new Date(year, month+1, 0).getDate();
+  // Build sendDate map (startDate - 10 days)
+  var sendDays = {};
+  var sendList = [];
+  orders.forEach(function(o){
+    if(!o.startDate) return;
+    var dt = new Date(o.startDate);
+    if(isNaN(dt.getTime())) return;
+    dt.setDate(dt.getDate() - 10);
+    var sy = dt.getFullYear(), sm = dt.getMonth(), sd = dt.getDate();
+    var ds = sy+'-'+String(sm+1).padStart(2,'0')+'-'+String(sd).padStart(2,'0');
+    if(sy===year && sm===month){
+      if(!sendDays[sd]) sendDays[sd]=[];
+      sendDays[sd].push(o);
+    }
+    sendList.push({ dateStr: ds, order: o, y: sy, m: sm, d: sd });
+  });
+  sendList.sort(function(a,b){ return a.dateStr.localeCompare(b.dateStr); });
+  // Header
+  var html = '<div class='cal-header'>';
+  html += '<button class='cal-nav-btn' onclick='changeMsgCalMonth(-1)'>&#8249;</button>';
+  html += '<div class='cal-month-lbl'>' + MONTHS[month] + ' ' + year + '</div>';
+  html += '<button class='cal-nav-btn' onclick='changeMsgCalMonth(1)'>&#8250;</button>';
+  html += '</div>';
+  // Day headers
+  html += '<div class='cal-grid'>';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){ html += '<div class='cal-day-hdr'>'+d+'</div>'; });
+  for(var i=0;i<firstDow;i++) html += '<div class='cal-cell'></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var isToday=(year===todayY&&month===todayM&&d===todayD);
+    var hasSend=!!sendDays[d];
+    var cls='cal-cell'+(isToday?' cal-today':'')+(hasSend?' cal-has-appt cal-clickable':'');
+    var ds2=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    html += '<div class=''+cls+'''+(hasSend?' onclick='scrollToMsgDate(''+ds2+'')'' :'')+' >';
+    html += '<span class='cal-day-num'>'+d+'</span>';
+    if(hasSend) html += '<span class='cal-dot' style='background:#E07A00'>'+sendDays[d].length+'</span>';
+    html += '</div>';
+  }
+  html += '</div>';
+  // Send list for this month
+  var thisMonthList = sendList.filter(function(s){ return s.y===year && s.m===month; });
+  if(thisMonthList.length){
+    html += '<div class='appt-list'>';
+    html += '<div style='font-size:11px;font-weight:700;color:#8A9178;margin-bottom:6px;letter-spacing:0.5px'>📨 이번 달 발송 예정</div>';
+    var prevDs = '';
+    thisMonthList.forEach(function(s){
+      if(s.dateStr !== prevDs){
+        var dp = s.dateStr.split('-');
+        var dn = new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]));
+        html += '<div class='appt-date-hdr' id='msg-'+s.dateStr+''>'+s.dateStr+' ('+DAYS[dn.getDay()]+')</div>';
+        prevDs = s.dateStr;
+      }
+      html += '<div class='appt-card' style='background:#FFF8E7'>';
+      html += '<div class='appt-name'>'+s.order.className+'</div>';
+      html += '<div style='font-size:11px;color:#92600A'>'+(s.order.bookName||'교재 미확인')+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+  inner.innerHTML = html;
+}
+function changeMsgCalMonth(delta){
+  if(!_msgCalMonth){
+    var now = new Date(Date.now() + 9*60*60*1000);
+    _msgCalMonth = { year: now.getUTCFullYear(), month: now.getUTCMonth() };
+  }
+  _msgCalMonth.month += delta;
+  if(_msgCalMonth.month < 0){ _msgCalMonth.month = 11; _msgCalMonth.year--; }
+  if(_msgCalMonth.month > 11){ _msgCalMonth.month = 0; _msgCalMonth.year++; }
+  loadParentMsgs();
+}
+function scrollToMsgDate(dateStr){
+  var el = document.getElementById('msg-'+dateStr);
+  if(el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
 var consultCalMonth = null;
 function loadConsultCal(){
   if(!consultCalMonth){
