@@ -4064,45 +4064,69 @@ function submitLessonPlan(){
   }
 }
 </script>
-<div id="fullReportModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);overflow-y:auto">
-  <div style="background:white;border-radius:16px;margin:20px auto;max-width:560px;width:calc(100%-32px);padding:24px;position:relative">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div style="font-size:16px;font-weight:700;color:#363D2E">✏️ 새 리포트 작성</div>
-      <button onclick="closeFullReportModal()" style="background:#F2F4EC;border:none;border-radius:8px;width:32px;height:32px;font-size:18px;cursor:pointer;color:#555">×</button>
+<div id="fullReportModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);overflow-y:auto;align-items:flex-start;justify-content:center;padding:20px 16px">
+  <div style="background:white;border-radius:16px;width:100%;max-width:520px;margin:0 auto;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+    <div style="background:#4A5240;padding:16px 18px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:15px;font-weight:700;color:white">✏️ New Daily Report</div>
+      <button onclick="closeFullReportModal()" style="background:rgba(255,255,255,0.18);border:none;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;color:white;display:flex;align-items:center;justify-content:center">×</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">리포트 제목 <span style="color:#EF4444">*</span></label>
-        <input id="fr_title" type="text" placeholder="e.g. 3:30 3A Sue (3/18)" style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
-      <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">반 선택</label>
-        <select id="fr_class" style="width:100%;padding:10px 36px 10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 12px center;background-size:10px;appearance:none;-webkit-appearance:none;box-sizing:border-box"><option value="">-- 반 선택 (선택사항) --</option></select></div>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Report Title <span style="color:#EF4444">*</span></label>
+        <input id="fr_title" type="text" placeholder="e.g. 3:30 3A Sue (6/20)" style="width:100%;padding:11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;box-sizing:border-box;font-family:inherit;outline:none">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Class</label>
+        <select id="fr_class" style="width:100%;padding:11px 36px 11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;appearance:none;-webkit-appearance:none;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 13px center;background-size:10px;box-sizing:border-box;outline:none">
+          <option value="">-- Select Class --</option>
+        </select>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Test</label>
-          <select id="fr_test" style="width:100%;padding:10px 36px 10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 12px center;background-size:10px;appearance:none;-webkit-appearance:none;box-sizing:border-box">
-            <option value="">-- Test --</option><option>-</option><option>Review Test</option><option>Reading Test</option><option>Word Test</option><option>Speaking Test</option><option>Presentation</option>
-          </select></div>
-        <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Attitude</label>
-          <select id="fr_attitude" style="width:100%;padding:10px 36px 10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 12px center;background-size:10px;appearance:none;-webkit-appearance:none;box-sizing:border-box">
-            <option value="">-- Attitude --</option><option>Excellent</option><option>Great</option><option>Good</option><option>Needs Improvement</option><option>Poor</option>
-          </select></div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Test</label>
+          <select id="fr_test" style="width:100%;padding:11px 36px 11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;appearance:none;-webkit-appearance:none;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 13px center;background-size:10px;box-sizing:border-box;outline:none">
+            <option value="">-- Select --</option><option>-</option><option>Review Test</option><option>Reading Test</option><option>Word Test</option><option>Speaking Test</option><option>Presentation</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Attitude</label>
+          <select id="fr_attitude" style="width:100%;padding:11px 36px 11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;appearance:none;-webkit-appearance:none;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 13px center;background-size:10px;box-sizing:border-box;outline:none">
+            <option value="">-- Select --</option><option>⭐⭐⭐⭐⭐</option><option>⭐⭐⭐⭐</option><option>⭐⭐⭐</option><option>⭐⭐</option><option>⭐</option>
+          </select>
+        </div>
       </div>
-      <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Previous Lesson</label>
-        <textarea id="fr_lastLesson" rows="2" placeholder="지난 수업 내용..." style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit"></textarea></div>
-      <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Previous Homework</label>
-        <textarea id="fr_lastHW" rows="2" placeholder="지난 숙제..." style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit"></textarea></div>
-      <div style="background:#F2F4EC;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px">
-        <div style="font-size:11px;font-weight:700;color:#4A5240;text-transform:uppercase;letter-spacing:0.5px">오늘 수업</div>
-        <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Today's Lesson <span style="color:#EF4444">*</span></label>
-          <textarea id="fr_lesson" rows="3" placeholder="오늘 수업 내용..." style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:white"></textarea></div>
-        <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Homework <span style="color:#EF4444">*</span></label>
-          <textarea id="fr_hw" rows="2" placeholder="숙제..." style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:white"></textarea></div>
-        <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Book</label>
-          <input id="fr_book" type="text" placeholder="교재명..." style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box;font-family:inherit;background:white"></div>
-        <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Comments</label>
-          <textarea id="fr_comments" rows="2" placeholder="코멘트..." style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:white"></textarea></div>
-        <div><label style="font-size:12px;font-weight:700;color:#5A6350;margin-bottom:4px;display:block">Book Orders</label>
-          <input id="fr_bookorders" type="text" placeholder="교재 주문..." style="width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box;font-family:inherit;background:white"></div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#8A9178;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Previous Lesson</label>
+        <textarea id="fr_lastLesson" rows="2" placeholder="Last lesson content..." style="width:100%;padding:10px 13px;border:none;border-left:3px solid #CBD3BC;border-radius:0 8px 8px 0;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:#F7F8F2;outline:none;color:#5A6350"></textarea>
       </div>
-      <button id="fr_submitBtn" onclick="submitFullReport()" style="width:100%;padding:13px;background:#363D2E;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">✅ 리포트 저장</button>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:#8A9178;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Previous Homework</label>
+        <textarea id="fr_lastHW" rows="2" placeholder="Last homework..." style="width:100%;padding:10px 13px;border:none;border-left:3px solid #CBD3BC;border-radius:0 8px 8px 0;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:#F7F8F2;outline:none;color:#5A6350"></textarea>
+      </div>
+      <div style="background:#F2F4EC;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:700;color:#4A5240;text-transform:uppercase;letter-spacing:0.5px">Today's Class</div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Today's Lesson <span style="color:#EF4444">*</span></label>
+          <textarea id="fr_lesson" rows="2" placeholder="Today's lesson content..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:white;outline:none"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Homework <span style="color:#EF4444">*</span></label>
+          <textarea id="fr_hw" rows="2" placeholder="Homework assigned..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:white;outline:none"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Book</label>
+          <input id="fr_book" type="text" placeholder="Book name..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box;font-family:inherit;background:white;outline:none">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Comments</label>
+          <textarea id="fr_comments" rows="2" placeholder="Additional comments..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit;background:white;outline:none"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Book Orders</label>
+          <input id="fr_bookorders" type="text" placeholder="Book order requests..." style="width:100%;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box;font-family:inherit;background:white;outline:none">
+        </div>
+      </div>
+      <button id="fr_submitBtn" onclick="submitFullReport()" style="width:100%;padding:13px;background:#4A5240;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">✅ Save Report</button>
     </div>
   </div>
 </div>
