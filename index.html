@@ -3855,15 +3855,20 @@ function renderTuitionList(students){
     var discountStr = s.siblingDiscount > 0
       ? "<span style='font-size:10px;color:#B07A2A;background:#FFF8E7;border-radius:5px;padding:1px 5px;margin-left:4px'>형제 -"+Number(s.siblingDiscount)+"만원</span>"
       : "";
-    var memoIcon = s.tuitionMemo ? "📝" : "<span style='color:#ccc;font-size:13px'>＋</span>";
     var memoEsc = (s.tuitionMemo||"").replace(/\\/g,"\\\\").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+    var memoCell = s.tuitionMemo
+      ? "<div style='display:flex;align-items:flex-start;gap:5px;text-align:left'>"
+          + "<span style='font-size:11px;color:#8B4513;background:#FFF3E0;border-radius:6px;padding:3px 7px;flex:1;line-height:1.4'>" + s.tuitionMemo.replace(/</g,"&lt;") + "</span>"
+          + "<button onclick='openTuitionMemoModal(\""+s.id+"\",\""+memoEsc+"\")' style='background:none;border:none;cursor:pointer;font-size:12px;color:#aaa;padding:2px;flex-shrink:0' title='수정'>✏️</button>"
+          + "</div>"
+      : "<button onclick='openTuitionMemoModal(\""+s.id+"\",\"\")' style='background:none;border:1.5px dashed #ddd;border-radius:6px;cursor:pointer;font-size:11px;color:#ccc;padding:3px 10px;width:100%'>+ 메모</button>";
     return "<tr style='background:"+bg+";"+divider+"'>"
       + "<td style='padding:5px 7px;font-size:12px;font-weight:700;color:#363D2E;white-space:nowrap;text-align:center'>" + (s.className||"-") + "</td>"
       + "<td style='padding:5px 7px;font-size:12px;font-weight:600;color:#333;white-space:nowrap;text-align:center'>" + (s.name||"-") + "</td>"
       + "<td style='padding:5px 7px;font-size:12px;color:#888;white-space:nowrap;text-align:center'>" + baseFeeStr + "</td>"
       + "<td style='padding:5px 7px;font-size:12px;white-space:nowrap;text-align:center;"+finalStyle+"'>" + finalFeeStr + discountStr + "</td>"
       + "<td style='padding:5px 7px;font-size:12px;color:#999;white-space:nowrap;text-align:center'>" + (s.enrollDate||"-") + "</td>"
-      + "<td style='padding:4px 6px;text-align:center'><button onclick='openTuitionMemoModal(\""+s.id+"\",\""+memoEsc+"\")' style='background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px'>" + memoIcon + "</button></td>"
+      + "<td style='padding:5px 8px;min-width:120px'>" + memoCell + "</td>"
       + "</tr>";
   }).join("");
 }
