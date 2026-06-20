@@ -751,6 +751,15 @@ async function fetchNativeMemoBlocks(pageId) {
   return [{ type:type, text:'', url:r.file_url, name:r.file_name||'첨부파일' }];
 }
 
+async function deleteMemo(pageId) {
+  await sbDelete('korean_memos', 'id='+_eq(pageId));
+  return { success: true };
+}
+async function deleteNativeMemo(pageId) {
+  await sbDelete('native_memos', 'id='+_eq(pageId));
+  return { success: true };
+}
+
 // ── 시간표 ──────────────────────────────────────────────────
 
 
@@ -1025,10 +1034,10 @@ var _serverFunctions = {
   deleteReport, createReportsForDate,
   fetchCommentsBoard, fetchBookOrdersBoard,
   fetchStayStudents, fetchDepartedStudents, createStayStudent, markDeparted,
-  fetchMemos, createMemo, createMemoWithFile, updateMemo,
+  fetchMemos, createMemo, createMemoWithFile, updateMemo, deleteMemo,
   toggleMemoConfirmed, fetchMemoBlocks,
   fetchNativeMemos, createNativeMemo, createNativeMemoWithFile,
-  updateNativeMemo, toggleNativeMemoConfirmed, fetchNativeMemoBlocks,
+  updateNativeMemo, toggleNativeMemoConfirmed, fetchNativeMemoBlocks, deleteNativeMemo,
   fetchAllSchedules, uploadScheduleImage, updateSchedule,
   fetchWGBooks, fetchWGOrders, submitWGOrder, updateWGOrderStatus, updateWGNote,
   fetchExternalOrders, submitExternalOrder, updateExternalOrderStatus,
@@ -3122,6 +3131,7 @@ function renderMemoCard(m){
     + "<button onclick='showMemoDetail(\""+m.id+"\")' style='background:#f0f0f0;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;color:#555;white-space:nowrap'>📄 보기</button>"
     + "<button onclick='openMemoEditModal(\""+m.id+"\")' style='background:#fff3e0;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;color:#e65100;white-space:nowrap'>✏️ 수정</button>"
     + "<button onclick='openConfirmPopup(\""+m.id+"\")' style='background:#e8f5e9;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;color:#2D6A4F;white-space:nowrap'>확인 ✓"+(confirmCount>0?" ("+confirmCount+")":"")+"</button>"
+    + "<button onclick='deleteMemoCard(\""+m.id+"\")' style='background:#fdecea;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;color:#c62828;white-space:nowrap'>🗑️</button>"
     + "</div>"
     + "</div>"
     + "<div style='font-size:13px;color:#222;line-height:1.65;white-space:pre-line;margin-bottom:8px'>"+m.content+"</div>"
@@ -3471,6 +3481,7 @@ function renderNativeMemoCard(m){
     + "<button onclick='showNativeMemoDetail(\""+m.id+"\")' style='background:#f0f0f0;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;color:#555;white-space:nowrap'>View 📄</button>"
     + "<button onclick='openNativeMemoEditModal(\""+m.id+"\")' style='background:#fff3e0;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#e65100;white-space:nowrap'>✏️ Edit</button>"
     + "<button onclick='openNativeConfirmPopup(\""+m.id+"\")' style='background:#e8f5e9;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#2D6A4F;white-space:nowrap'>Confirm ✓"+(confirmCount>0?" ("+confirmCount+")":"")+"</button>"
+    + "<button onclick='deleteNativeMemoCard(\""+m.id+"\")' style='background:#fdecea;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#c62828;white-space:nowrap'>🗑️</button>"
     + "</div>"
     + "</div>"
     + "<div style='font-size:13px;color:#222;line-height:1.65;white-space:pre-line;margin-bottom:8px'>" + m.title + "</div>"
@@ -4161,6 +4172,20 @@ function submitLessonPlan(){
 </div>
 
 <script>
+function deleteMemoCard(pageId){
+  if(!confirm("Delete this memo?")) return;
+  google.script.run
+  .withSuccessHandler(function(){ loadMemoList(); showToast("Deleted."); })
+  .withFailureHandler(function(e){ showToast("Delete failed: "+e.message); })
+  .deleteMemo(pageId);
+}
+function deleteNativeMemoCard(pageId){
+  if(!confirm("Delete this memo?")) return;
+  google.script.run
+  .withSuccessHandler(function(){ initNativeBoardScreen(); showToast("Deleted."); })
+  .withFailureHandler(function(e){ showToast("Delete failed: "+e.message); })
+  .deleteNativeMemo(pageId);
+}
 function toggleFrMore(){
   var sec = document.getElementById("fr_moreSection");
   var btn = document.getElementById("fr_moreBtn");
