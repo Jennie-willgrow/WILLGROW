@@ -440,7 +440,7 @@ async function fetchVehicleOptions() {
 
 async function fetchStudentsByClass(classId) {
   var rows = await sbGet('students',
-    'select=id,name,school,grade&class_id=eq.'+_eq(classId)+'&status=eq.재원&order=name.asc');
+    'select=id,name,school,grade&class_id='+_eq(classId)+'&status=eq.재원&order=name.asc');
   return rows.map(function(r){ return { id:r.id, name:r.name||'', school:r.school||'', grade:r.grade||'' }; });
 }
 async function fetchStudentList() {
