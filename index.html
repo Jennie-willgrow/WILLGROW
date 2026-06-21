@@ -1505,9 +1505,9 @@ function loadReports(){
     if(addArea) addArea.style.display = "none";
     return;
   }
-  // Show add-report area only for today or future dates
-  var isPast = selectedDate < getTodayStr();
-  if(addArea) addArea.style.display = isPast ? "none" : "block";
+  // [TEMP UNLOCK] Past date editing enabled
+  var isPast = false;
+  if(addArea) addArea.style.display = "block";
   document.getElementById("list").innerHTML = "<div class='loading'>Loading...</div>";
   google.script.run
   .withSuccessHandler(function(reports){
@@ -1520,7 +1520,7 @@ function loadReports(){
   .fetchTodayReports(tid, selectedDate);
 }
 function renderCard(r, c){
-  var isPast = selectedDate < getTodayStr();
+  var isPast = false; // [TEMP UNLOCK]
   var dis    = isPast ? " disabled" : "";
   var div = document.createElement("div");
   div.className = "card";
