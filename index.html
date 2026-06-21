@@ -54,7 +54,7 @@ body {font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 
 /* ── MISC ── */
 .loading,.empty {text-align:center;padding:40px;color:#B2BAA0}
-.toast {position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#363D2E;color:white;padding:10px 20px;border-radius:8px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
+.toast {position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#363D2E;color:white;padding:10px 20px;border-radius:8px;font-size:14px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:99999}
 .toast.show {opacity:1}
 
 /* ── INPUTS ── */
@@ -1641,10 +1641,11 @@ function loadHw(){
       div.className = "hw-card";
       var hw = r.homework ? r.homework.replace(/\n/g,"<br>") : null;
       var lesson = r.todayLesson ? r.todayLesson.replace(/\n/g,"<br>") : null;
+      var isPastHw = hwSelectedDate < getTodayStr();
       var html = "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px'>"
                + "<div class='hw-head' style='margin:0'>" + r.title + "</div>"
                + "<div style='display:flex;gap:6px;flex-shrink:0'>"
-               + "<button class='hw-edit-btn' style='background:#4a90d9;color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>✏️ 수정</button>"
+               + (isPastHw ? "" : "<button class='hw-edit-btn' style='background:#4a90d9;color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>✏️ 수정</button>")
                + "<button class='hw-zoom-btn' style='background:#363D2E;color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>🔍 확대</button>"
                + "</div></div>"
                + "<div class='hw-body'>";
