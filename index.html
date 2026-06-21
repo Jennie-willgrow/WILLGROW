@@ -732,24 +732,25 @@ function _todayRangeKST() {
 async function fetchStayStudents() {
   var r=_todayRangeKST();
   var rows=await sbGet('stay_board',
-    'select=id,student_name,reasons,is_dismissed,recorded_at&recorded_at=gte.'+encodeURIComponent(r.start)+'&recorded_at=lte.'+encodeURIComponent(r.end)+'&is_dismissed=eq.false&order=recorded_at.asc');
+    'select=id,student_name,reasons,is_dismissed,recorded_at,created_by&recorded_at=gte.'+encodeURIComponent(r.start)+'&recorded_at=lte.'+encodeURIComponent(r.end)+'&is_dismissed=eq.false&order=recorded_at.asc');
   return rows.map(function(row){
-    return { id:row.id, name:row.student_name||'', reasons:row.reasons||[], departed:false, createdAt:row.recorded_at||'' };
+    return { id:row.id, name:row.student_name||'', reasons:row.reasons||[], departed:false, createdAt:row.recorded_at||'', createdBy:row.created_by||'' };
   });
 }
 
 async function fetchDepartedStudents() {
   var r=_todayRangeKST();
   var rows=await sbGet('stay_board',
-    'select=id,student_name,reasons,is_dismissed,recorded_at&recorded_at=gte.'+encodeURIComponent(r.start)+'&recorded_at=lte.'+encodeURIComponent(r.end)+'&is_dismissed=eq.true&order=recorded_at.asc');
+    'select=id,student_name,reasons,is_dismissed,recorded_at,created_by&recorded_at=gte.'+encodeURIComponent(r.start)+'&recorded_at=lte.'+encodeURIComponent(r.end)+'&is_dismissed=eq.true&order=recorded_at.asc');
   return rows.map(function(row){
-    return { id:row.id, name:row.student_name||'', reasons:row.reasons||[], departed:true, createdAt:row.recorded_at||'' };
+    return { id:row.id, name:row.student_name||'', reasons:row.reasons||[], departed:true, createdAt:row.recorded_at||'', createdBy:row.created_by||'' };
   });
 }
 
 async function createStayStudent(data) {
   var result=await sbInsert('stay_board',{
-    student_name:data.name||'', reasons:data.reasons||[], is_dismissed:false, recorded_at:new Date().toISOString()
+    student_name:data.name||'', reasons:data.reasons||[], is_dismissed:false,
+    recorded_at:new Date().toISOString(), created_by:data.createdBy||''
   });
   return result ? { success:true } : { success:false };
 }
@@ -3361,7 +3362,7 @@ function submitStay(){
     else { showToast("저장 실패. 다시 시도해주세요."); loadStayBoard(); }
   })
   .withFailureHandler(function(){ showToast("오류가 발생했습니다."); loadStayBoard(); })
-  .createStayStudent({ name: name, reasons: reasons });
+  .createStayStudent({ name: name, reasons: reasons, createdBy: _userName || '' });
 }
 function loadStayBoard(){
   var el = document.getElementById("stayList");
@@ -3393,6 +3394,7 @@ function renderStayCard(s, isDeparted){
     + "<div>"
     + "<div style='font-size:14px;font-weight:700;color:#363D2E'>🧑‍🎓 " + s.name + "</div>"
     + (reasons ? "<div style='margin-top:5px;display:flex;flex-wrap:wrap;gap:4px'>" + reasons + "</div>" : "")
+    + (s.createdBy ? "<div style='margin-top:4px;font-size:11px;color:#aaa'>✍️ " + s.createdBy + "</div>" : "")
     + "</div>";
   if(!isDeparted){
     html += "<button onclick='markStudentDeparted(\""+s.id+"\")' style='background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap'>귀가완료 ✓</button>";
