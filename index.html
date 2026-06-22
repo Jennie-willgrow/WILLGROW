@@ -656,7 +656,7 @@ async function fetchTodayReports(teacherId, dateStr) {
 async function submitReport(data) {
   var u={ todays_lesson:data.todayLesson||'', homework:data.homework||'', book:data.book||'' };
   if(data.classId && data.classId!=='')  u.class_id=data.classId;
-  if(data.test&&data.test!=='-') u.test=data.test;
+  if(data.test&&data.test!=='-'&&data.test!=='No Test') u.test=data.test;
   if(data.attitude)             u.attitude=data.attitude;
   if(data.comments!==undefined) u.comments=data.comments;
   if(data.bookOrders!==undefined) u.book_orders=data.bookOrders;
@@ -1621,7 +1621,12 @@ function renderCard(r, c){
   });
   var testOpts = ["No Test","Review Test","Reading Test","Word Test","Speaking Test","Presentation"];
   var testHtml = "<option value=''>-- Select Test --</option>";
-  testOpts.forEach(function(opt){ var sel2 = (r.test===opt)?" selected":""; testHtml += "<option"+sel2+">"+opt+"</option>"; });
+  testOpts.forEach(function(opt){
+    var sel2;
+    if(opt==="No Test") sel2 = (!r.test||r.test==='-') ? " selected" : "";
+    else sel2 = (r.test===opt) ? " selected" : "";
+    testHtml += "<option"+sel2+">"+opt+"</option>";
+  });
   var attitudeOpts = ["Excellent","Great","Good","Needs Improvement","Poor"];
   var attitudeHtml = "<option value=''>-- Select Attitude --</option>";
   attitudeOpts.forEach(function(opt){ var sel3 = (r.attitude===opt)?" selected":""; attitudeHtml += "<option"+sel3+">"+opt+"</option>"; });
