@@ -3473,15 +3473,15 @@ function openMemoForm(){
   document.getElementById("memoFileName").textContent = "";
   // 결석 학생 섹션 초기화
   var absClassSel = document.getElementById("memoAbsClassSel");
-  absClassSel.value = "";
   document.getElementById("memoAbsStudentSel").innerHTML = '<option value="">-- 학생 선택 --</option>';
-  // 반 목록 로드 (없으면)
-  if(absClassSel.options.length <= 1){
-    google.script.run.withSuccessHandler(function(classes){
-      absClassSel.innerHTML = '<option value="">-- 반 선택 --</option>';
-      classes.forEach(function(c){ var o=document.createElement("option"); o.value=c.id; o.textContent=c.name; absClassSel.appendChild(o); });
-    }).fetchClasses();
-  }
+  absClassSel.innerHTML = '<option value="">-- 반 선택 --</option>';
+  google.script.run
+  .withSuccessHandler(function(classes){
+    absClassSel.innerHTML = '<option value="">-- 반 선택 --</option>';
+    classes.forEach(function(c){ var o=document.createElement("option"); o.value=c.id; o.textContent=c.name; absClassSel.appendChild(o); });
+  })
+  .withFailureHandler(function(){ console.error("반 목록 로드 실패"); })
+  .fetchClasses();
   document.getElementById("memoContent").focus();
 }
 function closeMemoForm(){
