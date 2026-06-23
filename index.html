@@ -4619,7 +4619,6 @@ function submitMakeupDate(){
 }
 function resetMakeupDate(){
   if(!_makeupAbsenceId) return;
-  if(!confirm("보충일을 초기화할까요?")) return;
   google.script.run
   .withSuccessHandler(function(){ showToast("보충일 초기화 완료!"); closeMakeupModal(); loadAbsenceStudents(); })
   .withFailureHandler(function(){ showToast("오류가 발생했습니다."); })
