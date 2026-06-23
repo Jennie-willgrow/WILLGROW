@@ -4496,7 +4496,7 @@ function renderAbsenceList(){
     html += "<div style='font-size:12px;font-weight:700;color:#555'>💬 상담 기록";
     if(consults.length>0) html += " <span style='background:#e3f2fd;color:#1565c0;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700'>"+consults.length+"회</span>";
     html += "</div>";
-    html += "<button onclick='openConsultModal(""+s.id+"",""+s.name+"")' style='background:#1565c0;color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer'>+ 상담 추가</button>";
+    html += "<button onclick=\'openConsultModal(\""+s.id+"\",\""+s.name+"\")' style=\'background:#1565c0;color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer\'>+ 상담 추가</button>";
     html += "</div>";
     if(consults.length > 0){
       html += "<table style='width:100%;border-collapse:collapse;font-size:12px'>";
@@ -4506,7 +4506,7 @@ function renderAbsenceList(){
         html += "<td style='padding:7px 8px;font-weight:600;color:#333;white-space:nowrap'>"+c.date+"</td>";
         html += "<td style='padding:7px 8px;color:#555;max-width:200px'>"+( c.content||"-")+"</td>";
         html += "<td style='padding:7px 8px;color:#888;font-size:11px'>"+(c.created_by||"")+"</td>";
-        html += "<td style='padding:7px 8px;text-align:center'><button onclick='deleteConsultRow(""+c.id+"")' style='background:#fdecea;color:#c62828;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer'>🗑️</button></td>";
+        html += "<td style='padding:7px 8px;text-align:center'><button onclick=\'deleteConsultRow(\""+c.id+"\")' style=\'background:#fdecea;color:#c62828;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer\'>🗑️</button></td>";
         html += "</tr>";
       });
       html += "</tbody></table>";
