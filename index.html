@@ -944,7 +944,7 @@ async function createAbsence(data) {
   return result ? { success:true, id:result.id } : { success:false };
 }
 async function updateAbsenceMakeup(id, makeupDate) {
-  await sbPatch('absences', { makeup_date: makeupDate||null }, 'id='+_eq(id));
+  await sbPatch('absences', 'id='+_eq(id), { makeup_date: makeupDate||null });
   return { success:true };
 }
 async function deleteAbsence(id) {
