@@ -657,7 +657,7 @@ async function fetchTodayReports(teacherId, dateStr) {
 async function submitReport(data) {
   var u={ todays_lesson:data.todayLesson||'', homework:data.homework||'', book:data.book||'' };
   if(data.classId && data.classId!=='')  u.class_id=data.classId;
-  if(data.test&&data.test!=='-'&&data.test!=='No Test') u.test=data.test;
+  if(data.test&&data.test!=='-') u.test=data.test;
   if(data.attitude)             u.attitude=data.attitude;
   if(data.comments!==undefined) u.comments=data.comments;
   if(data.bookOrders!==undefined) u.book_orders=data.bookOrders;
