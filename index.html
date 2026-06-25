@@ -5789,12 +5789,6 @@ function openFullReportModal(){
   ['fr_class','fr_test','fr_attitude'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value='';
   });
-  // 제목 날짜 자동입력
-  var _titleEl = document.getElementById('fr_title');
-  if(_titleEl && typeof selectedDate !== 'undefined' && selectedDate){
-    var _p = selectedDate.split('-');
-    _titleEl.value = parseInt(_p[1],10) + '/' + parseInt(_p[2],10);
-  }
   // Populate class select (always reload)
   var classEl = document.getElementById('fr_class');
   if(classEl){
@@ -5881,11 +5875,23 @@ function loadPrevReports(){
         var lhEl = document.getElementById('fr_lastHW');
         var clEl = document.getElementById('fr_class');
         var bkEl = document.getElementById('fr_book');
+        var ttEl = document.getElementById('fr_title');
         if(llEl) llEl.value = rep.todayLesson || '';
         if(lhEl) lhEl.value = rep.homework    || '';
-        if(clEl && rep.classId) clEl.value = rep.classId;
         if(bkEl) bkEl.value = rep.book || '';
-        showToast('반·책·지난수업 자동 입력됐어요!');
+        // 반 설정
+        if(clEl && rep.classId) clEl.value = rep.classId;
+        // 제목 자동생성: 시간 반이름 선생님이름 (날짜)
+        if(ttEl){
+          var timeMatch = rep.title.match(/^(\d{1,2}:\d{2})/);
+          var timeStr   = timeMatch ? timeMatch[1] : '';
+          var className = (clEl && clEl.selectedIndex > 0) ? clEl.options[clEl.selectedIndex].text : '';
+          var teacher   = (typeof _userName !== 'undefined' && _userName) ? _userName : '';
+          var dateParts = (typeof selectedDate !== 'undefined' && selectedDate) ? selectedDate.split('-') : [];
+          var dateStr   = dateParts.length === 3 ? (parseInt(dateParts[1],10)+'/'+parseInt(dateParts[2],10)) : '';
+          ttEl.value = [timeStr, className, teacher, dateStr ? '('+dateStr+')' : ''].filter(Boolean).join(' ');
+        }
+        showToast('반·책·제목·지난수업 자동 입력됐어요!');
         togglePrevClassPanel();
       }; })(r);
       listEl.appendChild(btn);
