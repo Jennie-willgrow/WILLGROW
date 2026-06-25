@@ -5789,6 +5789,12 @@ function openFullReportModal(){
   ['fr_class','fr_test','fr_attitude'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value='';
   });
+  // 제목 날짜 자동입력
+  var _titleEl = document.getElementById('fr_title');
+  if(_titleEl && typeof selectedDate !== 'undefined' && selectedDate){
+    var _p = selectedDate.split('-');
+    _titleEl.value = parseInt(_p[1],10) + '/' + parseInt(_p[2],10);
+  }
   // Populate class select (always reload)
   var classEl = document.getElementById('fr_class');
   if(classEl){
@@ -5873,9 +5879,13 @@ function loadPrevReports(){
       (function(rep){ btn.onclick = function(){
         var llEl = document.getElementById('fr_lastLesson');
         var lhEl = document.getElementById('fr_lastHW');
+        var clEl = document.getElementById('fr_class');
+        var bkEl = document.getElementById('fr_book');
         if(llEl) llEl.value = rep.todayLesson || '';
         if(lhEl) lhEl.value = rep.homework    || '';
-        showToast('이전 수업 내용이 적용됐어요!');
+        if(clEl && rep.classId) clEl.value = rep.classId;
+        if(bkEl) bkEl.value = rep.book || '';
+        showToast('반·책·지난수업 자동 입력됐어요!');
         togglePrevClassPanel();
       }; })(r);
       listEl.appendChild(btn);
