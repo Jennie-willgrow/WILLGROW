@@ -1414,9 +1414,10 @@ function applyRoleVisibility(){
   // ── Class Management (관리자는 숨김) ──
   var showClassMgmt = role !== '관리자';
   secVis('divClassMgmt','secClassMgmt', showClassMgmt);
-  ['report','hw','roster','comments','lessonplan'].forEach(function(m){
+  ['report','roster','comments','lessonplan'].forEach(function(m){
     vis(m, showClassMgmt);
   });
+  vis('hw', !isNative); // HW check는 관리자도 볼 수 있음
   // ── Admin ──
   var isMaster = role === '마스터';
   secVis('divAdminMgmt','secAdminMgmt', isMaster);
