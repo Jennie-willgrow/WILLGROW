@@ -250,8 +250,8 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
     <div style="margin-bottom:10px">
       <label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">납부 방법</label>
       <select id="piMethod" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white">
-        <option value="계좌이체">계좌이체</option>
         <option value="카드">카드</option>
+        <option value="계좌이체">계좌이체</option>
         <option value="현금">현금</option>
       </select>
     </div>
@@ -899,9 +899,9 @@ async function upsertTuitionPayment(data) {
     var body = { student_id:data.studentId, due_date:data.dueDate,
                  paid_date:data.paidDate||null, paid_method:data.paidMethod||null,
                  amount:data.amount!=null?Number(data.amount):null, memo:data.memo||null };
-    var res = await fetch(SUPABASE_URL+'/rest/v1/tuition_payments', {
+    var res = await fetch(SUPABASE_URL+'/rest/v1/tuition_payments?on_conflict=student_id,due_date', {
       method:'POST',
-      headers: Object.assign({},_sbH(),{'Prefer':'resolution=merge-duplicates'}),
+      headers: Object.assign({},_sbH(),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
       body: JSON.stringify(body)
     });
     if(!res.ok){ var e=await res.text(); if(_handleAuthError(res.status)) throw new Error('AUTH'); throw new Error(e); }
@@ -5882,7 +5882,7 @@ function openPaymentInputModal(studentId, studentName, dueDate, defaultAmount){
   if(amEl) amEl.value = defaultAmount||'';
   var pdEl = document.getElementById('piPaidDate');
   if(pdEl){ var t=new Date(); pdEl.value=t.toISOString().split('T')[0]; }
-  document.getElementById('piMethod').value = '계좌이체';
+  document.getElementById('piMethod').value = '카드';
   document.getElementById('piMemo').value = '';
   document.getElementById('paymentInputModal').style.display='flex';
 }
