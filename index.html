@@ -292,8 +292,8 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
     </div>
     <div style="display:flex;gap:10px;margin-bottom:10px">
       <div style="flex:1">
-        <div style="font-size:11px;color:#555;font-weight:700;margin-bottom:4px">수강 월 <span style="color:#c62828;font-size:10px">(어느 달 수강료)</span></div>
-        <input type="month" id="bulkTuitionMonth" style="width:100%;padding:8px 10px;border:1.5px solid #c62828;border-radius:8px;font-size:13px;box-sizing:border-box">
+        <div style="font-size:11px;color:#555;font-weight:700;margin-bottom:4px">납부일</div>
+        <input type="date" id="bulkDate" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box">
       </div>
       <div style="flex:1">
         <div style="font-size:11px;color:#555;font-weight:700;margin-bottom:4px">납부방법</div>
@@ -305,10 +305,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
         </select>
       </div>
     </div>
-    <div style="margin-bottom:14px">
-      <div style="font-size:11px;color:#555;font-weight:700;margin-bottom:4px">실제 납부일</div>
-      <input type="date" id="bulkDate" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box">
-    </div>
+    <div style="font-size:11px;color:#2D6A4F;background:#e8f5e9;border-radius:7px;padding:7px 10px;margin-bottom:10px">📦 각 학생의 마지막 납부달 다음 달로 자동 배정됩니다</div>
     <div id="bulkCheckList" style="max-height:460px;overflow-y:auto;border:1.5px solid #eee;border-radius:10px">
       <div style="text-align:center;color:#bbb;padding:30px;font-size:13px">불러오는 중...</div>
     </div>
@@ -6548,14 +6545,13 @@ async function confirmMoveTuition(){
 // ── 일괄 납부 입력 ───────────────────────────────────────────
 var _bulkStudents = [];
 var _bulkDayChanges = [];
+var _bulkLastPaidMap = {}; // studentId → last paid due_date (e.g. "2026-08-02")
 
 function openBulkPaymentModal(){
   document.getElementById('bulkPaymentModal').style.display='flex';
-  // 오늘 날짜 기본값
   var today = new Date();
   var yyyy=today.getFullYear(), mm=String(today.getMonth()+1).padStart(2,'0'), dd=String(today.getDate()).padStart(2,'0');
   document.getElementById('bulkDate').value = yyyy+'-'+mm+'-'+dd;
-  document.getElementById('bulkTuitionMonth').value = yyyy+'-'+mm;
   document.getElementById('bulkCheckList').innerHTML="<div style='text-align:center;color:#bbb;padding:30px;font-size:13px'>불러오는 중...</div>";
 
   google.script.run
@@ -6564,13 +6560,44 @@ function openBulkPaymentModal(){
     google.script.run
     .withSuccessHandler(function(changes){
       _bulkDayChanges = changes||[];
-      renderBulkCheckList();
+      // 마지막 납부 기록 조회 → 학생별 "다음 납부월" 계산
+      _sbGetSafe('tuition_payments','select=student_id,due_date&paid_date=not.is.null&order=due_date.desc').then(function(pmts){
+        _bulkLastPaidMap = {};
+        (pmts||[]).forEach(function(p){
+          if(p.due_date && (!_bulkLastPaidMap[p.student_id] || p.due_date > _bulkLastPaidMap[p.student_id])){
+            _bulkLastPaidMap[p.student_id] = p.due_date;
+          }
+        });
+        renderBulkCheckList();
+      });
     })
     .withFailureHandler(function(){ _bulkDayChanges=[]; renderBulkCheckList(); })
     .fetchAllPaymentDayChanges();
   })
   .withFailureHandler(function(e){ document.getElementById('bulkCheckList').innerHTML="<div style='color:#c62828;padding:20px'>학생 불러오기 실패: "+e.message+"</div>"; })
   .fetchStudentsWithTuitionData();
+}
+
+// 학생의 다음 납부월 계산
+// - 납부기록 있음 → 마지막 납부달 + 1
+// - 납부기록 없음 → 등록월 (블럭의 시작)
+function _getNextTuitionMonth(sid){
+  var lastDue = _bulkLastPaidMap[sid];
+  if(lastDue){
+    var yr=parseInt(lastDue.substring(0,4));
+    var mo=parseInt(lastDue.substring(5,7))+1;
+    if(mo>12){ mo=1; yr++; }
+    return {yr:yr, mo:mo};
+  }
+  // 납부기록 없음 → 등록월부터 시작
+  var student=(_bulkStudents||[]).find(function(s){ return s.id===sid; });
+  if(student && student.enrolledAt){
+    return {
+      yr: parseInt(student.enrolledAt.substring(0,4)),
+      mo: parseInt(student.enrolledAt.substring(5,7))
+    };
+  }
+  var n=new Date(); return {yr:n.getFullYear(), mo:n.getMonth()+1};
 }
 
 function renderBulkCheckList(){
@@ -6595,10 +6622,16 @@ function renderBulkCheckList(){
     html += "<span style='font-size:11px;color:#2D6A4F;margin-left:auto' id='bulkCnt_"+cnEnc+"'>0명 선택</span>";
     html += "</div>";
     stu.forEach(function(s){
+      var next=_getNextTuitionMonth(s.id);
+      var nextLabel=next.mo+'월'+(next.yr!==new Date().getFullYear()?' ('+next.yr+')':'');
+      var lastDue=_bulkLastPaidMap[s.id];
+      var lastLabel=lastDue ? parseInt(lastDue.substring(5,7))+'월까지' : '납부기록없음';
       html += "<div style='display:flex;align-items:center;padding:9px 14px 9px 38px;border-bottom:1px solid #f9f9f9;gap:10px'>";
       html += "<input type='checkbox' class='bulkStudentChk' data-sid='"+s.id+"' data-class='"+cnEnc+"' onchange='updateBulkCount()' style='width:15px;height:15px;cursor:pointer'>";
       html += "<span style='font-size:13px;font-weight:600'>"+s.name+"</span>";
-      if(s.finalFee!=null) html += "<span style='font-size:11px;color:#999;margin-left:auto'>"+s.finalFee+"만원</span>";
+      html += "<span style='font-size:10px;color:#aaa;flex:1'>"+lastLabel+"</span>";
+      html += "<span style='font-size:11px;font-weight:700;color:#2D6A4F;background:#e8f5e9;border-radius:6px;padding:2px 7px;white-space:nowrap'>→ "+nextLabel+"</span>";
+      if(s.finalFee!=null) html += "<span style='font-size:11px;color:#999'>"+s.finalFee+"만</span>";
       html += "</div>";
     });
     html += "</div>";
@@ -6742,17 +6775,11 @@ function closeBulkPaymentModal(){
 }
 
 async function submitBulkPayments(){
-  var paidDate      = document.getElementById('bulkDate').value;
-  var tuitionMonth  = document.getElementById('bulkTuitionMonth').value;
-  var method        = document.getElementById('bulkMethod').value;
-  if(!tuitionMonth){ showToast('수강 월을 선택해주세요'); return; }
-  if(!paidDate){ showToast('실제 납부일을 선택해주세요'); return; }
+  var paidDate = document.getElementById('bulkDate').value;
+  var method   = document.getElementById('bulkMethod').value;
+  if(!paidDate){ showToast('납부일을 선택해주세요'); return; }
   var checked = Array.from(document.querySelectorAll('.bulkStudentChk:checked'));
   if(!checked.length){ showToast('학생을 선택해주세요'); return; }
-
-  // due_date 계산은 수강 월 기준 (납부일 월이 아님!)
-  var yr = parseInt(tuitionMonth.substring(0,4));
-  var mo = parseInt(tuitionMonth.substring(5,7));
 
   var btn = document.getElementById('bulkSubmitBtn');
   if(btn){ btn.disabled=true; btn.textContent='저장 중...'; }
@@ -6763,8 +6790,13 @@ async function submitBulkPayments(){
     var student = _bulkStudents.find(function(s){ return s.id===sid; });
     if(!student) continue;
     var dayChanges = _bulkDayChanges.filter(function(c){ return c.studentId===sid; });
+    // 학생별 다음 납부월 계산 (마지막 납부달 + 1)
+    var next = _getNextTuitionMonth(sid);
+    var yr=next.yr, mo=next.mo;
     var dueDate = _calcDueDate(student.enrolledAt, dayChanges, yr, mo);
-    if(!dueDate) dueDate = tuitionMonth+'-01';
+    if(!dueDate) dueDate = yr+'-'+String(mo).padStart(2,'0')+'-01';
+    // 이번 납부가 처리된 후 다음번엔 +1월이 되도록 로컬 맵 업데이트
+    _bulkLastPaidMap[sid] = dueDate;
     var amount = student.finalFee!=null ? student.finalFee*10000 : null;
     var res = await upsertTuitionPayment({ studentId:sid, dueDate:dueDate, paidDate:paidDate, amount:amount, paidMethod:method, memo:'' });
     if(res&&res.success) successCount++; else failCount++;
