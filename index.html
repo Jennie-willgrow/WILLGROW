@@ -320,6 +320,23 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
 </div>
 
 <!-- 납부일변경 modal -->
+<!-- 납부월 이동 모달 -->
+<div id="moveTuitionModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:3100;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:20px;width:min(96%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+    <div style="font-size:14px;font-weight:700;color:#363D2E;margin-bottom:6px">📦 납부 월 이동</div>
+    <div id="moveTuitionInfo" style="font-size:12px;color:#666;margin-bottom:14px;background:#f5f5f5;border-radius:8px;padding:8px 10px;line-height:1.6"></div>
+    <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">이동할 월 선택</div>
+    <select id="moveTuitionTarget" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white;margin-bottom:14px">
+      <option value="">-- 월 선택 --</option>
+    </select>
+    <div style="font-size:11px;color:#e65100;background:#fff3e0;border-radius:6px;padding:7px 10px;margin-bottom:14px">⚠️ 이동할 월에 이미 납부 기록이 있으면 덮어써집니다</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeMoveTuitionModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">취소</button>
+      <button onclick="confirmMoveTuition()" style="flex:2;background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 이동</button>
+    </div>
+  </div>
+</div>
+
 <div id="payDayChangeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,380px);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -6360,6 +6377,12 @@ async function loadYearlyView(){
     'select=student_id,due_date,paid_date,amount&due_date=gte.'+start+'&due_date=lte.'+end);
   // 납부일 변경 이력
   var dayChanges = await _sbGetSafe('payment_day_changes','select=student_id,effective_from,new_day&order=effective_from.asc');
+  // 이동 모달에서도 쓸 수 있게 전역 저장
+  _yearlyDcMap = {};
+  (dayChanges||[]).forEach(function(dc){
+    if(!_yearlyDcMap[dc.student_id]) _yearlyDcMap[dc.student_id]=[];
+    _yearlyDcMap[dc.student_id].push({effectiveFrom:dc.effective_from, newDay:dc.new_day});
+  });
   renderYearlyView(yr, payments, dayChanges);
 }
 
@@ -6381,7 +6404,7 @@ function renderYearlyView(yr, payments, dayChanges){
     var dueMo=parseInt(p.due_date.substring(5,7));
     var dueDay=parseInt(p.due_date.substring(8,10));
     if(!payMap[p.student_id]) payMap[p.student_id]={};
-    payMap[p.student_id][dueMo]={ dueDay:dueDay, amount:p.amount, isPaid:!!p.paid_date };
+    payMap[p.student_id][dueMo]={ dueDay:dueDay, amount:p.amount, isPaid:!!p.paid_date, paidDate:p.paid_date||null, dueDate:p.due_date };
   });
 
   // 반별 학생 그룹
@@ -6396,62 +6419,65 @@ function renderYearlyView(yr, payments, dayChanges){
   var mLabels=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   var today=new Date(); var curMo=today.getMonth()+1; var curYr=today.getFullYear();
 
+  var COLS = 14; // 이름 + 납부일 + 12개월
   var html='<table style="border-collapse:collapse;font-size:11px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)">';
   html+='<thead><tr style="background:#2D6A4F;color:white">';
-  html+='<th style="padding:7px 10px;text-align:left;white-space:nowrap;position:sticky;left:0;background:#2D6A4F;z-index:2;min-width:72px">이름</th>';
+  html+='<th style="padding:7px 10px;text-align:left;white-space:nowrap;position:sticky;left:0;background:#2D6A4F;z-index:2;min-width:68px">이름</th>';
+  html+='<th style="padding:7px 6px;text-align:center;min-width:36px;background:#1B4332;white-space:nowrap">납부일</th>';
   months.forEach(function(m,i){
     var isThisMonth=(yr===curYr&&m===curMo);
     var bg=isThisMonth?'#52A375':'#2D6A4F';
-    html+='<th style="padding:7px 4px;text-align:center;min-width:44px;background:'+bg+'">'+mLabels[i]+'</th>';
+    html+='<th style="padding:7px 4px;text-align:center;min-width:40px;background:'+bg+'">'+mLabels[i]+'</th>';
   });
   html+='</tr></thead><tbody>';
 
   if(!classOrder.length){
-    html+='<tr><td colspan="13" style="text-align:center;color:#bbb;padding:28px">데이터 없음</td></tr>';
+    html+='<tr><td colspan="'+COLS+'" style="text-align:center;color:#bbb;padding:28px">데이터 없음</td></tr>';
   }
 
   classOrder.forEach(function(cn){
-    html+='<tr style="background:#E8F5E9"><td colspan="13" style="padding:6px 10px;font-weight:700;font-size:12px;color:#2D6A4F;border-bottom:1px solid #c8e6c9;position:sticky;left:0">📚 '+cn+'</td></tr>';
+    html+='<tr style="background:#E8F5E9"><td colspan="'+COLS+'" style="padding:6px 10px;font-weight:700;font-size:12px;color:#2D6A4F;border-bottom:1px solid #c8e6c9;position:sticky;left:0">📚 '+cn+'</td></tr>';
     classes[cn].forEach(function(s,idx){
       var rowBg=idx%2===0?'#fff':'#fafafa';
       var dc=dcMap[s.id]||[];
       var smap=payMap[s.id]||{};
+
+      // 납부일 열: 등록일 기준 기본 납부 day (ex: 17일)
+      var baseDueDay=null;
+      if(s.enrolledAt){
+        try{
+          // 이번달 기준으로 계산, 없으면 등록일 day
+          var refDate=_calcDueDate(s.enrolledAt, dc, yr, curYr===yr?curMo:6);
+          if(refDate) baseDueDay=parseInt(refDate.substring(8,10));
+          else baseDueDay=parseInt(s.enrolledAt.substring(8,10));
+        }catch(e){ baseDueDay=parseInt((s.enrolledAt||'').substring(8,10)); }
+      }
+      var dueDayCell=baseDueDay
+        ? "<span style='font-weight:700;color:#fff;background:#2D6A4F;border-radius:5px;padding:2px 5px;font-size:11px'>"+baseDueDay+"일</span>"
+        : "-";
+
       html+='<tr style="background:'+rowBg+';border-bottom:1px solid #f0f0f0">';
       html+='<td style="padding:5px 10px;white-space:nowrap;color:#333;font-weight:600;position:sticky;left:0;background:'+rowBg+'">'+(s.name||'-')+'</td>';
+      html+='<td style="padding:4px 6px;text-align:center;background:#f0fdf4">'+dueDayCell+'</td>';
+
       months.forEach(function(m){
         var rec=smap[m];
-        var dueDay=null;
-
-        if(rec){
-          dueDay=rec.dueDay;
-        } else {
-          // DB 기록 없으면 등록일 기준으로 납부일 계산
-          if(s.enrolledAt){
-            try{
-              var dd=_calcDueDate(s.enrolledAt, dc, yr, m);
-              if(dd) dueDay=parseInt(dd.substring(8,10));
-            }catch(e){}
-          }
-        }
-
-        if(!dueDay){
-          html+='<td style="padding:4px 2px;text-align:center;color:#ebebeb;font-size:10px">-</td>';
-          return;
-        }
-
-        var dayStr=dueDay+'일';
-        if(rec && rec.isPaid){
-          // 납부 완료: 초록 배경 + 납부일 + 금액
-          var amtStr=rec.amount!=null ? Math.round(rec.amount/10000)+'만' : '';
-          html+='<td style="padding:4px 2px;text-align:center;background:#E8F5E9;vertical-align:middle">'
-            +'<div style="color:#1B5E20;font-weight:700;font-size:11px;line-height:1.4">'+dayStr+'</div>'
-            +(amtStr?'<div style="color:#2D6A4F;font-size:10px;font-weight:600">'+amtStr+'</div>':'')
+        if(rec && rec.isPaid && rec.paidDate){
+          // 납부완료: 실제 납부한 날짜 M/D + 금액 + 이동버튼
+          var pd=rec.paidDate;
+          var pMo=parseInt(pd.substring(5,7));
+          var pDay=parseInt(pd.substring(8,10));
+          var amtStr=rec.amount!=null ? '<div style="font-size:9px;color:#388E3C;margin-top:1px">'+Math.round(rec.amount/10000)+'만</div>' : '';
+          var fromDue=rec.dueDate||'';
+          html+='<td style="padding:3px 2px;text-align:center;background:#E8F5E9;vertical-align:middle;position:relative" class="yearly-paid-cell">'
+            +'<div style="color:#1B5E20;font-weight:700;font-size:11px">'+pMo+'/'+pDay+'</div>'
+            +amtStr
+            +'<button onclick="openMoveTuitionModal(\''+s.id+'\',\''+fromDue+'\','+m+','+yr+',\''+s.name+'\')" '
+            +'style="display:none;position:absolute;top:1px;right:1px;background:#fff;border:1px solid #a5d6a7;border-radius:4px;font-size:8px;color:#2D6A4F;cursor:pointer;padding:1px 3px;line-height:1" '
+            +'class="move-btn">↕</button>'
             +'</td>';
         } else {
-          // 미납 또는 기록 없음: 회색으로 납부일만
-          html+='<td style="padding:4px 2px;text-align:center;vertical-align:middle">'
-            +'<div style="color:#ccc;font-size:11px">'+dayStr+'</div>'
-            +'</td>';
+          html+='<td style="padding:4px 2px;text-align:center;color:#e8e8e8;font-size:10px">·</td>';
         }
       });
       html+='</tr>';
@@ -6459,7 +6485,64 @@ function renderYearlyView(yr, payments, dayChanges){
   });
 
   html+='</tbody></table>';
+  html+='<style>.yearly-paid-cell:hover .move-btn{display:block!important}</style>';
   el.innerHTML=html;
+}
+
+// ── 납부월 이동 ───────────────────────────────────────────────
+var _moveTuition = {};
+var _yearlyDcMap = {};
+
+function openMoveTuitionModal(sid, fromDueDate, fromMonth, yr, name){
+  _moveTuition = { sid:sid, fromDueDate:fromDueDate, fromMonth:fromMonth, yr:yr };
+  var info = document.getElementById('moveTuitionInfo');
+  if(info) info.innerHTML = '<b>'+name+'</b> 학생의 <b>'+fromMonth+'월</b> 납부 기록<br>현재 due_date: '+fromDueDate;
+  var sel = document.getElementById('moveTuitionTarget');
+  if(sel){
+    sel.innerHTML = '<option value="">-- 월 선택 --</option>';
+    var mNames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    for(var i=1;i<=12;i++){
+      if(i===fromMonth) continue;
+      var opt=document.createElement('option');
+      opt.value=i; opt.text=mNames[i-1];
+      sel.appendChild(opt);
+    }
+  }
+  document.getElementById('moveTuitionModal').style.display='flex';
+}
+
+function closeMoveTuitionModal(){
+  document.getElementById('moveTuitionModal').style.display='none';
+}
+
+async function confirmMoveTuition(){
+  var toMonth=parseInt(document.getElementById('moveTuitionTarget').value);
+  if(!toMonth){ showToast('이동할 월을 선택해주세요'); return; }
+  var d=_moveTuition;
+  var student=(_tuitionStudents||[]).find(function(s){ return s.id===d.sid; });
+  if(!student){ showToast('학생 정보 없음'); return; }
+
+  // 이동할 월의 새 due_date 계산
+  var dc=(_yearlyDcMap&&_yearlyDcMap[d.sid])||[];
+  var newDueDate=null;
+  try{ newDueDate=_calcDueDate(student.enrolledAt, dc, d.yr, toMonth); }catch(e){}
+  if(!newDueDate) newDueDate=d.yr+'-'+String(toMonth).padStart(2,'0')+'-01';
+
+  try{
+    var res=await fetch(
+      SUPABASE_URL+'/rest/v1/tuition_payments?student_id=eq.'+encodeURIComponent(d.sid)+'&due_date=eq.'+encodeURIComponent(d.fromDueDate),
+      { method:'PATCH', headers:Object.assign({},_sbH(),{'Prefer':'return=minimal'}),
+        body:JSON.stringify({due_date:newDueDate}) }
+    );
+    if(res.ok||res.status===204){
+      showToast('✅ '+d.fromMonth+'월 → '+toMonth+'월 이동 완료');
+      closeMoveTuitionModal();
+      loadYearlyView();
+    } else {
+      var txt=await res.text();
+      showToast('이동 실패: '+txt);
+    }
+  }catch(e){ showToast('오류: '+e.message); }
 }
 
 // ── 일괄 납부 입력 ───────────────────────────────────────────
