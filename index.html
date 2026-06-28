@@ -266,6 +266,48 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
+<!-- 일괄납부 modal -->
+<div id="bulkPaymentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:3000;align-items:flex-start;justify-content:center;padding-top:16px;box-sizing:border-box;overflow-y:auto">
+  <div style="background:#fff;border-radius:16px;padding:20px;width:min(98%,760px);box-shadow:0 8px 32px rgba(0,0,0,0.2);margin-bottom:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#363D2E">💳 일괄 납부 입력</div>
+        <div style="font-size:11px;color:#888;margin-top:2px">날짜 입력한 셀만 저장됩니다 · 빈칸은 건너뜀</div>
+      </div>
+      <button onclick="closeBulkPaymentModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button>
+    </div>
+
+    <!-- 월 선택 + 공통 설정 -->
+    <div style="background:#f8fdf8;border:1.5px solid #b7e4c7;border-radius:10px;padding:12px;margin-bottom:14px">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div>
+          <div style="font-size:10px;color:#555;font-weight:700;margin-bottom:4px">입력할 월 선택</div>
+          <div id="bulkMonthChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:#555;font-weight:700;margin-bottom:4px">납부방법 기본값</div>
+          <select id="bulkMethod" style="padding:6px 8px;border:1.5px solid #ddd;border-radius:6px;font-size:12px;background:white">
+            <option value="카드">카드</option>
+            <option value="계좌이체">계좌이체</option>
+            <option value="현금">현금</option>
+          </select>
+        </div>
+        <button onclick="buildBulkTable()" style="padding:7px 14px;background:#2D6A4F;color:white;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">표 만들기</button>
+      </div>
+    </div>
+
+    <!-- 학생 × 월 테이블 -->
+    <div style="overflow-x:auto;max-height:480px;overflow-y:auto">
+      <div id="bulkTableWrap"><div style="text-align:center;color:#bbb;padding:20px;font-size:13px">위에서 월을 선택하고 "표 만들기"를 누르세요</div></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button onclick="closeBulkPaymentModal()" style="flex:1;padding:11px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">취소</button>
+      <button id="bulkSaveBtn" onclick="submitBulkPayments()" style="flex:2;padding:11px;background:#2D6A4F;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">✅ 날짜 입력된 항목 모두 저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- 납부일변경 modal -->
 <div id="payDayChangeModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,380px);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
@@ -358,6 +400,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
     <input type="month" id="tuitionMonth" onchange="loadMonthlyPayments()" style="padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px">
     <button onclick="loadMonthlyPayments()" style="padding:8px 14px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">조회</button>
+    <button onclick="openBulkPaymentModal()" style="padding:8px 14px;background:#363D2E;color:white;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💳 일괄 납부 입력</button>
   </div>
   <div id="monthlyPaymentList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">월을 선택하세요</div></div>
 </div>
@@ -6158,6 +6201,193 @@ function loadCollectionSummary(){
   .withFailureHandler(function(e){ document.getElementById('collectionSummaryBox').innerHTML="<div style='color:#c62828;padding:20px'>불러오기 실패: "+e.message+"</div>"; })
   .fetchMonthlyCollectionSummary(ym);
 }
+// ── 일괄 납부 입력 ───────────────────────────────────────────
+var _bulkStudents = [];   // fetchStudentsWithTuitionData 결과
+var _bulkMonths   = [];   // 선택된 월 ["2026-05","2026-06",...]
+
+function openBulkPaymentModal(){
+  document.getElementById('bulkPaymentModal').style.display='flex';
+  document.getElementById('bulkTableWrap').innerHTML="<div style='text-align:center;color:#bbb;padding:20px'>학생 데이터 불러오는 중...</div>";
+
+  // 월 칩 생성: 이번 달 기준 앞뒤 3개월
+  var now = new Date(); var chips = '';
+  for(var d=-2; d<=3; d++){
+    var dt = new Date(now.getFullYear(), now.getMonth()+d, 1);
+    var ym = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+    var label = (dt.getMonth()+1)+'월';
+    chips += "<label style='display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid #ddd;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:#fff'>"
+           + "<input type='checkbox' class='bulkMonthChk' value='"+ym+"' style='margin:0'> "+label+"</label>";
+  }
+  document.getElementById('bulkMonthChips').innerHTML = chips;
+
+  // 학생 로드
+  google.script.run
+  .withSuccessHandler(function(students){
+    _bulkStudents = students||[];
+    document.getElementById('bulkTableWrap').innerHTML="<div style='text-align:center;color:#bbb;padding:20px;font-size:13px'>월을 선택하고 \"표 만들기\"를 누르세요</div>";
+  })
+  .withFailureHandler(function(e){ document.getElementById('bulkTableWrap').innerHTML="<div style='color:#c62828;padding:20px'>학생 불러오기 실패: "+e.message+"</div>"; })
+  .fetchStudentsWithTuitionData();
+}
+
+function buildBulkTable(){
+  _bulkMonths = [];
+  document.querySelectorAll('.bulkMonthChk').forEach(function(c){ if(c.checked) _bulkMonths.push(c.value); });
+  if(!_bulkMonths.length){ showToast('월을 1개 이상 선택해주세요'); return; }
+  _bulkMonths.sort();
+
+  if(!_bulkStudents.length){ showToast('학생 데이터 없음. 잠시 후 다시 시도해주세요'); return; }
+
+  var method = document.getElementById('bulkMethod').value;
+
+  // 헤더
+  var thead = "<thead><tr style='background:#363D2E;color:white;position:sticky;top:0'>"
+    + "<th style='padding:8px;text-align:left;white-space:nowrap;font-size:12px;min-width:70px'>반</th>"
+    + "<th style='padding:8px;text-align:left;white-space:nowrap;font-size:12px;min-width:60px'>이름</th>"
+    + "<th style='padding:8px;text-align:center;white-space:nowrap;font-size:12px;min-width:80px'>등록일<br><span style=\"font-size:10px;font-weight:400\">(수강날짜)</span></th>"
+    + "<th style='padding:8px;text-align:center;white-space:nowrap;font-size:12px'>금액(만원)</th>";
+  _bulkMonths.forEach(function(ym){
+    var p=ym.split('-'); thead += "<th style='padding:8px;text-align:center;white-space:nowrap;font-size:12px;background:#2D6A4F;min-width:110px'>"+parseInt(p[1],10)+"월 납부일</th>";
+  });
+  thead += "</tr></thead>";
+
+  // 바디
+  var tbody = "<tbody>";
+  var prevClass = '';
+  _bulkStudents.forEach(function(s, si){
+    if(s.status !== '재원') return;
+    var isNewClass = s.className !== prevClass;
+    prevClass = s.className;
+    var bg = isNewClass ? '#f7f8f2' : '#fff';
+    var borderTop = isNewClass ? 'border-top:2px solid #b7e4c7;' : '';
+
+    // 등록일 인풋
+    var enrollVal = s.enrolledAt||'';
+    var enrollCell = "<input type='date' class='bulkEnrollDate' data-sid='"+s.id+"' value='"+enrollVal+"' style='padding:4px 6px;border:1.5px solid #ddd;border-radius:6px;font-size:11px;width:110px'>";
+
+    // 금액
+    var feeVal = s.finalFee!=null ? s.finalFee : '';
+    var feeCell = "<input type='number' class='bulkFee_"+si+"' value='"+feeVal+"' style='padding:4px 6px;border:1.5px solid #ddd;border-radius:6px;font-size:11px;width:70px'>";
+
+    // 월별 납부일 인풋
+    var monthCells = _bulkMonths.map(function(ym){
+      var p=ym.split('-'); var yr=parseInt(p[0]); var mo=parseInt(p[1]);
+      // 납부예정일 계산 (힌트용)
+      var hint = '';
+      if(s.enrolledAt){ try{ var d=_calcDueDate(s.enrolledAt,[],yr,mo); if(d) hint=_fmtDate(d); }catch(e){} }
+      return "<td style='padding:6px;text-align:center'>"
+        + "<input type='text' class='bulkDateInput' data-sid='"+s.id+"' data-ym='"+ym+"' data-si='"+si+"' placeholder='"+(hint||'M/D')+"' maxlength='5'"
+        + " style='padding:5px 6px;border:1.5px solid #ddd;border-radius:6px;font-size:12px;width:80px;text-align:center'"
+        + " oninput='formatBulkDate(this)'>"
+        + "</td>";
+    }).join('');
+
+    tbody += "<tr style='background:"+bg+";"+borderTop+"'>"
+      + "<td style='padding:6px 8px;font-size:11px;font-weight:700;color:#363D2E;white-space:nowrap'>"+s.className+"</td>"
+      + "<td style='padding:6px 8px;font-size:12px;font-weight:700;white-space:nowrap'>"+s.name+"</td>"
+      + "<td style='padding:6px 8px;text-align:center'>"+enrollCell+"</td>"
+      + "<td style='padding:6px 8px;text-align:center'>"+feeCell+"</td>"
+      + monthCells
+      + "</tr>";
+  });
+  tbody += "</tbody>";
+
+  document.getElementById('bulkTableWrap').innerHTML =
+    "<table style='width:100%;border-collapse:collapse;font-size:12px'>"+thead+tbody+"</table>";
+}
+
+// M/D 입력 자동 포맷 보조
+function formatBulkDate(inp){
+  var v = inp.value.replace(/[^0-9\/]/g,'');
+  inp.value = v;
+}
+
+function closeBulkPaymentModal(){
+  document.getElementById('bulkPaymentModal').style.display='none';
+}
+
+function submitBulkPayments(){
+  var method = document.getElementById('bulkMethod').value;
+  var toSave = [];
+  var enrollUpdates = []; // {sid, date}
+
+  // 등록일 변경분 수집
+  document.querySelectorAll('.bulkEnrollDate').forEach(function(inp){
+    if(inp.value) enrollUpdates.push({ sid:inp.dataset.sid, date:inp.value });
+  });
+
+  // 납부일 수집
+  document.querySelectorAll('.bulkDateInput').forEach(function(inp){
+    var raw = (inp.value||'').trim();
+    if(!raw) return;
+    var sid  = inp.dataset.sid;
+    var ym   = inp.dataset.ym;
+    var si   = parseInt(inp.dataset.si);
+    var p = ym.split('-'); var yr=parseInt(p[0]); var mo=parseInt(p[1]);
+
+    // M/D → YYYY-MM-DD 변환
+    var parts = raw.split('/');
+    var paidDate = '';
+    if(parts.length===2){
+      var mm = String(parseInt(parts[0],10)).padStart(2,'0');
+      var dd = String(parseInt(parts[1],10)).padStart(2,'0');
+      paidDate = yr+'-'+mm+'-'+dd;
+    } else if(raw.match(/^\d{4}-\d{2}-\d{2}$/)){
+      paidDate = raw;
+    } else { return; }
+
+    // 납부예정일 계산
+    var s = _bulkStudents.find(function(x){ return x.id===sid; });
+    var enrolledAt = s ? (inp.closest('tr').querySelector('.bulkEnrollDate')||{}).value || s.enrolledAt : '';
+    var dueDate = '';
+    try{ dueDate = _calcDueDate(enrolledAt||s.enrolledAt,[],yr,mo)||''; }catch(e){}
+    if(!dueDate) dueDate = ym+'-01'; // fallback
+
+    // 금액
+    var feeInp = document.querySelector('.bulkFee_'+si);
+    var feeVal = feeInp ? (Number(feeInp.value)||0)*10000 : null;
+
+    toSave.push({ studentId:sid, dueDate:dueDate, paidDate:paidDate,
+                  paidMethod:method, amount:feeVal||null, memo:'' });
+  });
+
+  if(!toSave.length && !enrollUpdates.length){ showToast('입력된 내용이 없어요'); return; }
+
+  var btn = document.getElementById('bulkSaveBtn');
+  if(btn){ btn.disabled=true; btn.textContent='저장 중...'; }
+
+  var allItems = [];
+  // 등록일 업데이트를 먼저
+  enrollUpdates.forEach(function(u){
+    allItems.push({ type:'enroll', sid:u.sid, date:u.date });
+  });
+  toSave.forEach(function(p){ allItems.push({ type:'payment', data:p }); });
+
+  var idx=0, saved=0, errors=0;
+  function next(){
+    if(idx>=allItems.length){
+      if(btn){ btn.disabled=false; btn.textContent='✅ 날짜 입력된 항목 모두 저장'; }
+      showToast('✅ 완료! 납부 '+toSave.length+'건, 등록일 '+enrollUpdates.length+'건 저장');
+      closeBulkPaymentModal();
+      loadMonthlyPayments();
+      return;
+    }
+    var item = allItems[idx]; idx++;
+    if(item.type==='enroll'){
+      google.script.run
+      .withSuccessHandler(function(){ saved++; next(); })
+      .withFailureHandler(function(){ errors++; next(); })
+      .updateStudentInfo(item.sid, { enrollDate:item.date });
+    } else {
+      google.script.run
+      .withSuccessHandler(function(res){ if(res&&res.success) saved++; else errors++; next(); })
+      .withFailureHandler(function(){ errors++; next(); })
+      .upsertTuitionPayment(item.data);
+    }
+  }
+  next();
+}
+
 function initCommentsScreen(){
   var el = document.getElementById("commentsList");
   if(el) el.innerHTML = "<div style='text-align:center;color:#bbb;padding:28px;font-size:13px'>Loading...</div>";
