@@ -702,7 +702,7 @@ async function fetchPendingStudents(status) {
 }
 
 async function fetchNewStudents() {
-  var cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60);
+  var cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
   var cutoffStr = cutoff.toISOString().split('T')[0];
   var rows = await sbGet('students',
     'select=id,name,school,grade,parent_phone,enrolled_at,class_id,pickup_bus,dropoff_bus,attendance_checklist,classes!class_id(name)&status=eq.재원&enrolled_at=gte.'+cutoffStr+'&order=enrolled_at.desc');
@@ -5052,10 +5052,23 @@ function submitEditStudent(){
     busOut:     document.getElementById("esBusOut").value.trim(),
     enrollDate: document.getElementById("esEnrollDate").value||null
   };
+  var scrollY = window.scrollY || document.documentElement.scrollTop || 0;
   closeEditStudentModal();
   showToast("저장 중...");
   google.script.run
-  .withSuccessHandler(function(){ showToast("✅ 저장 완료"); initStudentListScreen(); })
+  .withSuccessHandler(function(){
+    showToast("✅ 저장 완료");
+    var el = document.getElementById("studentListTable");
+    if(el) el.innerHTML = "<tr><td colspan='11' style='text-align:center;color:#bbb;padding:28px;font-size:13px'>Loading...</td></tr>";
+    google.script.run
+    .withSuccessHandler(function(data){
+      _studentAll = data || [];
+      renderStudentList(_studentAll);
+      setTimeout(function(){ window.scrollTo(0, scrollY); }, 50);
+    })
+    .withFailureHandler(function(){})
+    .fetchStudentList();
+  })
   .withFailureHandler(function(e){ showToast("❌ 오류: " + e.message); })
   .updateStudentInfo(id, data);
 }
