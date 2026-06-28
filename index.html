@@ -882,6 +882,15 @@ async function _sbGetSafe(table, params) {
     return await res.json();
   } catch(e) { return []; }
 }
+async function fetchWithdrawnStudents() {
+  var rows = await sbGet('students',
+    'select=id,name,school,grade,parent_phone,withdrawn_at,withdrawal_reason,prev_class&status=eq.퇴원&order=withdrawn_at.desc.nullslast');
+  return rows.map(function(r){
+    return { id:r.id, name:r.name||'', school:r.school||'', grade:r.grade||'',
+             parentPhone:r.parent_phone||'', withdrawnAt:r.withdrawn_at||'',
+             withdrawalReason:r.withdrawal_reason||'', prevClass:r.prev_class||'' };
+  });
+}
 async function fetchStudentsWithTuitionData() {
   var rows = await sbGet('students',
     'select=id,name,status,enrolled_at,withdrawn_at,sibling_discount,class_id,classes!class_id(name,programs!program_id(tuition))&status=eq.재원&order=name.asc');
@@ -947,14 +956,28 @@ async function deleteTuitionPayment(id) {
     return { success:true };
   } catch(e){ return { success:false, error:e.message }; }
 }
-async function markAllMessageSent(studentId) {
+async function markAllMessageSent(studentId, dueDates) {
   try {
-    var res = await fetch(
-      SUPABASE_URL+'/rest/v1/tuition_payments?student_id='+_eq(studentId)+'&paid_date=is.null',
-      { method:'PATCH', headers:_sbH(),
-        body:JSON.stringify({ message_sent:true, message_sent_at:new Date().toISOString() }) }
-    );
-    if(!res.ok){ var e=await res.text(); if(_handleAuthError(res.status)) throw new Error('AUTH'); throw new Error(e); }
+    var now = new Date().toISOString();
+    // 레코드가 없어도 upsert로 생성 (paid_date 없는 연락 전용 레코드)
+    if(dueDates && dueDates.length){
+      var records = dueDates.map(function(dd){
+        return { student_id:studentId, due_date:dd, message_sent:true, message_sent_at:now };
+      });
+      var res = await fetch(
+        SUPABASE_URL+'/rest/v1/tuition_payments?on_conflict=student_id,due_date',
+        { method:'POST', headers:Object.assign({},_sbH(),{'Prefer':'resolution=merge-duplicates,return=minimal'}),
+          body:JSON.stringify(records) }
+      );
+      if(!res.ok){ var e=await res.text(); if(_handleAuthError(res.status)) throw new Error('AUTH'); throw new Error(e); }
+    } else {
+      // fallback: due_date 없이 기존 미납 레코드만 업데이트
+      var res2 = await fetch(
+        SUPABASE_URL+'/rest/v1/tuition_payments?student_id='+_eq(studentId)+'&paid_date=is.null',
+        { method:'PATCH', headers:_sbH(), body:JSON.stringify({ message_sent:true, message_sent_at:now }) }
+      );
+      if(!res2.ok){ var e2=await res2.text(); if(_handleAuthError(res2.status)) throw new Error('AUTH'); throw new Error(e2); }
+    }
     return { success:true };
   } catch(e){ return { success:false, error:e.message }; }
 }
@@ -1668,7 +1691,7 @@ var _serverFunctions = {
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
   fetchStudentsByClass,
-  fetchStudentList, fetchPendingStudents, fetchNewStudents,
+  fetchStudentList, fetchPendingStudents, fetchNewStudents, fetchWithdrawnStudents,
   createStudent, updateStudentInfo, updateStudentBasicInfo,
   withdrawStudent, reEnrollStudent, enrollStudent,
   updateStudentConsult, saveConsultDetails, saveNewStudentChecklist,
@@ -6058,7 +6081,7 @@ function loadUnpaidList(){
     .withSuccessHandler(function(changes){
       _tuitionDayChanges = changes||[];
       // 전체 납부 기록 가져오기
-      _sbGetSafe('tuition_payments','select=student_id,due_date,paid_date,message_sent').then(function(allPmts){
+      _sbGetSafe('tuition_payments','select=student_id,due_date,paid_date,message_sent,message_sent_at').then(function(allPmts){
         renderUnpaidList(allPmts||[]);
       });
     })
@@ -6074,17 +6097,22 @@ function renderUnpaidList(allPmts){
   if(!el) return;
   var today = new Date(); today.setHours(0,0,0,0);
 
-  // 납부기록 맵: "studentId|YYYY-MM" → {paidDate, messageSent}
+  // 납부기록 맵: "studentId|YYYY-MM" → {paidDate, messageSent, messageSentAt}
   var paidMap = {};
   allPmts.forEach(function(p){
     if(!p.due_date) return;
-    var ym = p.due_date.substring(0,7); // "YYYY-MM"
+    var ym = p.due_date.substring(0,7);
     var key = p.student_id+'|'+ym;
-    if(p.paid_date) paidMap[key] = { paidDate:p.paid_date, messageSent:p.message_sent };
-    else if(!paidMap[key]) paidMap[key] = { paidDate:null, messageSent:p.message_sent };
+    if(p.paid_date) paidMap[key] = { paidDate:p.paid_date, messageSent:p.message_sent, messageSentAt:p.message_sent_at };
+    else if(!paidMap[key]) paidMap[key] = { paidDate:null, messageSent:p.message_sent, messageSentAt:p.message_sent_at };
+    // 같은 월에 여러 레코드면 최신 message_sent_at 유지
+    else if(p.message_sent_at && (!paidMap[key].messageSentAt || p.message_sent_at > paidMap[key].messageSentAt)){
+      paidMap[key].messageSent = p.message_sent;
+      paidMap[key].messageSentAt = p.message_sent_at;
+    }
   });
 
-  var unpaidGroups = {}; // studentId → [{ym, dueDate, messageSent}]
+  var unpaidGroups = {}; // studentId → [{ym, dueDate, messageSent, messageSentAt}]
 
   _tuitionStudents.forEach(function(s){
     if(s.status !== '재원') return;  // 퇴원/대기 학생 제외
@@ -6117,7 +6145,7 @@ function renderUnpaidList(allPmts){
             if(!pmtInfo || !pmtInfo.paidDate){
               // 미납!
               if(!unpaidGroups[s.id]) unpaidGroups[s.id] = { student:s, months:[] };
-              unpaidGroups[s.id].months.push({ ym:ym, dueDate:dueDate, messageSent: pmtInfo?pmtInfo.messageSent:false });
+              unpaidGroups[s.id].months.push({ ym:ym, dueDate:dueDate, messageSent:pmtInfo?pmtInfo.messageSent:false, messageSentAt:pmtInfo?pmtInfo.messageSentAt:null });
             }
           }
         }
@@ -6137,11 +6165,19 @@ function renderUnpaidList(allPmts){
     var g = unpaidGroups[sid];
     var s = g.student;
     var months = g.months;
-    var allMsgSent = months.every(function(m){ return m.messageSent; });
+    // 가장 최근 연락일 찾기
+    var lastSentAt = null;
+    months.forEach(function(m){ if(m.messageSentAt && (!lastSentAt || m.messageSentAt > lastSentAt)) lastSentAt = m.messageSentAt; });
+    var lastSentLabel = lastSentAt ? '마지막 연락: '+_fmtDate(lastSentAt.substring(0,10)) : '';
+    // 연락하기 버튼에 due_dates 전달
+    var dueDatesStr = months.map(function(m){ return m.dueDate; }).join(',');
     var msgBtn = (_userRole==='마스터')
-      ? "<button onclick='markMsgSent(\""+sid+"\")' style='font-size:11px;padding:4px 8px;"+(allMsgSent?'background:#e8f5e9;color:#2D6A4F;':'background:#ffebee;color:#c62828;')+"border:none;border-radius:6px;cursor:pointer;white-space:nowrap'>"+(allMsgSent?'✅ 연락완료':'📩 연락하기')+"</button>" : "";
+      ? "<div style='display:flex;flex-direction:column;align-items:flex-end;gap:2px'>"
+        + "<button onclick='markMsgSent(\""+sid+"\",\""+dueDatesStr+"\")' style='font-size:11px;padding:4px 8px;background:#ffebee;color:#c62828;border:none;border-radius:6px;cursor:pointer;white-space:nowrap'>📩 "+(lastSentAt?'재연락':'연락하기')+"</button>"
+        + (lastSentLabel ? "<span style='font-size:10px;color:#aaa'>"+lastSentLabel+"</span>" : "")
+        + "</div>" : "";
     var pdcBtn = (_userRole==='마스터')
-      ? "<button onclick='openPayDayChangeModal(\""+sid+"\",\""+s.name.replace(/"/g,'&quot;')+"\")' style='font-size:11px;padding:4px 8px;background:#fff3e0;color:#e65100;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;margin-left:4px'>📅 납부일변경</button>" : "";
+      ? "<button onclick='openPayDayChangeModal(\""+sid+"\",\""+s.name.replace(/"/g,'&quot;')+"\")' style='font-size:11px;padding:4px 8px;background:#fff3e0;color:#e65100;border:none;border-radius:6px;cursor:pointer;white-space:nowrap'>📅 납부일변경</button>" : "";
     var monthLabels = months.map(function(m){
       var p=m.ym.split('-'); return parseInt(p[1],10)+'월('+_fmtDate(m.dueDate)+')';
     }).join(', ');
@@ -6151,7 +6187,7 @@ function renderUnpaidList(allPmts){
       + "<span style='font-size:11px;color:#888;margin-left:6px'>"+s.className+"</span>"
       + "<span style='font-size:11px;background:#ffebee;color:#c62828;border-radius:10px;padding:1px 7px;margin-left:6px;font-weight:700'>"+months.length+"개월 미납</span>"
       + "</div>"
-      + "<div style='display:flex;gap:4px;flex-wrap:wrap'>"+msgBtn+pdcBtn+"</div>"
+      + "<div style='display:flex;align-items:flex-start;gap:4px;flex-wrap:wrap'>"+msgBtn+pdcBtn+"</div>"
       + "</div>"
       + "<div style='font-size:11px;color:#c62828;margin-top:6px'>📅 "+monthLabels+"</div>"
       + "<div style='font-size:11px;color:#999;margin-top:2px'>원비: "+(s.finalFee!=null?s.finalFee+'만원':'-')+"</div>"
@@ -6161,14 +6197,15 @@ function renderUnpaidList(allPmts){
   el.innerHTML = "<div style='font-size:12px;color:#888;margin-bottom:10px'>⚠️ 미납 학생 "+keys.length+"명 (유예기간 5일 경과 기준)</div>"+rows;
 }
 
-function markMsgSent(studentId){
+function markMsgSent(studentId, dueDatesStr){
+  var dueDates = (dueDatesStr||'').split(',').filter(function(d){ return d; });
   google.script.run
   .withSuccessHandler(function(res){
     if(res&&res.success){ showToast('✅ 연락완료 처리됨'); loadUnpaidList(); }
     else showToast('처리 실패: '+(res&&res.error||''));
   })
   .withFailureHandler(function(e){ showToast('오류: '+e.message); })
-  .markAllMessageSent(studentId);
+  .markAllMessageSent(studentId, dueDates);
 }
 
 // ── Tab 3: 수납합계 ─────────────────────────────────────────
