@@ -747,7 +747,7 @@ async function updateStudentInfo(pageId, data) {
   if(data.address!==undefined)    u.address=data.address;
   if(data.busIn!==undefined)      u.pickup_bus=data.busIn;
   if(data.busOut!==undefined)     u.dropoff_bus=data.busOut;
-  if(data.enrollDate!==undefined) u.enrolled_at=data.enrollDate||null;
+  if(data.enrollDate) u.enrolled_at=data.enrollDate; // 값 있을 때만 업데이트, null/빈값은 건드리지 않음
   if(Object.keys(u).length) await sbPatch('students','id='+_eq(pageId),u);
   _classInfoMapCache=null;
   return { success:true };
