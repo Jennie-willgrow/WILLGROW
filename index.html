@@ -215,13 +215,23 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
 
 <!-- ======= Weekly Homework Screen ======= -->
 <div id="weeklyHwScreen" style="display:none">
-  <div class="container" style="max-width:700px">
-    <div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <div style="font-size:13px;font-weight:700;color:#4A5240;flex:1" id="weeklyHwTitle">이번 주 숙제</div>
-      <button id="weeklyHwPrevBtn" onclick="loadWeeklyHw(1)" style="padding:6px 13px;background:#f5f5f5;color:#555;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">📅 지난주 보기</button>
-      <button id="weeklyHwThisBtn" onclick="loadWeeklyHw(0)" style="display:none;padding:6px 13px;background:#363D2E;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🔄 이번주 보기</button>
+  <div class="container" style="max-width:680px">
+    <!-- 컨트롤 바 -->
+    <div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="font-size:12px;font-weight:600;color:#8A9178;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap">반 선택</div>
+        <select id="whwClassSel" onchange="loadWeeklyHw()" style="flex:1;min-width:140px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;color:#2D3A28;background:white;cursor:pointer">
+          <option value="">전체 반</option>
+        </select>
+        <div style="display:flex;gap:6px;margin-left:auto">
+          <button id="whwBtnPrev" onclick="loadWeeklyHw(1)" style="padding:7px 13px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">← 지난주</button>
+          <button id="whwBtnCurr" onclick="loadWeeklyHw(0)" style="display:none;padding:7px 13px;background:#4A5240;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">이번주 →</button>
+        </div>
+      </div>
+      <div id="whwWeekLabel" style="font-size:12px;color:#999;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0"></div>
     </div>
-    <div id="weeklyHwList"><div style="text-align:center;color:#bbb;padding:40px;font-size:13px">Loading...</div></div>
+    <!-- 결과 -->
+    <div id="whwList"><div style="text-align:center;color:#bbb;padding:48px;font-size:13px">Loading...</div></div>
   </div>
 </div>
 
@@ -2350,105 +2360,111 @@ function openHwCardZoom(title, hw, lesson){
     content.style.zoom = Z;
   }, 0);
 }
-// ── Weekly Homework ──────────────────────────────────────
-var _weeklyHwOffset = 0; // 0 = 이번주, 1 = 지난주
+// ── Weekly Homework (선생님 뷰) ──────────────────────────
+var _whwOffset = 0;
 
-function _getWeekRange(offset) {
-  // offset=0 → 이번주 월~일, offset=1 → 지난주 월~일
+function _whwWeekRange(offset) {
   var today = new Date();
-  var day = today.getDay(); // 0=일,1=월...6=토
+  var day = today.getDay();
   var diffToMon = (day === 0) ? -6 : 1 - day;
   var mon = new Date(today);
-  mon.setDate(today.getDate() + diffToMon - (offset * 7));
+  mon.setDate(today.getDate() + diffToMon - offset * 7);
   mon.setHours(0,0,0,0);
   var sun = new Date(mon);
   sun.setDate(mon.getDate() + 6);
-  function fmt(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-  function fmtKo(d){ return (d.getMonth()+1)+'월 '+d.getDate()+'일'; }
+  var fmt = function(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+  var fmtKo = function(d){ return (d.getMonth()+1)+'월 '+d.getDate()+'일'; };
   return { start: fmt(mon), end: fmt(sun), label: fmtKo(mon)+' ~ '+fmtKo(sun) };
 }
 
-async function loadWeeklyHw(offset) {
-  _weeklyHwOffset = offset;
-  var range = _getWeekRange(offset);
+var _whwClassMap = {};
 
-  // 버튼 상태 업데이트
-  var titleEl = document.getElementById('weeklyHwTitle');
-  var prevBtn = document.getElementById('weeklyHwPrevBtn');
-  var thisBtn = document.getElementById('weeklyHwThisBtn');
-  if(titleEl) titleEl.textContent = (offset===0 ? '이번 주' : '지난 주') + ' 숙제 · ' + range.label;
-  if(prevBtn) prevBtn.style.display = offset===0 ? '' : 'none';
-  if(thisBtn) thisBtn.style.display = offset===0 ? 'none' : '';
+async function initWeeklyHwScreen() {
+  // 반 목록 한 번만 로드
+  var sel = document.getElementById('whwClassSel');
+  if(sel && sel.options.length <= 1) {
+    var classes = await _sbGetSafe('classes', 'select=id,name&order=name.asc');
+    _whwClassMap = {};
+    (classes||[]).forEach(function(c){
+      _whwClassMap[c.id] = c.name;
+      var opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+  }
+  loadWeeklyHw(0);
+}
 
-  var listEl = document.getElementById('weeklyHwList');
-  if(listEl) listEl.innerHTML = "<div style='text-align:center;color:#bbb;padding:40px;font-size:13px'>Loading...</div>";
+async function loadWeeklyHw(offsetArg) {
+  if(offsetArg !== undefined) _whwOffset = offsetArg;
+  var offset = _whwOffset;
+  var range = _whwWeekRange(offset);
 
-  // daily_reports: 해당 주 전체, class_id + 반 이름 포함
-  var reports = await _sbGetSafe('daily_reports',
-    'select=id,title,date,class_id,homework,todays_lesson,book&date=gte.'+range.start+'&date=lte.'+range.end+'&order=date.desc');
+  // 버튼·레이블
+  var lbl = document.getElementById('whwWeekLabel');
+  var btnP = document.getElementById('whwBtnPrev');
+  var btnC = document.getElementById('whwBtnCurr');
+  if(lbl) lbl.textContent = (offset===0 ? '이번 주' : '지난 주') + ' · ' + range.label;
+  if(btnP) btnP.style.display = offset===0 ? '' : 'none';
+  if(btnC) btnC.style.display = offset===0 ? 'none' : '';
 
-  // classes 목록 (이름 매핑)
-  var classes = await _sbGetSafe('classes','select=id,name&order=name.asc');
-  var classMap = {};
-  (classes||[]).forEach(function(c){ classMap[c.id] = c.name; });
+  var listEl = document.getElementById('whwList');
+  if(listEl) listEl.innerHTML = "<div style='text-align:center;color:#bbb;padding:48px;font-size:13px'>Loading...</div>";
 
-  if(!reports || !reports.length){
-    if(listEl) listEl.innerHTML = "<div style='text-align:center;color:#bbb;padding:40px;font-size:14px'>이 기간에 데일리 리포트가 없습니다</div>";
+  var filterClass = (document.getElementById('whwClassSel')||{}).value || '';
+
+  var query = 'select=title,date,class_id,homework,todays_lesson&date=gte.'+range.start+'&date=lte.'+range.end+'&order=date.asc';
+  if(filterClass) query += '&class_id=eq.'+encodeURIComponent(filterClass);
+
+  var reports = await _sbGetSafe('daily_reports', query);
+  var valid = (reports||[]).filter(function(r){ return r.homework || r.todays_lesson; });
+
+  if(!valid.length){
+    if(listEl) listEl.innerHTML = "<div style='text-align:center;padding:48px;font-size:14px;color:#bbb'>"+(offset===0?'이번 주':'지난 주')+"에 등록된 숙제가 없어요 📭</div>";
     return;
   }
 
-  // 반별로 그룹핑 (class_id → 날짜별 리포트 목록, 최신순)
-  var groups = {}; // classKey → { className, reports:[] }
-  reports.forEach(function(r){
+  // 반별 그룹핑
+  var groups = {};
+  valid.forEach(function(r){
     var key = r.class_id || '__none__';
-    var name = r.class_id ? (classMap[r.class_id] || r.title || '(반 미지정)') : (r.title || '(반 미지정)');
-    if(!groups[key]) groups[key] = { className: name, classId: r.class_id, records: [] };
-    if(r.homework || r.todays_lesson) groups[key].records.push(r);
+    var name = r.class_id ? (_whwClassMap[r.class_id] || r.title || '(반 미지정)') : (r.title || '(반 미지정)');
+    if(!groups[key]) groups[key] = { name: name, records: [] };
+    groups[key].records.push(r);
   });
-
-  var keys = Object.keys(groups).sort(function(a,b){
-    return groups[a].className.localeCompare(groups[b].className, 'ko');
-  });
-
-  if(!keys.length){
-    if(listEl) listEl.innerHTML = "<div style='text-align:center;color:#bbb;padding:40px;font-size:14px'>숙제 기록이 없습니다</div>";
-    return;
-  }
 
   var DAY_KO = ['일','월','화','수','목','금','토'];
-  var html = '';
-  keys.forEach(function(key){
-    var g = groups[key];
-    // 반 헤더
-    html += "<div style='background:white;border-radius:12px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05);overflow:hidden'>"
-      +"<div style='background:#4A5240;color:white;padding:11px 16px;font-size:14px;font-weight:700'>📚 "+_escHtml(g.className)+"</div>";
+  var sortedKeys = Object.keys(groups).sort(function(a,b){
+    return groups[a].name.localeCompare(groups[b].name, 'ko');
+  });
 
-    if(!g.records.length){
-      html += "<div style='padding:14px 16px;font-size:13px;color:#bbb'>이번 주 숙제 기록 없음</div>";
-    } else {
-      g.records.forEach(function(r){
-        var d = new Date(r.date+'T00:00:00');
-        var dayStr = (d.getMonth()+1)+'/'+ d.getDate()+' ('+DAY_KO[d.getDay()]+')';
-        html += "<div style='padding:13px 16px;border-top:1px solid #f0f0f0'>";
-        html += "<div style='font-size:11px;font-weight:700;color:#8A9178;margin-bottom:7px;letter-spacing:0.5px'>"+dayStr+"</div>";
-        if(r.homework){
-          html += "<div style='font-size:11px;font-weight:700;color:#B2BAA0;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px'>📝 Homework</div>";
-          html += "<div style='font-size:14px;color:#2D3A28;line-height:1.6;white-space:pre-wrap'>"+_escHtml(r.homework)+"</div>";
-        }
-        if(r.todays_lesson){
-          html += "<div style='font-size:11px;font-weight:700;color:#B2BAA0;text-transform:uppercase;letter-spacing:0.8px;margin-top:10px;margin-bottom:4px'>📖 Today's Lesson</div>";
-          html += "<div style='font-size:13px;color:#5A6350;line-height:1.5;white-space:pre-wrap'>"+_escHtml(r.todays_lesson)+"</div>";
-        }
-        html += "</div>";
-      });
-    }
+  var html = '';
+  sortedKeys.forEach(function(key){
+    var g = groups[key];
+    html += "<div style='background:white;border-radius:12px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05);overflow:hidden'>";
+    html += "<div style='background:#4A5240;color:white;padding:12px 16px;font-size:14px;font-weight:700'>📚 "+_whwEsc(g.name)+"</div>";
+    g.records.forEach(function(r){
+      var d = new Date(r.date+'T00:00:00');
+      var dayStr = (d.getMonth()+1)+'/'+d.getDate()+' ('+DAY_KO[d.getDay()]+')';
+      html += "<div style='padding:13px 16px;border-top:1px solid #F2F4EC'>";
+      html += "<div style='font-size:11px;font-weight:700;color:#8A9178;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px'>"+dayStr+"<span style='flex:1;height:1px;background:#F0F0EC;display:inline-block'></span></div>";
+      if(r.homework){
+        html += "<div style='font-size:10px;font-weight:700;color:#B2BAA0;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px'>📝 Homework</div>";
+        html += "<div style='font-size:14px;color:#2D3A28;line-height:1.65;white-space:pre-wrap;word-break:break-word'>"+_whwEsc(r.homework)+"</div>";
+      }
+      if(r.todays_lesson){
+        html += "<div style='font-size:10px;font-weight:700;color:#B2BAA0;text-transform:uppercase;letter-spacing:0.8px;margin-top:10px;padding-top:10px;border-top:1px dashed #EEF0EA;margin-bottom:4px'>📖 Today's Lesson</div>";
+        html += "<div style='font-size:13px;color:#5A6A50;line-height:1.6;white-space:pre-wrap;word-break:break-word'>"+_whwEsc(r.todays_lesson)+"</div>";
+      }
+      html += "</div>";
+    });
     html += "</div>";
   });
 
   if(listEl) listEl.innerHTML = html;
 }
 
-function _escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _whwEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 // ─────────────────────────────────────────────────────────
 
 function setActiveNav(mode){
@@ -2522,7 +2538,7 @@ function navigateTo(mode){
       var _hwl = document.getElementById("hwList"); if(_hwl) _hwl.innerHTML = "";
       buildHwDateSelect(); loadHwTeachers();
     }
-    else if(mode==="weeklyhw"){ loadWeeklyHw(0); }
+    else if(mode==="weeklyhw"){ initWeeklyHwScreen(); }
     else if(mode==="roster"){ loadRosterClasses(); }
     else if(mode==="enrollment"){ initEnrollScreen(); }
     else if(mode==="consultcal"){ loadConsultCal(); }
