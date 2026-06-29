@@ -2380,9 +2380,11 @@ function _whwWeekRange(offset) {
 var _whwClassMap = {};
 
 async function initWeeklyHwScreen() {
-  // 반 목록 한 번만 로드
+  // 반 목록 매번 새로 로드 (화면 진입할 때마다)
   var sel = document.getElementById('whwClassSel');
-  if(sel && sel.options.length <= 1) {
+  if(sel) {
+    var prevVal = sel.value;
+    sel.innerHTML = '<option value="">전체 반</option>';
     var classes = await _sbGetSafe('classes', 'select=id,name&order=name.asc');
     _whwClassMap = {};
     (classes||[]).forEach(function(c){
@@ -2391,6 +2393,8 @@ async function initWeeklyHwScreen() {
       opt.value = c.id; opt.textContent = c.name;
       sel.appendChild(opt);
     });
+    // 이전 선택값 복원 (있으면)
+    if(prevVal) sel.value = prevVal;
   }
   loadWeeklyHw(0);
 }
@@ -2413,24 +2417,28 @@ async function loadWeeklyHw(offsetArg) {
 
   var filterClass = (document.getElementById('whwClassSel')||{}).value || '';
 
-  var query = 'select=title,date,class_id,homework,todays_lesson&date=gte.'+range.start+'&date=lte.'+range.end+'&order=date.asc';
+  var query = 'select=title,date,class_id,homework,todays_lesson,book&date=gte.'+range.start+'&date=lte.'+range.end+'&order=date.asc';
   if(filterClass) query += '&class_id=eq.'+encodeURIComponent(filterClass);
 
   var reports = await _sbGetSafe('daily_reports', query);
-  var valid = (reports||[]).filter(function(r){ return r.homework || r.todays_lesson; });
+  var valid = (reports||[]).filter(function(r){ return r.homework || r.todays_lesson || r.book; });
 
   if(!valid.length){
     if(listEl) listEl.innerHTML = "<div style='text-align:center;padding:48px;font-size:14px;color:#bbb'>"+(offset===0?'이번 주':'지난 주')+"에 등록된 숙제가 없어요 📭</div>";
     return;
   }
 
-  // 반별 그룹핑
+  // 반별 그룹핑 (order=date.asc이므로 이미 월→금 순)
   var groups = {};
   valid.forEach(function(r){
     var key = r.class_id || '__none__';
     var name = r.class_id ? (_whwClassMap[r.class_id] || r.title || '(반 미지정)') : (r.title || '(반 미지정)');
     if(!groups[key]) groups[key] = { name: name, records: [] };
     groups[key].records.push(r);
+  });
+  // 각 그룹 내 날짜 오름차순 보장 (월→금)
+  Object.keys(groups).forEach(function(k){
+    groups[k].records.sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
   });
 
   var DAY_KO = ['일','월','화','수','목','금','토'];
@@ -2448,6 +2456,10 @@ async function loadWeeklyHw(offsetArg) {
       var dayStr = (d.getMonth()+1)+'/'+d.getDate()+' ('+DAY_KO[d.getDay()]+')';
       html += "<div style='padding:13px 16px;border-top:1px solid #F2F4EC'>";
       html += "<div style='font-size:11px;font-weight:700;color:#8A9178;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px'>"+dayStr+"<span style='flex:1;height:1px;background:#F0F0EC;display:inline-block'></span></div>";
+      if(r.book){
+        html += "<div style='font-size:10px;font-weight:700;color:#B2BAA0;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px'>📗 Book</div>";
+        html += "<div style='font-size:13px;color:#4A6741;font-weight:600;margin-bottom:8px'>"+_whwEsc(r.book)+"</div>";
+      }
       if(r.homework){
         html += "<div style='font-size:10px;font-weight:700;color:#B2BAA0;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px'>📝 Homework</div>";
         html += "<div style='font-size:14px;color:#2D3A28;line-height:1.65;white-space:pre-wrap;word-break:break-word'>"+_whwEsc(r.homework)+"</div>";
