@@ -3591,8 +3591,8 @@ function loadExtSupmats(){
         + "</div></div>";
     }
     var withMats = orders.filter(function(o){ return o.supMats && o.supMats.length > 0; });
-    var a = withMats.filter(function(o){ return o.progress!=="제작완료" && o.progress!=="완료"; });
-    var d = withMats.filter(function(o){ return o.progress==="제작완료" || o.progress==="완료"; });
+    var a = withMats.filter(function(o){ return o.progress!=="제작완료"; });
+    var d = withMats.filter(function(o){ return o.progress==="제작완료"; });
     if(active) active.innerHTML = a.length ? a.map(renderExtSCard).join("") : "<div class='empty'>진행중인 내역이 없습니다.</div>";
     if(done)   done.innerHTML   = d.length ? d.map(renderExtSCard).join("") : "<div class='empty'>완료된 내역이 없습니다.</div>";
   })
