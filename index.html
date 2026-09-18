@@ -211,7 +211,65 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
 .appt-time {font-size:13px;color:#5A6350;margin-top:5px}
 .appt-phone {font-size:13px;color:#4A5240;margin-top:4px;font-weight:600}
 .appt-phone a {color:#4A5240;text-decoration:none}
-</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:40px">Cheolsan Campus</div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ff6b6b;font-size:12px;height:18px;margin-bottom:12px"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><button class="snav-item" data-mode="schedule" onclick="navigateTo('schedule')"><span class="si-icon">📅</span> Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="weeklyhw" onclick="navigateTo('weeklyhw')"><span class="si-icon">📋</span> Weekly Homework</button><button class="snav-item" data-mode="roster" onclick="navigateTo('roster')"><span class="si-icon">📋</span> Class Roster</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><button class="snav-item" data-mode="lessonplan" onclick="navigateTo('lessonplan')"><span class="si-icon">📖</span> Lesson Plan</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📋</span> Meeting Notes</button><button class="snav-item" data-mode="schoolcal" onclick="navigateTo('schoolcal')"><span class="si-icon">📅</span> WILLGROW Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규등록</button><button class="snav-item" data-mode="consultcal" onclick="navigateTo('consultcal')"><span class="si-icon">📅</span> 신규상담일정</button><button class="snav-item" data-mode="newstudent" onclick="navigateTo('newstudent')"><span class="si-icon">🙋</span> 신규학생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> Book Orders</button><button class="snav-item" data-mode="wgorder" onclick="navigateTo('wgorder')"><span class="si-icon">📗</span> WG 교재 주문</button><button class="snav-item" data-mode="extorder" onclick="navigateTo('extorder')"><span class="si-icon">📔</span> 외부 교재 주문</button><button class="snav-item" data-mode="extraorder" onclick="navigateTo('extraorder')"><span class="si-icon">➕</span> 부가자료 추가주문</button><button class="snav-item" data-mode="parentmsg" onclick="navigateTo('parentmsg')"><span class="si-icon">💬</span> 교재구입메세지</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button></nav></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
+</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:40px">Cheolsan Campus</div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ff6b6b;font-size:12px;height:18px;margin-bottom:12px"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><button class="snav-item" data-mode="schedule" onclick="navigateTo('schedule')"><span class="si-icon">📅</span> Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="weeklyhw" onclick="navigateTo('weeklyhw')"><span class="si-icon">📋</span> Weekly Homework</button><button class="snav-item" data-mode="planner" onclick="navigateTo('planner')"><span class="si-icon">📔</span> Planner</button><button class="snav-item" data-mode="roster" onclick="navigateTo('roster')"><span class="si-icon">📋</span> Class Roster</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><button class="snav-item" data-mode="lessonplan" onclick="navigateTo('lessonplan')"><span class="si-icon">📖</span> Lesson Plan</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📋</span> Meeting Notes</button><button class="snav-item" data-mode="schoolcal" onclick="navigateTo('schoolcal')"><span class="si-icon">📅</span> WILLGROW Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규등록</button><button class="snav-item" data-mode="consultcal" onclick="navigateTo('consultcal')"><span class="si-icon">📅</span> 신규상담일정</button><button class="snav-item" data-mode="newstudent" onclick="navigateTo('newstudent')"><span class="si-icon">🙋</span> 신규학생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> Book Orders</button><button class="snav-item" data-mode="wgorder" onclick="navigateTo('wgorder')"><span class="si-icon">📗</span> WG 교재 주문</button><button class="snav-item" data-mode="extorder" onclick="navigateTo('extorder')"><span class="si-icon">📔</span> 외부 교재 주문</button><button class="snav-item" data-mode="extraorder" onclick="navigateTo('extraorder')"><span class="si-icon">➕</span> 부가자료 추가주문</button><button class="snav-item" data-mode="parentmsg" onclick="navigateTo('parentmsg')"><span class="si-icon">💬</span> 교재구입메세지</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button></nav></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
+
+<!-- ======= 알림장 (Homework Planner) Screen ======= -->
+<div id="plannerScreen" style="display:none">
+  <div class="container" style="max-width:1000px">
+
+    <!-- 컨트롤 바 -->
+    <div style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="font-size:12px;font-weight:600;color:#8A9178;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap">Class</div>
+        <select id="plClassSel" onchange="plChangeClass()" style="flex:1;min-width:150px;padding:7px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;color:#2D3A28;background:white;cursor:pointer">
+          <option value="">Select a class</option>
+        </select>
+        <div style="display:flex;gap:6px;margin-left:auto">
+          <button onclick="plMove(1)" style="padding:7px 13px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">← Last week</button>
+          <button id="plBtnNext" onclick="plMove(-1)" style="padding:7px 13px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Next week →</button>
+        </div>
+      </div>
+      <div id="plWeekLabel" style="font-size:12px;color:#999;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0"></div>
+    </div>
+
+    <!-- 카드 추가 -->
+    <div id="plAddBar" style="display:none;background:#EAF4EE;border-radius:12px;padding:12px 14px;margin-bottom:14px;border:1px solid #C8E6D0">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:700;color:#2D4A3E;white-space:nowrap">+ Add planner</span>
+        <select id="plAddForm" onchange="plAddFormChanged()" style="padding:6px 9px;border:1.5px solid #C8E6D0;border-radius:7px;font-size:12px;background:white;cursor:pointer"></select>
+        <select id="plAddLesson" style="padding:6px 9px;border:1.5px solid #C8E6D0;border-radius:7px;font-size:12px;background:white;cursor:pointer"></select>
+        <select id="plAddDate" style="padding:6px 9px;border:1.5px solid #C8E6D0;border-radius:7px;font-size:12px;background:white;cursor:pointer"></select>
+        <button onclick="plAddCard()" style="padding:6px 14px;background:#2D4A3E;color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Add</button>
+      </div>
+    </div>
+
+    <!-- 카드 목록 -->
+    <div id="plList"><div style="text-align:center;color:#bbb;padding:48px;font-size:13px">Select a class to begin</div></div>
+
+    <!-- 주간 알림 -->
+    <div id="plNoteBox" style="display:none;background:white;border-radius:12px;padding:14px 16px;margin-top:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05);border-top:4px solid #2C3E50">
+      <div style="font-size:12px;font-weight:700;color:#2C3E50;margin-bottom:8px">✦ Weekly note — shown to parents as written</div>
+      <textarea id="plNote" rows="3" placeholder="e.g. Word test on Unit 3 this Friday." style="width:100%;padding:9px 11px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;line-height:1.6"></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px">
+        <button onclick="plSaveNote()" style="padding:6px 16px;background:#2C3E50;color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">Save note</button>
+      </div>
+    </div>
+
+    <!-- 학부모 링크 -->
+    <div id="plLinkBox" style="display:none;background:#FDF6E7;border-radius:12px;padding:12px 14px;margin-top:14px;border:1px solid #EFD9A6">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px">
+        <span style="font-size:12px;font-weight:700;color:#7A5C1E">🔗 Parent link for this class</span>
+        <span style="font-size:10px;font-weight:800;color:#fff;background:#C99A2E;border-radius:20px;padding:2px 9px">Not live yet</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input id="plBaseUrl" type="text" placeholder="https://yourname.github.io/repo/planner.html" oninput="plRenderLink()" style="flex:1;min-width:200px;padding:6px 9px;border:1.5px solid #EFD9A6;border-radius:7px;font-size:11px;color:#7A5C1E;background:white">
+        <button onclick="plCopyLink(this)" style="padding:6px 14px;background:#C99A2E;color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Copy</button>
+      </div>
+      <div id="plLinkText" style="font-size:11px;color:#B09355;margin-top:6px;word-break:break-all"></div>
+    </div>
+
+  </div>
+</div>
 
 <!-- ======= Weekly Homework Screen ======= -->
 <div id="weeklyHwScreen" style="display:none">
@@ -231,15 +289,20 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
       <div id="whwWeekLabel" style="font-size:12px;color:#999;margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f0"></div>
     </div>
     <!-- 학부모 공유 링크 -->
-    <div style="background:#EAF4EE;border-radius:12px;padding:14px 16px;margin-bottom:14px;border:1px solid #C8E6D0">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;color:#2D4A3E">📲 반별 숙제 공유 링크</div>
-        <div style="font-size:11px;color:#7AAA88">링크를 복사해서 카카오톡으로 보내주세요</div>
+    <div style="background:#FDF6E7;border-radius:12px;padding:14px 16px;margin-bottom:14px;border:1px solid #EFD9A6">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <div style="font-size:12px;font-weight:700;color:#7A5C1E">📲 반별 숙제 공유 링크</div>
+        <span style="font-size:10px;font-weight:800;color:#fff;background:#C99A2E;border-radius:20px;padding:2px 9px;letter-spacing:0.3px">준비 중</span>
       </div>
-      <div style="font-size:11px;color:#5A8A6A;margin-bottom:8px;padding:6px 10px;background:rgba(255,255,255,0.6);border-radius:8px">
+      <div style="font-size:11px;color:#8A6A22;line-height:1.6;background:rgba(255,255,255,0.7);border-radius:8px;padding:8px 10px;margin-bottom:10px;border-left:3px solid #C99A2E">
+        ⚠️ <b>아직 학부모님께 보내지 마세요.</b><br>
+        학부모용 숙제 페이지가 아직 열리지 않았습니다. 지금 링크를 보내시면 빈 화면이 뜹니다.<br>
+        준비가 끝나면 따로 안내드릴게요. (미리보기·테스트용으로만 사용해 주세요)
+      </div>
+      <div style="font-size:11px;color:#8A6A22;margin-bottom:8px;padding:6px 10px;background:rgba(255,255,255,0.6);border-radius:8px">
         🔗 베이스 URL 설정:
         <input id="whwBaseUrl" type="text" placeholder="https://yourname.github.io/homework"
-          style="border:none;outline:none;font-size:11px;color:#2D4A3E;font-weight:600;width:220px;background:transparent"
+          style="border:none;outline:none;font-size:11px;color:#7A5C1E;font-weight:600;width:220px;background:transparent"
           oninput="renderWhwLinks()"
           value="">
       </div>
@@ -684,9 +747,12 @@ async function sbPatch(table, filter, data) {
   }
   return true;
 }
-async function sbDelete(table, filter) {
+// 실제로 몇 행이 지워졌는지 돌려줍니다.
+// RLS가 켜져 있는데 정책이 없으면 PostgREST는 204(성공)를 주면서 0행을 지웁니다.
+// 그 경우를 잡아내려고 return=representation 으로 지워진 행을 받아옵니다.
+async function sbDelete(table, filter, opts) {
   var res = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + filter, {
-    method: 'DELETE', headers: _sbH()
+    method: 'DELETE', headers: _sbH({ 'Prefer': 'return=representation' })
   });
   if (!res.ok) {
     var error = await res.text();
@@ -694,7 +760,19 @@ async function sbDelete(table, filter) {
     console.error('[sbDelete ERROR] '+table+':', error);
     throw new Error('[sbDelete] ' + table + ': ' + error);
   }
-  return true;
+  var rows = [];
+  try { rows = await res.json(); } catch(e) { rows = []; }
+  var n = Array.isArray(rows) ? rows.length : 0;
+
+  if (n === 0) {
+    console.warn('[sbDelete] '+table+' — 0행 삭제됨 (filter: '+filter+')');
+    // allowZero:true 인 호출(여러 테이블에 같은 id를 시도하는 경우)은 그냥 넘어갑니다
+    if (!(opts && opts.allowZero)) {
+      throw new Error('삭제된 항목이 없습니다 ('+table+').\n'
+        + 'Supabase RLS 정책을 확인해 주세요 — fix_delete_rls.sql 참고');
+    }
+  }
+  return n;
 }
 
 // ── 서버 함수 구현 ───────────────────────────────────────────
@@ -1157,7 +1235,32 @@ async function submitReport(data) {
   if(data.comments!==undefined) u.comments=data.comments;
   if(data.bookOrders!==undefined) u.book_orders=data.bookOrders;
   await sbPatch('daily_reports','id='+_eq(data.pageId),u);
+
+  // 알림장 폼을 썼으면 학부모 알림장에도 같이 저장합니다
+  if(data.plFormKey && data.plLessonName && data.classId && data.dateStr){
+    await savePlannerEntry(data.classId, data.dateStr,
+                           data.plFormKey, data.plLessonName, data.plItems||{});
+  }
   return { success:true };
+}
+
+// Daily Report 화면용 — 오늘 알림장 + 지난 수업/숙제를 한 번에
+async function fetchReportPlannerCtx(classId, dateStr) {
+  if(!classId) return { current:null, prev:null, prevLesson:null };
+  var cur = await _sbGetSafe('planner_entries',
+    'select=form_key,lesson_name,items&class_id='+_eq(classId)
+    + '&date='+_eq(dateStr)+'&limit=1');
+  var prv = await _sbGetSafe('planner_entries',
+    'select=date,form_key,lesson_name,items&class_id='+_eq(classId)
+    + '&date=lt.'+dateStr+'&order=date.desc&limit=1');
+  var les = await _sbGetSafe('daily_reports',
+    'select=date,todays_lesson,book&class_id='+_eq(classId)
+    + '&date=lt.'+dateStr+'&order=date.desc&limit=1');
+  return {
+    current:    (cur && cur.length) ? cur[0] : null,
+    prev:       (prv && prv.length) ? prv[0] : null,
+    prevLesson: (les && les.length) ? les[0] : null
+  };
 }
 
 async function createBlankReport(data) {
@@ -1310,6 +1413,7 @@ async function createMemo(data) {
   var insert={ content:data.content||'', written_at:new Date().toISOString() };
   if(data.type)   insert.type=data.type;
   if(data.author) insert.author=data.author;
+  if(data.absenceId) insert.absence_id=data.absenceId;   // 결석 기록과 짝지음
   var result=await sbInsert('korean_memos', insert);
   console.log('[createMemo] result:', result);
   return result ? { success:true, id:result.id } : { success:false };
@@ -1318,6 +1422,7 @@ async function createMemo(data) {
 async function createMemoWithFile(data, b64, fname, mime) {
   try {
     var insert = { content: data.content||'', type: data.type||null, author: data.author||null, written_at: new Date().toISOString() };
+    if (data.absenceId) insert.absence_id = data.absenceId;   // 결석 기록과 짝지음
     if (b64 && fname) {
       var blob = _b64toBlob(b64, mime||'application/octet-stream');
       var path = _uniquePath('memos', fname);
@@ -1488,8 +1593,21 @@ async function fetchNativeMemoBlocks(pageId) {
 }
 
 async function deleteMemo(pageId) {
+  // 결석 메모라면 출석부 기록도 같이 지웁니다.
+  // (안 지우면 같은 학생을 다시 등록할 때 "이미 결석 기록이 있습니다" 로 막힙니다)
+  var absenceId = null;
+  try {
+    var rows = await _sbGetSafe('korean_memos','select=absence_id&id='+_eq(pageId)+'&limit=1');
+    if (rows && rows.length) absenceId = rows[0].absence_id || null;
+  } catch(e) { /* absence_id 컬럼이 아직 없으면 무시 */ }
+
   await sbDelete('korean_memos', 'id='+_eq(pageId));
-  return { success: true };
+
+  if (absenceId) {
+    try { await sbDelete('absences','id='+_eq(absenceId), {allowZero:true}); }
+    catch(e) { console.warn('[deleteMemo] 결석 기록 삭제 실패:', e); }
+  }
+  return { success: true, absenceDeleted: !!absenceId };
 }
 async function deleteNativeMemo(pageId) {
   await sbDelete('native_memos', 'id='+_eq(pageId));
@@ -1744,8 +1862,12 @@ async function updateExtraNote(pageId, note) {
 }
 
 async function deleteOrder(pageId) {
-  await sbDelete('wg_book_orders','id='+_eq(pageId));
-  await sbDelete('external_book_orders','id='+_eq(pageId));
+  // 주문 id 가 둘 중 한 테이블에만 있으므로 각각은 0행이어도 정상입니다.
+  var a = await sbDelete('wg_book_orders','id='+_eq(pageId), {allowZero:true});
+  var b = await sbDelete('external_book_orders','id='+_eq(pageId), {allowZero:true});
+  if (a + b === 0) {
+    throw new Error('삭제된 주문이 없습니다.\nSupabase RLS 정책을 확인해 주세요 — fix_delete_rls.sql 참고');
+  }
   return { success:true };
 }
 
@@ -1800,9 +1922,454 @@ async function createLessonPlan(data) {
   } catch(e) { return { success:false, error:e.message }; }
 }
 
+// ============================================================
+// 알림장 (Homework Planner)
+// ★ PLANNER_FORMS 는 planner.html 과 항상 똑같이 유지해야 합니다.
+//   key 는 DB의 JSON 키로 저장되므로 한번 정하면 바꾸지 마세요.
+// ============================================================
+
+var PLANNER_FORMS = {
+  /* ── PHONICS ── */
+  ljs: {
+    course:'PHONICS', category:'Little Junior Star', accent:'#8FC33F',
+    lessons:['PlayHouse','StoryClub','TalkTime'],
+    items:[
+      {key:'sb',label:'Student Book'},{key:'wba',label:'Workbook A'},
+      {key:'wbb',label:'Workbook B'},{key:'wf',label:'Writing Factory'},
+      {key:'story',label:'Storybook'},{key:'sg',label:'Study Guide'},
+      {key:'on',label:'Online'}
+    ]
+  },
+  sg: {
+    course:'PHONICS', category:'Phonics', accent:'#CC2B2B',
+    lessons:['Sounds Great'],
+    items:[
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'aw',label:'Alphabet Writing',fixed:true}
+    ]
+  },
+  /* ── JUNIOR ── */
+  nsj_g: {
+    course:'JUNIOR', category:'New Super Junior', accent:'#2E6FB7',
+    lessons:['Grammar'],
+    items:[
+      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'t2',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
+      {key:'story',label:'Storybook'},{key:'etc',label:'Etc'},
+      {key:'on',label:'Online'}
+    ]
+  },
+  nsj_r: {
+    course:'JUNIOR', category:'New Super Junior', accent:'#2E6FB7',
+    lessons:['Reading'],
+    items:[
+      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
+      {key:'story',label:'Storybook'},{key:'tr',label:'Translation'},
+      {key:'on',label:'Online'}
+    ]
+  },
+  nsj_s: {
+    course:'JUNIOR', category:'New Super Junior', accent:'#2E6FB7',
+    lessons:['Speaking'],
+    items:[
+      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
+      {key:'story',label:'Storybook'},{key:'etc',label:'Etc'},
+      {key:'on',label:'Online'}
+    ]
+  },
+  spk: {
+    course:'JUNIOR', category:'Speaking / Reading', accent:'#7B4FA8',
+    lessons:['Bricks Reading','Hand in Hand','English Time'],
+    items:[
+      {key:'t1',label:'Test',subs:['Speaking','Word Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'tr',label:'Translation'},{key:'etc',label:'Etc'}
+    ]
+  },
+  /* ── READING ── */
+  ljsg_p: {
+    course:'READING', category:'Little Junior Star / Galaxy', accent:'#8FC33F',
+    lessons:['PlayHouse','StoryClub'],
+    items:[
+      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'t2',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wba',label:'Workbook A'},
+      {key:'wbb',label:'Workbook B'},{key:'wf',label:'Writing Factory'},
+      {key:'story',label:'Storybook'},{key:'sg',label:'Study Guide'},
+      {key:'on',label:'Online'}
+    ]
+  },
+  ljsg_t: {
+    course:'READING', category:'Little Junior Star / Galaxy', accent:'#8FC33F',
+    lessons:['TalkTime'],
+    items:[
+      {key:'sb',label:'Student Book'},{key:'wba',label:'Workbook A'},
+      {key:'wbb',label:'Workbook B'},{key:'wf',label:'Writing Factory'},
+      {key:'story',label:'Storybook'},{key:'sg',label:'Study Guide'},
+      {key:'on',label:'Online'}
+    ]
+  }
+};
+
+// ── 서버 함수 ────────────────────────────────────────────────
+
+async function fetchPlannerWeek(classId, weekStart) {
+  var end = new Date(weekStart + 'T00:00:00');
+  end.setDate(end.getDate() + 6);
+  var endStr = end.getFullYear()+'-'+String(end.getMonth()+1).padStart(2,'0')
+             +'-'+String(end.getDate()).padStart(2,'0');
+  var rows = await _sbGetSafe('planner_entries',
+    'select=id,date,form_key,lesson_name,items'
+    + '&class_id=' + _eq(classId)
+    + '&date=gte.' + weekStart + '&date=lte.' + endStr
+    + '&order=date.asc');
+  var notes = await _sbGetSafe('planner_notes',
+    'select=note&class_id=' + _eq(classId) + '&week_start=' + _eq(weekStart) + '&limit=1');
+  return {
+    entries: rows || [],
+    note: (notes && notes.length) ? (notes[0].note || '') : ''
+  };
+}
+
+async function savePlannerEntry(classId, date, formKey, lessonName, items) {
+  var res = await fetch(SUPABASE_URL
+    + '/rest/v1/planner_entries?on_conflict=class_id,date,form_key,lesson_name', {
+    method: 'POST',
+    headers: _sbH({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify({
+      class_id: classId, date: date, form_key: formKey,
+      lesson_name: lessonName, items: items,
+      teacher_id: _teacherId || null,
+      updated_at: new Date().toISOString()
+    })
+  });
+  if (!res.ok) {
+    var t = await res.text();
+    if (_handleAuthError(res.status)) throw new Error('AUTH');
+    throw new Error('[savePlannerEntry] ' + t);
+  }
+  return { success: true };
+}
+
+async function deletePlannerEntry(entryId) {
+  await sbDelete('planner_entries', 'id=' + _eq(entryId));
+  return { success: true };
+}
+
+async function savePlannerNoteSrv(classId, weekStart, note) {
+  var res = await fetch(SUPABASE_URL
+    + '/rest/v1/planner_notes?on_conflict=class_id,week_start', {
+    method: 'POST',
+    headers: _sbH({ 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+    body: JSON.stringify({
+      class_id: classId, week_start: weekStart, note: note,
+      updated_at: new Date().toISOString()
+    })
+  });
+  if (!res.ok) {
+    var t = await res.text();
+    if (_handleAuthError(res.status)) throw new Error('AUTH');
+    throw new Error('[savePlannerNote] ' + t);
+  }
+  return { success: true };
+}
+
+// 고정 숙제 자동 채우기용 — 같은 반·같은 폼의 가장 최근 카드
+async function fetchLastPlannerItems(classId, formKey) {
+  var rows = await _sbGetSafe('planner_entries',
+    'select=items&class_id=' + _eq(classId) + '&form_key=' + _eq(formKey)
+    + '&order=date.desc&limit=1');
+  return (rows && rows.length) ? (rows[0].items || {}) : {};
+}
+
+// ── 화면 로직 ────────────────────────────────────────────────
+
+var _plClassList = [];
+var _plClassId   = '';
+var _plOffset    = 0;
+var _plEntries   = [];
+var _plNote      = '';
+
+function _plEsc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function _plFmt(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
+        +'-'+String(d.getDate()).padStart(2,'0');
+}
+function _plWeekStart(offset){
+  var t=new Date(), day=t.getDay(), mon=new Date(t);
+  mon.setDate(t.getDate() + (day===0?-6:1-day) - offset*7);
+  mon.setHours(0,0,0,0);
+  return mon;
+}
+var _PL_DAY = ['일','월','화','수','목','금','토'];
+
+async function initPlannerScreen(){
+  var sel = document.getElementById('plClassSel');
+  if(sel){
+    var classes = await _sbGetSafe('classes','select=id,name,planner_slug&order=name.asc');
+    _plClassList = classes || [];
+    sel.innerHTML = '<option value="">Select a class</option>'
+      + _plClassList.map(function(c){
+          return '<option value="'+_plEsc(c.id)+'">'+_plEsc(c.name)+'</option>';
+        }).join('');
+    var saved = '';
+    try { saved = localStorage.getItem('wg_pl_class') || ''; } catch(e){}
+    if(saved && _plClassList.some(function(c){ return c.id===saved; })) sel.value = saved;
+    _plClassId = sel.value;
+  }
+  // 폼 선택 목록
+  var fs = document.getElementById('plAddForm');
+  if(fs){
+    fs.innerHTML = Object.keys(PLANNER_FORMS).map(function(k){
+      var f = PLANNER_FORMS[k];
+      return '<option value="'+k+'">'+_plEsc(f.course+' · '+f.category)+'</option>';
+    }).join('');
+    plAddFormChanged();
+  }
+  _plOffset = 0;
+  loadPlanner();
+}
+
+function plChangeClass(){
+  _plClassId = (document.getElementById('plClassSel')||{}).value || '';
+  try { localStorage.setItem('wg_pl_class', _plClassId); } catch(e){}
+  loadPlanner();
+}
+function plMove(d){ _plOffset += d; if(_plOffset<0) _plOffset=0; loadPlanner(); }
+
+function plAddFormChanged(){
+  var k = (document.getElementById('plAddForm')||{}).value;
+  var f = PLANNER_FORMS[k];
+  var ls = document.getElementById('plAddLesson');
+  if(f && ls){
+    ls.innerHTML = f.lessons.map(function(n){
+      return '<option value="'+_plEsc(n)+'">'+_plEsc(n)+'</option>';
+    }).join('');
+  }
+}
+
+async function loadPlanner(){
+  var list = document.getElementById('plList');
+  var mon  = _plWeekStart(_plOffset);
+  var sun  = new Date(mon); sun.setDate(mon.getDate()+6);
+
+  var lbl = document.getElementById('plWeekLabel');
+  if(lbl) lbl.textContent = (_plOffset===0?'이번 주 · ':'')
+    + (mon.getMonth()+1)+'월 '+mon.getDate()+'일 ~ '+(sun.getMonth()+1)+'월 '+sun.getDate()+'일';
+  var nx = document.getElementById('plBtnNext');
+  if(nx) nx.style.visibility = _plOffset>0 ? 'visible' : 'hidden';
+
+  // 날짜 선택지 (그 주 7일)
+  var ds = document.getElementById('plAddDate');
+  if(ds){
+    var opts = '';
+    for(var i=0;i<7;i++){
+      var d=new Date(mon); d.setDate(mon.getDate()+i);
+      opts += '<option value="'+_plFmt(d)+'">'+(d.getMonth()+1)+'.'+d.getDate()
+            + ' ('+_PL_DAY[d.getDay()]+')</option>';
+    }
+    ds.innerHTML = opts;
+  }
+
+  document.getElementById('plAddBar').style.display  = _plClassId ? '' : 'none';
+  document.getElementById('plNoteBox').style.display = _plClassId ? '' : 'none';
+  document.getElementById('plLinkBox').style.display = _plClassId ? '' : 'none';
+
+  if(!_plClassId){
+    list.innerHTML = "<div style='text-align:center;color:#bbb;padding:48px;font-size:13px'>Select a class to begin</div>";
+    return;
+  }
+  list.innerHTML = "<div style='text-align:center;color:#bbb;padding:48px;font-size:13px'>Loading...</div>";
+
+  google.script.run
+    .withSuccessHandler(function(data){
+      _plEntries = (data.entries||[]).map(function(e){
+        return { id:e.id, date:e.date, form_key:e.form_key,
+                 lesson_name:e.lesson_name, items:e.items||{} };
+      });
+      _plNote = data.note || '';
+      var nt = document.getElementById('plNote'); if(nt) nt.value = _plNote;
+      plRender();
+      plRenderLink();
+    })
+    .withFailureHandler(function(e){
+      list.innerHTML = "<div style='text-align:center;color:#c66;padding:40px;font-size:13px'>"
+        + "Couldn't load: " + _plEsc(e && e.message ? e.message : '') + "</div>";
+    })
+    .fetchPlannerWeek(_plClassId, _plFmt(mon));
+}
+
+function plRender(){
+  var list = document.getElementById('plList');
+  if(!_plEntries.length){
+    list.innerHTML = "<div style='text-align:center;color:#bbb;padding:44px;font-size:13px'>"
+      + "No planner yet for this week.<br>Add one above to get started.</div>";
+    return;
+  }
+  list.innerHTML = _plEntries.map(function(en, idx){
+    var f = PLANNER_FORMS[en.form_key];
+    if(!f) return '';
+    var d = new Date(en.date+'T00:00:00');
+    var ac = f.accent || '#CC2B2B';
+    var h = "<div style='background:white;border-radius:12px;margin-bottom:12px;overflow:hidden;"
+          + "box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05);border-top:4px solid "+ac+"'>";
+    // 헤더
+    h += "<div style='display:flex;align-items:center;gap:10px;padding:11px 15px;background:#FCFBF9;border-bottom:1px solid #eee;flex-wrap:wrap'>"
+       +   "<div style='min-width:0'>"
+       +     "<div style='font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:"+ac+"'>"+_plEsc(f.category)+"</div>"
+       +     "<div style='font-size:17px;font-weight:700'>"+_plEsc(en.lesson_name)+"</div>"
+       +   "</div>"
+       +   "<div style='margin-left:auto;display:flex;align-items:center;gap:7px'>"
+       +     "<span style='font-size:13px;font-weight:700;color:#555'>"+(d.getMonth()+1)+"."+d.getDate()+" ("+_PL_DAY[d.getDay()]+")</span>"
+       +     "<button onclick='plSaveCard("+idx+")' style='padding:5px 13px;background:#2D4A3E;color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer'>저장</button>"
+       +     "<button onclick='plDeleteCard("+idx+")' style='padding:5px 10px;background:#f5f5f5;color:#999;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer'>삭제</button>"
+       +   "</div>"
+       + "</div>";
+    // 항목
+    f.items.forEach(function(it){
+      var val  = en.items[it.key] || '';
+      var subs = en.items[it.key+'_subs'] || [];
+      h += "<div style='display:flex;align-items:center;gap:9px;padding:8px 15px;border-bottom:1px solid #f4f4f2;flex-wrap:wrap'>"
+         +   "<span style='font-size:13px;font-weight:700;min-width:110px'>"+_plEsc(it.label)+"</span>";
+      if(it.fixed){
+        h += "<span style='font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#FDECEC;color:#CC2B2B'>고정</span>";
+      }
+      if(it.subs){
+        it.subs.forEach(function(s,si){
+          var on = subs.indexOf(s) >= 0;
+          h += "<label style='font-size:11px;color:#777;display:flex;align-items:center;gap:3px;cursor:pointer'>"
+             +   "<input type='checkbox' id='plis_"+idx+"_"+it.key+"_"+si+"' data-sub='"+_plEsc(s)+"'"+(on?" checked":"")+">"
+             +   _plEsc(s) + "</label>";
+        });
+      }
+      h += "<input type='text' id='pli_"+idx+"_"+it.key+"' value='"+_plEsc(val)+"' "
+         +   "placeholder='비워두면 숙제 없음' "
+         +   "style='flex:1;min-width:130px;margin-left:auto;padding:6px 9px;border:1.5px solid #e5e5e5;border-radius:7px;font-size:13px;font-family:inherit'>";
+      h += "</div>";
+    });
+    return h + "</div>";
+  }).join('');
+}
+
+function plCollect(idx){
+  var en = _plEntries[idx];
+  var f  = PLANNER_FORMS[en.form_key];
+  var items = {};
+  f.items.forEach(function(it){
+    var el = document.getElementById('pli_'+idx+'_'+it.key);
+    var v  = el ? el.value.trim() : '';
+    if(v) items[it.key] = v;
+    if(it.subs){
+      var on = [];
+      it.subs.forEach(function(s,si){
+        var c = document.getElementById('plis_'+idx+'_'+it.key+'_'+si);
+        if(c && c.checked) on.push(s);
+      });
+      if(on.length && v) items[it.key+'_subs'] = on;
+    }
+  });
+  return items;
+}
+
+function plSaveCard(idx){
+  var en = _plEntries[idx];
+  en.items = plCollect(idx);
+  google.script.run
+    .withSuccessHandler(function(){ showToast("Saved!"); loadPlanner(); })
+    .withFailureHandler(function(e){
+      showToast("Couldn't save. Please try again.");
+    })
+    .savePlannerEntry(_plClassId, en.date, en.form_key, en.lesson_name, en.items);
+}
+
+function plDeleteCard(idx){
+  var en = _plEntries[idx];
+  if(!confirm("Delete the planner for "+en.lesson_name+"?\nIt disappears from the parent page right away.")) return;
+  if(!en.id){ _plEntries.splice(idx,1); plRender(); return; }
+  google.script.run
+    .withSuccessHandler(function(){ showToast("Deleted"); loadPlanner(); })
+    .withFailureHandler(function(){ showToast("Couldn't delete. Please try again."); })
+    .deletePlannerEntry(en.id);
+}
+
+function plAddCard(){
+  var fk   = (document.getElementById('plAddForm')||{}).value;
+  var ls   = (document.getElementById('plAddLesson')||{}).value;
+  var date = (document.getElementById('plAddDate')||{}).value;
+  var f    = PLANNER_FORMS[fk];
+  if(!f || !ls || !date) return;
+
+  var dup = _plEntries.some(function(e){
+    return e.date===date && e.form_key===fk && e.lesson_name===ls;
+  });
+  if(dup){ showToast("Already added for that date."); return; }
+
+  // 고정 숙제는 지난 회차 값을 기본으로 채워줍니다
+  google.script.run
+    .withSuccessHandler(function(last){
+      var items = {};
+      f.items.forEach(function(it){
+        if(it.fixed && last && last[it.key]) items[it.key] = last[it.key];
+      });
+      _plEntries.push({ id:null, date:date, form_key:fk, lesson_name:ls, items:items });
+      _plEntries.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+      plRender();
+    })
+    .withFailureHandler(function(){
+      _plEntries.push({ id:null, date:date, form_key:fk, lesson_name:ls, items:{} });
+      plRender();
+    })
+    .fetchLastPlannerItems(_plClassId, fk);
+}
+
+function plSaveNote(){
+  var note = (document.getElementById('plNote')||{}).value || '';
+  var mon  = _plFmt(_plWeekStart(_plOffset));
+  google.script.run
+    .withSuccessHandler(function(){ showToast("Note saved!"); })
+    .withFailureHandler(function(){ showToast("Couldn't save. Please try again."); })
+    .savePlannerNoteSrv(_plClassId, mon, note);
+}
+
+function plRenderLink(){
+  var box = document.getElementById('plLinkText');
+  if(!box) return;
+  var cls = _plClassList.filter(function(c){ return c.id===_plClassId; })[0];
+  if(!cls){ box.textContent=''; return; }
+  if(!cls.planner_slug){
+    box.textContent = 'No link yet for this class — run planner_setup.sql first.';
+    return;
+  }
+  var base = (document.getElementById('plBaseUrl')||{}).value || '';
+  base = base.replace(/\/+$/,'');
+  box.textContent = base ? (base + '?c=' + cls.planner_slug)
+                         : 'Enter the base URL above to build the link.';
+}
+
+function plCopyLink(btn){
+  var txt = (document.getElementById('plLinkText')||{}).textContent || '';
+  if(txt.indexOf('http') !== 0){ showToast("Enter the base URL first."); return; }
+  navigator.clipboard.writeText(txt).then(function(){
+    var o = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(function(){ btn.textContent = o; }, 1500);
+  });
+}
+
 // ── google.script.run 호환 shim ──────────────────────────────
 
 var _serverFunctions = {
+  fetchPlannerWeek, savePlannerEntry, deletePlannerEntry,
+  savePlannerNoteSrv, fetchLastPlannerItems, fetchReportPlannerCtx,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
   fetchStudentsByClass,
@@ -1890,6 +2457,7 @@ function applyRoleVisibility(){
     vis(m, showClassMgmt);
   });
   vis('hw', !isNative); // HW check는 관리자도 볼 수 있음
+  vis('planner', showClassMgmt); // 알림장 — 수업하는 선생님 모두 (원어민 포함)
   // ── Admin ──
   var isMaster = role === '마스터';
   secVis('divAdminMgmt','secAdminMgmt', isMaster);
@@ -2164,9 +2732,16 @@ function renderCard(r, c){
   var attitudeOpts = ["Excellent","Great","Good","Needs Improvement","Poor"];
   var attitudeHtml = "<option value=''>-- Select Attitude --</option>";
   attitudeOpts.forEach(function(opt){ var sel3 = (r.attitude===opt)?" selected":""; attitudeHtml += "<option"+sel3+">"+opt+"</option>"; });
-  var prev = "";
-  if(r.lastLesson) prev += "<div class='prev'><div class='lbl'>Last Lesson</div><div class='val'>" + r.lastLesson + "</div></div>";
-  if(r.lastHW)     prev += "<div class='prev'><div class='lbl'>Last Homework</div><div class='val'>" + r.lastHW + "</div></div>";
+  // ── Last Class Review 패널 (내용은 렌더 후 비동기로 채웁니다) ──
+  var prev =
+    "<div id='prevbox-" + r.pageId + "' style='display:none;border:1px solid #D8E4D0;border-radius:9px;overflow:hidden;margin-bottom:13px'>"
+    + "<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;"
+    +   "padding:8px 12px;background:#EDF3E7;border-bottom:1px solid #D8E4D0'>"
+    +   "<span style='font-size:12px;font-weight:700;color:#3F5233'>↩ Last Class</span>"
+    +   "<span style='font-size:10.5px;color:#7E9070'>Check before writing today's report</span>"
+    + "</div>"
+    + "<div id='prevbody-" + r.pageId + "' style='display:flex;flex-wrap:wrap'></div>"
+    + "</div>";
   var html = "";
   // ── Card head: title + badge + edit button (only if not past) ──
   html += "<div class='card-head' style='" + (isPast ? "opacity:0.8" : "") + "'>";
@@ -2187,13 +2762,35 @@ function renderCard(r, c){
   }
   // ── Card body ──
   html += "<div class='card-body'>";
-  html += "<div class='fg'><label>Class</label><select id='class-" + r.pageId + "'" + dis + ">" + classOpts + "</select></div>";
+  html += "<div class='fg'><label>Class</label><select id='class-" + r.pageId + "' onchange='onReportClassChange(\"" + r.pageId + "\")'" + dis + ">" + classOpts + "</select></div>";
   html += "<div class='fg'><label>Book <span class='req'>*</span></label><input type='text' id='book-" + r.pageId + "' value='" + r.book + "' placeholder='Textbook name'" + dis + "></div>";
   html += prev;
   html += "<div class='fg'><label>Test <span class='req'>*</span></label><select id='test-" + r.pageId + "'" + dis + ">" + testHtml + "</select></div>";
-  html += "<div class='fg'><label>Attitude</label><select id='attitude-" + r.pageId + "'" + dis + ">" + attitudeHtml + "</select></div>";
   html += "<div class='fg'><label>Today's Lesson <span class='req'>*</span></label><textarea id='lesson-" + r.pageId + "'" + dis + ">" + (r.todayLesson || "") + "</textarea></div>";
-  html += "<div class='fg'><label>Homework <span class='req'>*</span></label><textarea id='hw-" + r.pageId + "'" + dis + ">" + (r.homework || "") + "</textarea></div>";
+
+  // ── Homework — 알림장 폼 ──
+  html += "<div class='fg'><label>Homework <span class='req'>*</span></label>";
+  html += "<div style='border:1px solid #DDE5D6;border-radius:9px;overflow:hidden;background:#FCFDFB'>";
+  //  양식 선택
+  html += "<div style='display:flex;align-items:center;gap:9px;padding:9px 12px;background:#EDF3E7;border-bottom:1px solid #DDE5D6;flex-wrap:wrap'>"
+        +   "<span style='font-size:11.5px;font-weight:700;color:#3F5233;white-space:nowrap'>Planner form</span>"
+        +   "<select id='plform-" + r.pageId + "' onchange='onPlFormChange(\"" + r.pageId + "\")'" + dis
+        +     " style='flex:1;min-width:160px;padding:6px 9px;border:1.5px solid #C9D9BE;border-radius:7px;font-size:13px;background:white'>"
+        +     plFormOptions() + "</select>"
+        + "</div>";
+  html += "<div style='padding:7px 12px;font-size:10.5px;color:#8A9178;border-bottom:1px solid #F0F3EC'>"
+        +   "Pick today's form, tick each book that has homework, then write the pages or details.</div>";
+  //  항목 행 (폼 선택 시 채워짐)
+  html += "<div id='plbox-" + r.pageId + "'></div>";
+  //  자유 입력 (폼을 안 쓸 때)
+  html += "<div id='plfree-" + r.pageId + "' style='display:none;padding:10px 12px'>"
+        +   "<textarea id='hw-" + r.pageId + "' placeholder='Write homework freely'" + dis + ">"
+        +   (r.homework || "") + "</textarea></div>";
+  html += "<div style='padding:7px 12px;font-size:10.5px;color:#A8B09C;background:#F7F9F4;border-top:1px solid #F0F3EC'>"
+        +   "Saving also writes a readable homework line to the report and to the parent planner.</div>";
+  html += "</div></div>";
+
+  html += "<div class='fg'><label>Attitude</label><select id='attitude-" + r.pageId + "'" + dis + ">" + attitudeHtml + "</select></div>";
   if(!isPast){
     html += "<span class='opt-toggle' onclick='toggleOpt(\"" + r.pageId + "\")'>+ More (Comments / Book Orders)</span>";
     html += "<div class='opt-fields' id='opt-" + r.pageId + "'>";
@@ -2207,28 +2804,258 @@ function renderCard(r, c){
   html += "</div>";
   div.innerHTML = html;
   c.appendChild(div);
+  initReportPlanner(r);
 }
 function toggleOpt(id){ document.getElementById("opt-"+id).classList.toggle("open"); }
+
+// ============================================================
+// Daily Report 안의 알림장 폼
+// ============================================================
+
+// 폼 선택 목록 — value 는 "formKey|lessonName"
+function plFormOptions(){
+  var h = "<option value=''>— Free text —</option>";
+  var byCourse = {};
+  Object.keys(PLANNER_FORMS).forEach(function(k){
+    var f = PLANNER_FORMS[k];
+    (byCourse[f.course] = byCourse[f.course] || []).push(k);
+  });
+  Object.keys(byCourse).forEach(function(course){
+    h += "<optgroup label='" + course + "'>";
+    byCourse[course].forEach(function(k){
+      PLANNER_FORMS[k].lessons.forEach(function(ln){
+        h += "<option value='" + k + "|" + _plEsc(ln) + "'>" + _plEsc(ln) + "</option>";
+      });
+    });
+    h += "</optgroup>";
+  });
+  return h;
+}
+
+// 폼을 고르면 항목 행을 그립니다. preset 이 있으면 기존 값을 채웁니다.
+function onPlFormChange(pageId, preset){
+  var sel  = document.getElementById('plform-'+pageId);
+  var box  = document.getElementById('plbox-'+pageId);
+  var free = document.getElementById('plfree-'+pageId);
+  if(!sel || !box || !free) return;
+
+  var v = sel.value;
+  if(!v){ box.innerHTML = ''; free.style.display = ''; return; }
+  free.style.display = 'none';
+
+  var parts = v.split('|'), fk = parts[0], ln = parts[1];
+  var f = PLANNER_FORMS[fk];
+  if(!f){ box.innerHTML = ''; return; }
+
+  var items  = preset || {};
+  var isPast = selectedDate < getTodayStr();
+  var dis    = isPast ? ' disabled' : '';
+  var ac     = f.accent || '#CC2B2B';
+
+  var h = "<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;"
+        +   "padding:9px 12px;border-bottom:2px solid "+ac+";flex-wrap:wrap'>"
+        +   "<span style='font-size:14px;font-weight:700'>"+_plEsc(ln)+"</span>"
+        +   "<span style='font-size:9.5px;color:#9AA391;letter-spacing:.2px'>"
+        +     _plEsc(f.course+' / '+f.category)+" · same order as the parent planner</span>"
+        + "</div>";
+
+  f.items.forEach(function(it){
+    var val  = items[it.key] || '';
+    var subs = items[it.key+'_subs'] || [];
+    var on   = !!val;
+    h += "<div style='display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid #F0F3EC;flex-wrap:wrap'>"
+      +    "<input type='checkbox' id='plchk-"+pageId+"-"+it.key+"'"+(on?" checked":"")+dis
+      +      " onchange='onPlRowToggle(\""+pageId+"\",\""+it.key+"\")'"
+      +      " style='width:16px;height:16px;flex-shrink:0;cursor:pointer'>"
+      +    "<span id='pllbl-"+pageId+"-"+it.key+"' style='font-size:13px;font-weight:700;min-width:100px;"
+      +      "color:"+(on?'#2D3A28':'#BDBDBD')+"'>"+_plEsc(it.label)+"</span>";
+    if(it.fixed){
+      h += "<span style='font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;"
+         +   "background:#FDECEC;color:#CC2B2B'>fixed</span>";
+    }
+    if(it.subs){
+      it.subs.forEach(function(s, si){
+        var sOn = subs.indexOf(s) >= 0;
+        h += "<label style='font-size:10.5px;color:#8A9178;display:flex;align-items:center;gap:3px;cursor:pointer'>"
+           +   "<input type='checkbox' id='plsub-"+pageId+"-"+it.key+"-"+si+"' data-sub='"+_plEsc(s)+"'"
+           +     (sOn?" checked":"")+dis+" style='width:13px;height:13px'>"+_plEsc(s)+"</label>";
+      });
+    }
+    h += "<input type='text' id='plval-"+pageId+"-"+it.key+"' value='"+_plEsc(val)+"'"
+      +    " placeholder='No homework'" + (on?'':' disabled') + dis
+      +    " style='flex:1;min-width:120px;margin-left:auto;padding:6px 9px;border:1.5px solid #E5E9E0;"
+      +      "border-radius:7px;font-size:13px;font-family:inherit;background:"+(on?'#fff':'#F7F7F5')+"'>";
+    h += "</div>";
+  });
+
+  box.innerHTML = h;
+}
+
+// 체크를 켜고 끄면 입력칸이 열리고 닫힙니다
+function onPlRowToggle(pageId, key){
+  var chk = document.getElementById('plchk-'+pageId+'-'+key);
+  var val = document.getElementById('plval-'+pageId+'-'+key);
+  var lbl = document.getElementById('pllbl-'+pageId+'-'+key);
+  if(!chk || !val) return;
+  val.disabled        = !chk.checked;
+  val.style.background = chk.checked ? '#fff' : '#F7F7F5';
+  if(lbl) lbl.style.color = chk.checked ? '#2D3A28' : '#BDBDBD';
+  if(chk.checked) val.focus(); else val.value = '';
+}
+
+// 화면에 입력된 값을 items 객체로 모읍니다
+function plCollectReport(pageId){
+  var sel = document.getElementById('plform-'+pageId);
+  if(!sel || !sel.value) return null;
+  var parts = sel.value.split('|'), fk = parts[0], ln = parts[1];
+  var f = PLANNER_FORMS[fk];
+  if(!f) return null;
+
+  var items = {};
+  f.items.forEach(function(it){
+    var chk = document.getElementById('plchk-'+pageId+'-'+it.key);
+    var el  = document.getElementById('plval-'+pageId+'-'+it.key);
+    if(!chk || !chk.checked) return;
+    var v = el ? el.value.trim() : '';
+    if(!v) return;
+    items[it.key] = v;
+    if(it.subs){
+      var on = [];
+      it.subs.forEach(function(s, si){
+        var c = document.getElementById('plsub-'+pageId+'-'+it.key+'-'+si);
+        if(c && c.checked) on.push(s);
+      });
+      if(on.length) items[it.key+'_subs'] = on;
+    }
+  });
+  return { formKey:fk, lessonName:ln, items:items };
+}
+
+// items → 사람이 읽는 한 줄 (기존 homework 칸에 저장됩니다)
+function plItemsToText(formKey, items){
+  var f = PLANNER_FORMS[formKey];
+  if(!f) return '';
+  return f.items.filter(function(it){ return items[it.key]; })
+    .map(function(it){
+      var subs = items[it.key+'_subs'];
+      var tail = (subs && subs.length) ? ' ('+subs.join('/')+')' : '';
+      return it.label + tail + ' ' + items[it.key];
+    }).join('\n');
+}
+
+// 반을 바꾸면 지난 수업과 기존 알림장을 다시 불러옵니다
+function onReportClassChange(pageId){
+  var cls = (document.getElementById('class-'+pageId)||{}).value || '';
+  loadReportPlannerCtx(pageId, cls);
+}
+
+function loadReportPlannerCtx(pageId, classId){
+  var pbox = document.getElementById('prevbox-'+pageId);
+  var pbody= document.getElementById('prevbody-'+pageId);
+  if(!classId){ if(pbox) pbox.style.display='none'; return; }
+
+  google.script.run
+    .withSuccessHandler(function(ctx){
+      // ── 지난 수업 패널 ──
+      var cells = '';
+      if(ctx.prevLesson && ctx.prevLesson.todays_lesson){
+        cells += "<div style='flex:1;min-width:150px;padding:10px 12px'>"
+              +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:3px'>Last lesson</div>"
+              +    "<div style='font-size:13px;line-height:1.5'>"
+              +      (ctx.prevLesson.book ? "<b>"+_plEsc(ctx.prevLesson.book)+"</b> · " : "")
+              +      _plEsc(ctx.prevLesson.todays_lesson)+"</div></div>";
+      }
+      if(ctx.prev && ctx.prev.items){
+        var pf = PLANNER_FORMS[ctx.prev.form_key];
+        var lines = '';
+        if(pf){
+          pf.items.forEach(function(it){
+            if(!ctx.prev.items[it.key]) return;
+            lines += "<div style='display:flex;gap:7px;align-items:baseline;margin-bottom:2px'>"
+                  +    "<span style='width:5px;height:5px;border-radius:50%;background:"+(pf.accent||'#CC2B2B')+";flex-shrink:0'></span>"
+                  +    "<b style='font-size:12.5px'>"+_plEsc(it.label)+"</b>"
+                  +    "<span style='font-size:12.5px;color:#666'>"+_plEsc(ctx.prev.items[it.key])+"</span></div>";
+          });
+        }
+        if(lines){
+          cells += "<div style='flex:1;min-width:150px;padding:10px 12px;border-left:1px solid #E4EBDE'>"
+                +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:4px'>Last homework</div>"
+                +    lines + "</div>";
+        }
+      }
+      if(pbody) pbody.innerHTML = cells;
+      if(pbox)  pbox.style.display = cells ? '' : 'none';
+
+      // ── 오늘 이미 쓴 알림장이 있으면 복원 ──
+      var sel = document.getElementById('plform-'+pageId);
+      if(sel && ctx.current){
+        sel.value = ctx.current.form_key + '|' + ctx.current.lesson_name;
+        onPlFormChange(pageId, ctx.current.items || {});
+      } else if(sel && !sel.value && ctx.prev){
+        // 지난번에 쓰던 양식을 기본으로 골라줍니다 (값은 비운 채)
+        var guess = ctx.prev.form_key + '|' + ctx.prev.lesson_name;
+        var has = Array.prototype.some.call(sel.options, function(o){ return o.value===guess; });
+        if(has){
+          sel.value = guess;
+          var pre = {};
+          var gf = PLANNER_FORMS[ctx.prev.form_key];
+          if(gf) gf.items.forEach(function(it){
+            if(it.fixed && ctx.prev.items[it.key]) pre[it.key] = ctx.prev.items[it.key];
+          });
+          onPlFormChange(pageId, pre);
+        }
+      }
+    })
+    .withFailureHandler(function(){ if(pbox) pbox.style.display='none'; })
+    .fetchReportPlannerCtx(classId, selectedDate);
+}
+
+function initReportPlanner(r){
+  var sel = document.getElementById('plform-'+r.pageId);
+  if(sel && !sel.value){
+    document.getElementById('plfree-'+r.pageId).style.display = '';
+  }
+  loadReportPlannerCtx(r.pageId, r.classId || '');
+}
 function doSubmit(pageId){
-  var lesson = document.getElementById("lesson-"+pageId).value.trim();
-  var hw     = document.getElementById("hw-"+pageId).value.trim();
-  var book   = document.getElementById("book-"+pageId).value.trim();
-  var test   = document.getElementById("test-"+pageId).value;
+  var lesson  = document.getElementById("lesson-"+pageId).value.trim();
+  var book    = document.getElementById("book-"+pageId).value.trim();
+  var test    = document.getElementById("test-"+pageId).value;
+  var classId = document.getElementById("class-"+pageId).value || "";
+
+  // 알림장 폼을 썼으면 거기서 숙제를 만들고, 아니면 자유 입력을 씁니다
+  var pl = plCollectReport(pageId);
+  var hw;
+  if(pl){
+    hw = plItemsToText(pl.formKey, pl.items);
+    if(!hw){ showToast("Tick at least one book and write its homework."); return; }
+    if(!classId){ showToast("Please select a Class to save the planner."); return; }
+  } else {
+    var hwEl = document.getElementById("hw-"+pageId);
+    hw = hwEl ? hwEl.value.trim() : "";
+  }
+
   if(!book){ showToast("Please fill in Book."); return; }
   if(!test){ showToast("Please select a Test."); return; }
   if(!lesson || !hw){ showToast("Please fill in Today's Lesson and Homework."); return; }
+
   var btn = document.getElementById("btn-"+pageId);
   btn.disabled = true; btn.textContent = "Saving...";
   var data = {
     pageId:      pageId,
     todayLesson: lesson,
     homework:    hw,
-    book:        document.getElementById("book-"+pageId).value || "",
-    classId:     document.getElementById("class-"+pageId).value || "",
-    test:        document.getElementById("test-"+pageId).value || "-",
+    book:        book,
+    classId:     classId,
+    test:        test || "-",
     attitude:    document.getElementById("attitude-"+pageId).value || "",
     comments:    document.getElementById("comments-"+pageId).value || "",
-    bookOrders:  document.getElementById("bookorders-"+pageId).value || ""
+    bookOrders:  document.getElementById("bookorders-"+pageId).value || "",
+    // 알림장 동시 저장용
+    dateStr:     selectedDate,
+    plFormKey:   pl ? pl.formKey    : null,
+    plLessonName:pl ? pl.lessonName : null,
+    plItems:     pl ? pl.items      : null
   };
   google.script.run
   .withSuccessHandler(function(){
@@ -2432,7 +3259,7 @@ async function initWeeklyHwScreen() {
   if(sel) {
     var prevVal = sel.value;
     sel.innerHTML = '<option value="">전체 반</option>';
-    var classes = await _sbGetSafe('classes', 'select=id,name&order=name.asc');
+    var classes = await _sbGetSafe('classes', 'select=id,name,planner_slug&order=name.asc');
     _whwClassMap = {};
     _whwClassList = classes || [];
     (classes||[]).forEach(function(c){
@@ -2456,19 +3283,25 @@ function renderWhwLinks() {
   var base = (document.getElementById('whwBaseUrl')||{}).value || '';
   base = base.replace(/\/+$/, '');
   codeList.innerHTML = _whwClassList.map(function(c) {
-    var url = base ? base + '?class=' + encodeURIComponent(c.name) : '(베이스 URL을 입력해 주세요)';
-    var urlText = base ? base + '?class=' + c.name : '';
-    return "<div style='display:flex;align-items:center;gap:8px;background:white;border-radius:8px;padding:7px 10px;border:1px solid #D0E8D4'>" +
-      "<span style='font-size:12px;font-weight:700;color:#2D4A3E;min-width:50px'>" + _whwEsc(c.name) + "</span>" +
-      "<span style='font-size:11px;color:#7AAA88;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>" + _whwEsc(urlText || '베이스 URL을 입력해 주세요') + "</span>" +
-      (base ? "<button onclick='copyWhwLink(\"" + _whwEsc(url).replace(/"/g,'&quot;') + "\",this)' style='padding:4px 10px;background:#2D4A3E;color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0'>복사</button>" : "") +
+    // 반 이름이 아니라 추측 불가능한 슬러그를 씁니다 (planner_setup.sql 에서 발급)
+    if (!c.planner_slug) {
+      return "<div style='display:flex;align-items:center;gap:8px;background:white;border-radius:8px;padding:7px 10px;border:1px solid #EFD9A6'>" +
+        "<span style='font-size:12px;font-weight:700;color:#7A5C1E;min-width:50px'>" + _whwEsc(c.name) + "</span>" +
+        "<span style='font-size:11px;color:#C08A2A;flex:1'>링크 미발급 — planner_setup.sql 을 실행해 주세요</span></div>";
+    }
+    var url = base ? base + '?c=' + c.planner_slug : '(베이스 URL을 입력해 주세요)';
+    var urlText = base ? url : '';
+    return "<div style='display:flex;align-items:center;gap:8px;background:white;border-radius:8px;padding:7px 10px;border:1px solid #EFD9A6'>" +
+      "<span style='font-size:12px;font-weight:700;color:#7A5C1E;min-width:50px'>" + _whwEsc(c.name) + "</span>" +
+      "<span style='font-size:11px;color:#B09355;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>" + _whwEsc(urlText || '베이스 URL을 입력해 주세요') + "</span>" +
+      (base ? "<button onclick='copyWhwLink(\"" + _whwEsc(url).replace(/"/g,'&quot;') + "\",this)' style='padding:4px 10px;background:#C99A2E;color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0'>복사</button>" : "") +
       "</div>";
   }).join('');
 }
 function copyWhwLink(url, btn) {
   navigator.clipboard.writeText(url).then(function() {
     var orig = btn.textContent;
-    btn.textContent = '✅ 복사됨';
+    btn.textContent = 'Copied';
     btn.style.background = '#4A7A5A';
     setTimeout(function(){ btn.textContent = orig; btn.style.background = '#2D4A3E'; }, 1500);
   }).catch(function() { showToast('복사 실패. 직접 복사해 주세요.'); });
@@ -2561,7 +3394,7 @@ function setActiveNav(mode){
     if(active) active.classList.add("active");
   }
 }
-var ALL_SCREEN_IDS = ["modeScreen","mainScreen","hwScreen","weeklyHwScreen","rosterScreen","enrollScreen","consultCalScreen","withdrawScreen","bookOrderScreen","extraOrderScreen","supmatScreen","parentMsgScreen","memoBoardScreen","commentsScreen","bookOrderBoardScreen","scheduleScreen","nativeBoardScreen","studentListScreen","tuitionScreen","lessonPlanScreen","newStudentScreen","schoolCalScreen","meetingsScreen","teacherMgmtScreen","absenceScreen"];
+var ALL_SCREEN_IDS = ["modeScreen","mainScreen","hwScreen","weeklyHwScreen","plannerScreen","rosterScreen","enrollScreen","consultCalScreen","withdrawScreen","bookOrderScreen","extraOrderScreen","supmatScreen","parentMsgScreen","memoBoardScreen","commentsScreen","bookOrderBoardScreen","scheduleScreen","nativeBoardScreen","studentListScreen","tuitionScreen","lessonPlanScreen","newStudentScreen","schoolCalScreen","meetingsScreen","teacherMgmtScreen","absenceScreen"];
 function navigateTo(mode){
   // 1) 모든 화면 숨기기
   ALL_SCREEN_IDS.forEach(function(id){
@@ -2575,6 +3408,7 @@ function navigateTo(mode){
   else if(mode==="report"){ currentMode="report"; screenId="mainScreen"; }
   else if(mode==="hw"){ currentMode="hw"; screenId="hwScreen"; }
   else if(mode==="weeklyhw"){ currentMode="weeklyhw"; screenId="weeklyHwScreen"; }
+  else if(mode==="planner"){ currentMode="planner"; screenId="plannerScreen"; }
   else if(mode==="roster"){ currentMode="roster"; screenId="rosterScreen"; }
   else if(mode==="enrollment"){ currentMode="enrollment"; screenId="enrollScreen"; }
   else if(mode==="consultcal"){ currentMode="consultcal"; screenId="consultCalScreen"; }
@@ -2626,6 +3460,7 @@ function navigateTo(mode){
       buildHwDateSelect(); loadHwTeachers();
     }
     else if(mode==="weeklyhw"){ initWeeklyHwScreen(); }
+    else if(mode==="planner"){ initPlannerScreen(); }
     else if(mode==="roster"){ loadRosterClasses(); }
     else if(mode==="enrollment"){ initEnrollScreen(); }
     else if(mode==="consultcal"){ loadConsultCal(); }
@@ -4328,10 +5163,20 @@ function renderWeekCal(dates, absences) {
       html += '<div style="text-align:center;color:#ddd;font-size:10px;padding-top:8px">-</div>';
     } else {
       items.forEach(function(a) {
-        html += '<div style="background:#fef3f3;border-left:3px solid #ef5350;border-radius:3px;padding:3px 5px;margin-bottom:3px">';
+        // 잘못 등록된 결석을 여기서 바로 지울 수 있게 × 버튼을 답니다.
+        // (따옴표가 섞인 이름 때문에 onclick 이 깨지지 않도록 제거합니다)
+        var safeName = String(a.studentName||'').replace(/['"\\]/g,'');
+        html += '<div style="position:relative;background:#fef3f3;border-left:3px solid #ef5350;border-radius:3px;padding:3px 16px 3px 5px;margin-bottom:3px">';
         if (a.className) html += '<div style="font-size:9px;color:#888;font-weight:600">' + a.className + '</div>';
         html += '<div style="font-size:11px;font-weight:700;color:#363D2E">' + (a.studentName||'') + '</div>';
         if (a.reason) html += '<div style="font-size:9px;color:#ef5350">' + a.reason + '</div>';
+        html += '<button onclick=\'delWeekCalAbsence("' + a.id + '","' + safeName + '","' + a.date + '")\''
+             +  ' title="이 결석 기록 삭제"'
+             +  ' style="position:absolute;top:2px;right:2px;width:15px;height:15px;line-height:13px;'
+             +  'padding:0;background:transparent;border:none;border-radius:3px;color:#e09a95;'
+             +  'font-size:13px;cursor:pointer"'
+             +  ' onmouseover="this.style.background=\'#f8d7d5\';this.style.color=\'#c62828\'"'
+             +  ' onmouseout="this.style.background=\'transparent\';this.style.color=\'#e09a95\'">&times;</button>';
         html += '</div>';
       });
     }
@@ -4339,6 +5184,23 @@ function renderWeekCal(dates, absences) {
   });
   html += '</div>';
   grid.innerHTML = html;
+}
+
+// 주간 결석 현황에서 결석 기록 삭제
+// 메모는 남습니다 (absences 를 지우면 korean_memos.absence_id 가 자동으로 NULL 이 됩니다)
+function delWeekCalAbsence(absId, studentName, dateStr){
+  if(!confirm((studentName||'이 학생') + " · " + dateStr + "\n\n결석 기록을 삭제할까요?\n"
+            + "출석부에서 사라지고, 같은 날 다시 등록할 수 있게 됩니다.\n"
+            + "(메모보드의 메모는 그대로 남습니다)")) return;
+  google.script.run
+  .withSuccessHandler(function(){
+    showToast("결석 기록을 삭제했어요.");
+    loadWeekCal();
+  })
+  .withFailureHandler(function(e){
+    showToast("삭제 실패: " + (e && e.message ? e.message : "다시 시도해 주세요"));
+  })
+  .deleteAbsence(absId);
 }
 
 function initMemoScreen(){
@@ -4594,10 +5456,17 @@ function submitMemo(){
     google.script.run
     .withSuccessHandler(function(r){
       if(r && r.duplicate){
-        var studentName = document.getElementById("memoAbsStudentSel").options[document.getElementById("memoAbsStudentSel").selectedIndex].text;
-        showToast("이미 오늘 " + studentName + " 결석 기록이 있습니다.");
+        var sel = document.getElementById("memoAbsStudentSel");
+        var studentName = sel.options[sel.selectedIndex].text;
+        // 막지 않고 물어봅니다. 기존 결석 기록에 메모만 붙여 저장합니다.
+        if(!confirm("이미 오늘 " + studentName + " 결석 기록이 있습니다.\n\n"
+                  + "메모만 추가로 저장할까요?\n"
+                  + "(출석부에는 결석이 한 번만 기록됩니다)")) return;
+        memoData.absenceId = r.id || null;
+        _doSaveMemo(memoData, fileInput);
         return;
       }
+      if(r && r.id) memoData.absenceId = r.id;   // 새로 만든 결석과 짝지음
       _doSaveMemo(memoData, fileInput);
     })
     .withFailureHandler(function(){ _doSaveMemo(memoData, fileInput); })
@@ -7584,10 +8453,13 @@ function submitLessonPlan(){
 
 <script>
 function deleteMemoCard(pageId){
-  if(!confirm("Delete this memo?")) return;
+  if(!confirm("이 메모를 삭제할까요?\n결석 메모라면 출석부 기록도 함께 지워집니다.")) return;
   google.script.run
-  .withSuccessHandler(function(){ loadMemoList(); showToast("Deleted."); })
-  .withFailureHandler(function(e){ showToast("Delete failed: "+e.message); })
+  .withSuccessHandler(function(r){
+    loadMemoList();
+    showToast(r && r.absenceDeleted ? "메모와 결석 기록을 삭제했어요." : "삭제했어요.");
+  })
+  .withFailureHandler(function(e){ showToast("삭제 실패: "+(e&&e.message?e.message:"다시 시도해 주세요")); })
   .deleteMemo(pageId);
 }
 function deleteNativeMemoCard(pageId){
