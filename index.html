@@ -6353,7 +6353,12 @@ function initAbsenceScreen(){
 // ── 출석부 월별 격자표 ──────────────────────────────────────
 var _mgOffset = 0;   // 0 = 이번 달
 
-function mgMove(n){ _mgOffset += n; loadMonthGrid(); }
+function mgMove(n){
+  _mgOffset += n;
+  loadMonthGrid();
+  // 아래 학생별 목록도 같은 달을 보도록
+  if(_absStudents && _absStudents.length) renderAbsenceList();
+}
 
 function _mgMonthStart(offset){
   var t = new Date();
@@ -6385,6 +6390,51 @@ function loadMonthGrid(){
     .fetchMonthGrid(cls, ms);
 }
 
+// ── 월별 현황 말풍선 ──────────────────────────────────
+// title 속성은 뜨는 데 1초 넘게 걸리고 글씨도 작아서
+// 직접 만든 말풍선을 씁니다.
+function _mgAttr(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/\n/g,'&#10;');
+}
+function _mgTipBox(){
+  var b = document.getElementById('_mgTipBox');
+  if(!b){
+    b = document.createElement('div');
+    b.id = '_mgTipBox';
+    b.style.cssText = 'position:fixed;z-index:9999;display:none;pointer-events:none;'
+      + 'background:#2D3A28;color:#fff;font-size:12px;line-height:1.5;padding:7px 10px;'
+      + 'border-radius:8px;max-width:280px;white-space:pre-line;'
+      + 'box-shadow:0 4px 14px rgba(0,0,0,0.25)';
+    document.body.appendChild(b);
+  }
+  return b;
+}
+function _mgBindTips(grid){
+  grid.addEventListener('mouseover', function(e){
+    var t = e.target.closest ? e.target.closest('[data-tip]') : null;
+    if(!t || !grid.contains(t)) return;
+    var b = _mgTipBox();
+    b.textContent = t.getAttribute('data-tip');
+    b.style.display = 'block';
+    var r = t.getBoundingClientRect();
+    var bw = b.offsetWidth, bh = b.offsetHeight;
+    var x = r.left + r.width/2 - bw/2;
+    if(x < 6) x = 6;
+    if(x + bw > window.innerWidth - 6) x = window.innerWidth - bw - 6;
+    var y = r.top - bh - 8;
+    if(y < 6) y = r.bottom + 8;
+    b.style.left = x + 'px';
+    b.style.top  = y + 'px';
+  });
+  grid.addEventListener('mouseout', function(e){
+    var t = e.target.closest ? e.target.closest('[data-tip]') : null;
+    if(!t) return;
+    _mgTipBox().style.display = 'none';
+  });
+}
+
 function renderMonthGrid(data, monthStart){
   var grid = document.getElementById('monthGrid');
   if(!grid) return;
@@ -6398,7 +6448,9 @@ function renderMonthGrid(data, monthStart){
 
   var d0 = new Date(monthStart + 'T00:00:00');
   var days = new Date(d0.getFullYear(), d0.getMonth()+1, 0).getDate();
+  var mgMD = d0.getMonth() + 1;
   var DAY = ['일','월','화','수','목','금','토'];
+  var MGLABEL = { a:'결석', h:'숙제 미제출', r:'단어 재시험', b:'수업태도' };
   var STY = {
     a:{ bg:'#FDECEC', bd:'#E8A9A9', fg:'#C0392B', ch:'결' },
     h:{ bg:'#FDF6E7', bd:'#E0C78A', fg:'#A87B18', ch:'숙' },
@@ -6406,21 +6458,23 @@ function renderMonthGrid(data, monthStart){
     b:{ bg:'#F3EAFB', bd:'#C9A9E8', fg:'#6B3FA0', ch:'태' }
   };
 
-  var h = "<table style='border-collapse:separate;border-spacing:0;font-size:11px;min-width:100%'>";
+  // 날짜 칸은 남는 너비를 고르게 나눠 갖습니다 (table-layout:fixed)
+  var h = "<table style='border-collapse:separate;border-spacing:0;font-size:11px;"
+        + "table-layout:fixed;width:100%;min-width:" + (92 + days*17 + 64) + "px'>";
 
   // 머리글 — 날짜
   h += "<tr>";
   h += "<th style='position:sticky;left:0;background:#fff;z-index:2;text-align:left;padding:5px 8px;"
-    +   "border-bottom:2px solid #E3E6DE;min-width:84px;font-size:11px;color:#8A9178'>학생</th>";
+    +   "border-bottom:2px solid #E3E6DE;width:92px;font-size:11px;color:#8A9178'>학생</th>";
   for(var i=1;i<=days;i++){
     var dw = new Date(d0.getFullYear(), d0.getMonth(), i).getDay();
     var col = dw===0 ? '#E06B6B' : (dw===6 ? '#5B86C6' : '#9AA391');
-    h += "<th style='padding:4px 1px;border-bottom:2px solid #E3E6DE;width:15px;min-width:15px;"
-      +   "font-weight:700;color:"+col+";font-size:9.5px;line-height:1.2'>"+i+"<br>"
-      +   "<span style='font-size:7.5px;font-weight:600;opacity:.75'>"+DAY[dw]+"</span></th>";
+    h += "<th style='padding:4px 0;border-bottom:2px solid #E3E6DE;"
+      +   "font-weight:700;color:"+col+";font-size:10px;line-height:1.25'>"+i+"<br>"
+      +   "<span style='font-size:8px;font-weight:600;opacity:.75'>"+DAY[dw]+"</span></th>";
   }
   h += "<th style='padding:4px 8px;border-bottom:2px solid #E3E6DE;color:#8A9178;font-size:10px;"
-    +   "white-space:nowrap'>합계</th>";
+    +   "width:64px;white-space:nowrap'>합계</th>";
   h += "</tr>";
 
   // 학생별 줄
@@ -6450,10 +6504,12 @@ function renderMonthGrid(data, monthStart){
           if(!hit.length || seen[k]) return;
           seen[k] = 1;
           var st = STY[k];
-          var tip = hit.map(function(x){ return x.t; }).filter(Boolean).join(' / ');
-          cell += "<span title='" + _plEsc(tip || st.ch) + "' style='display:inline-block;width:13px;height:13px;"
+          var body = hit.map(function(x){ return x.t; }).filter(Boolean).join(' / ');
+          var tip  = MGLABEL[k] + (body ? ' — ' + body : ' (내용 없음)');
+          cell += "<span data-tip=\"" + _mgAttr(nm + ' · ' + mgMD + '월 ' + i + '일\n' + tip)
+               +   "\" style='display:inline-block;width:13px;height:13px;cursor:help;"
                +   "line-height:12px;border-radius:3px;background:"+st.bg+";border:1px solid "+st.bd+";"
-               +   "color:"+st.fg+";font-size:8.5px;font-weight:700;margin:0'>"+st.ch+"</span>";
+               +   "color:"+st.fg+";font-size:8.5px;font-weight:700;margin:0 1px'>"+st.ch+"</span>";
         });
       }
       h += "<td style='padding:2px 1px;border-bottom:1px solid #F1F2EE;background:"+zebra+";"
@@ -6474,8 +6530,9 @@ function renderMonthGrid(data, monthStart){
   h += "</table>";
   h += "<div style='font-size:10px;color:#A8B09C;margin-top:8px'>"
     +      "표시에 마우스를 올리면 자세한 내용이 보여요"
-    +      "<span style='margin-left:10px'>· " + days + "일 표시 중 (build 0919b)</span></div>";
+    +      "<span style='margin-left:10px'>· " + days + "일 표시 중 (build 0919c)</span></div>";
   grid.innerHTML = h;
+  if(!grid._tipBound){ _mgBindTips(grid); grid._tipBound = true; }
 }
 
 function loadAbsenceStudents(){
@@ -6509,63 +6566,89 @@ function loadAbsenceStudents(){
 }
 function renderAbsenceList(){
   var el = document.getElementById("absenceList"); if(!el) return;
-  var html = "";
+
+  // 월별 현황 표와 같은 달을 봅니다
+  var mStart = _mgMonthStart(_mgOffset);
+  var mY = Number(mStart.slice(0,4)), mM = Number(mStart.slice(5,7));
+  var inMonth = function(dateStr){
+    return String(dateStr||'').slice(0,7) === mStart.slice(0,7);
+  };
+
+  var html = "<div style='display:flex;align-items:baseline;gap:8px;margin:2px 0 10px'>"
+           +   "<div style='font-size:13px;font-weight:700;color:#363D2E'>👤 학생별 결석</div>"
+           +   "<div style='font-size:11px;color:#9AA391'>" + mY + "년 " + mM + "월"
+           +     " · 위 화살표로 달을 바꾸면 여기도 같이 바뀌어요</div></div>";
+
+  html += "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:10px'>";
+
   _absStudents.forEach(function(s){
-    var abs = _absData[s.id] || [];
-    var unmade = abs.filter(function(a){ return !a.makeup_date; }).length;
-    html += "<div style='background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border:1px solid #e8e8e8'>";
-    html += "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'>";
-    html += "<div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap'>";
-    html += "<div style='font-size:14px;font-weight:700;color:#363D2E'>👤 "+s.name+"</div>";
-    if(s.parentPhone) html += "<span style='font-size:12px;color:#555;font-weight:600'>📞 "+s.parentPhone+"</span>";
-    if(abs.length>0) html += "<span style='background:#ffebee;color:#c62828;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700'>결석 "+abs.length+"회</span>";
-    if(unmade>0) html += "<span style='background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700'>미보충 "+unmade+"회</span>";
-    html += "</div>";
-    html += "<button onclick='openAddAbsenceModal(\""+s.id+"\",\""+s.name+"\")' style='background:#363D2E;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0'>+ 결석 추가</button>";
-    html += "</div>";
-    if(abs.length>0){
-      html += "<table style='width:100%;border-collapse:collapse;font-size:12px'>";
-      html += "<thead><tr style='background:#f8f9fa'><th style='padding:7px 10px;text-align:left;color:#555;font-weight:600;border-radius:6px 0 0 0'>날짜</th><th style='padding:7px 10px;text-align:left;color:#555;font-weight:600'>사유</th><th style='padding:7px 10px;text-align:left;color:#555;font-weight:600'>보충일</th><th style='padding:7px 10px;text-align:center;color:#555;font-weight:600;border-radius:0 6px 0 0'>삭제</th></tr></thead><tbody>";
-      abs.forEach(function(a){
-        var mkup = a.makeup_date
-          ? "<span style='color:#2D6A4F;font-weight:600'>"+a.makeup_date+"</span> <button onclick='openMakeupModal(\""+a.id+"\",\""+a.makeup_date+"\")' style='background:#e8f5e9;color:#2D6A4F;border:none;border-radius:6px;padding:2px 6px;font-size:10px;font-weight:600;cursor:pointer'>✏️</button>"
-          : "<button onclick='openMakeupModal(\""+a.id+"\",\"\")' style='background:#e8f5e9;color:#2D6A4F;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer'>+ 보충일</button>";
-        html += "<tr style='border-bottom:1px solid #f5f5f5'><td style='padding:8px 10px;font-weight:600;color:#333'>"+a.date+"</td><td style='padding:8px 10px;color:#555'>"+(a.reason||"-")+"</td><td style='padding:8px 10px'>"+mkup+"</td><td style='padding:8px 10px;text-align:center'><button onclick='deleteAbsenceRow(\""+a.id+"\")' style='background:#fdecea;color:#c62828;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer'>🗑️</button></td></tr>";
-      });
-      html += "</tbody></table>";
+    var all   = _absData[s.id] || [];
+    var month = all.filter(function(a){ return inMonth(a.date); })
+                   .sort(function(a,b){ return String(a.date) < String(b.date) ? -1 : 1; });
+    var unmade   = all.filter(function(a){ return !a.makeup_date; }).length;
+    var consults = (_consultData[s.id] || []).length;
+
+    html += "<div style='background:#fff;border-radius:12px;padding:11px 13px;"
+         +  "box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)'>";
+
+    // ── 이름 + 이번 달 횟수 + 추가 버튼
+    html += "<div style='display:flex;align-items:center;gap:6px;margin-bottom:"
+         +  (month.length ? "8px" : "0") + "'>";
+    html += "<div style='font-size:13px;font-weight:700;color:#2D3A28;flex:1;"
+         +  "overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>" + _plEsc(s.name) + "</div>";
+    if(month.length){
+      html += "<span style='background:#FDECEC;color:#C0392B;padding:2px 8px;border-radius:10px;"
+           +  "font-size:11px;font-weight:700;flex-shrink:0'>" + month.length + "회</span>";
     } else {
-      html += "<div style='font-size:12px;color:#bbb;text-align:center;padding:8px 0'>결석 기록 없음 🎉</div>";
+      html += "<span style='color:#C7CCC0;font-size:11px;flex-shrink:0'>결석 없음</span>";
     }
-    // 상담 기록 섹션
-    var consults = _consultData[s.id] || [];
-    html += "<div style='margin-top:10px;border-top:1px dashed #e0e0e0;padding-top:10px'>";
-    html += "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px'>";
-    html += "<div style='font-size:12px;font-weight:700;color:#555'>💬 상담 기록";
-    if(consults.length>0) html += " <span style='background:#e3f2fd;color:#1565c0;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700'>"+consults.length+"회</span>";
+    html += "<button onclick='openAddAbsenceModal(\"" + s.id + "\",\"" + _plEsc(s.name).replace(/"/g,'') + "\")' "
+         +  "style='background:#F1F3EE;color:#5B6551;border:none;border-radius:7px;padding:3px 8px;"
+         +  "font-size:14px;line-height:1;cursor:pointer;flex-shrink:0' title='결석 추가'>+</button>";
     html += "</div>";
-    html += "<button onclick=\'openConsultModal(\""+s.id+"\",\""+s.name+"\")' style=\'background:#1565c0;color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer\'>+ 상담 추가</button>";
-    html += "</div>";
-    if(consults.length > 0){
-      html += "<table style='width:100%;border-collapse:collapse;font-size:12px'>";
-      html += "<thead><tr style='background:#f0f4ff'><th style='padding:6px 8px;text-align:left;color:#555;font-weight:600'>날짜</th><th style='padding:6px 8px;text-align:left;color:#555;font-weight:600'>내용</th><th style='padding:6px 8px;text-align:left;color:#555;font-weight:600'>상담자</th><th style='padding:6px 8px;text-align:center;color:#555;font-weight:600'>삭제</th></tr></thead><tbody>";
-      consults.forEach(function(c){
-        html += "<tr style='border-bottom:1px solid #f5f5f5'>";
-        html += "<td style='padding:7px 8px;font-weight:600;color:#333;white-space:nowrap'>"+c.date+"</td>";
-        html += "<td style='padding:7px 8px;color:#555;max-width:200px'>"+( c.content||"-")+"</td>";
-        html += "<td style='padding:7px 8px;color:#888;font-size:11px'>"+(c.created_by||"")+"</td>";
-        html += "<td style='padding:7px 8px;text-align:center'><button onclick=\'deleteConsultRow(\""+c.id+"\")' style=\'background:#fdecea;color:#c62828;border:none;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer\'>🗑️</button></td>";
-        html += "</tr>";
+
+    // ── 날짜만 (칩)
+    if(month.length){
+      html += "<div style='display:flex;flex-wrap:wrap;gap:4px'>";
+      month.forEach(function(a){
+        var dd   = Number(String(a.date).slice(8,10));
+        var mm   = Number(String(a.date).slice(5,7));
+        var done = !!a.makeup_date;
+        var bg   = done ? '#EDF7EF' : '#FDECEC';
+        var bd   = done ? '#B6D9BE' : '#E8A9A9';
+        var fg   = done ? '#2D6A4F' : '#C0392B';
+        var tip  = mm + "월 " + dd + "일\n사유: " + (a.reason || '없음')
+                 + "\n보충: " + (a.makeup_date || '아직') + "\n\n눌러서 보충일 설정";
+        html += "<span data-tip=\"" + _mgAttr(tip) + "\" style='display:inline-flex;align-items:center;gap:3px;"
+             +  "background:" + bg + ";border:1px solid " + bd + ";border-radius:7px;padding:2px 4px 2px 7px'>"
+             +    "<button onclick='openMakeupModal(\"" + a.id + "\",\"" + (a.makeup_date||"") + "\")' "
+             +      "style='background:none;border:none;padding:0;cursor:pointer;font-size:11.5px;"
+             +      "font-weight:700;color:" + fg + "'>" + mm + "/" + dd + (done ? " ✓" : "") + "</button>"
+             +    "<button onclick='deleteAbsenceRow(\"" + a.id + "\")' style='background:none;border:none;"
+             +      "padding:0 2px;cursor:pointer;font-size:10px;color:#B9BFB1;line-height:1'>✕</button>"
+             +  "</span>";
       });
-      html += "</tbody></table>";
-    } else {
-      html += "<div style='font-size:12px;color:#bbb;text-align:center;padding:6px 0'>상담 기록 없음</div>";
+      html += "</div>";
     }
-    html += "</div>";
+
+    // ── 참고 한 줄 (전체 누적 · 상담)
+    var foot = [];
+    if(all.length)  foot.push("전체 " + all.length + "회");
+    if(unmade)      foot.push("<span style='color:#C87A2B'>미보충 " + unmade + "회</span>");
+    foot.push("<button onclick='openConsultModal(\"" + s.id + "\",\"" + _plEsc(s.name).replace(/"/g,'') + "\")' "
+      + "style='background:none;border:none;padding:0;cursor:pointer;font-size:10.5px;color:#7E97BF;"
+      + "text-decoration:underline'>상담 " + consults + "회</button>");
+    html += "<div style='margin-top:8px;padding-top:7px;border-top:1px solid #F1F2EE;"
+         +  "font-size:10.5px;color:#A8B09C;display:flex;gap:8px;flex-wrap:wrap'>"
+         +  foot.join("<span style='color:#E0E3DC'>·</span>") + "</div>";
+
     html += "</div>";
   });
-  el.innerHTML = html;
-}
 
+  html += "</div>";
+  el.innerHTML = html;
+  if(!el._tipBound){ _mgBindTips(el); el._tipBound = true; }
+}
 var _consultModalStudentId = null;
 function openConsultModal(studentId, studentName){
   _consultModalStudentId = studentId;
