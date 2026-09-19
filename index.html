@@ -1200,6 +1200,83 @@ async function fetchReportPlannerCtx(classId, dateStr, teacherId) {
   return empty;
 }
 
+// ── 출결 · 숙제 미제출 (Daily Report 학생 패널) ───────────────
+
+// 그 반 학생 + 그날의 결석/미제출을 한 번에
+async function fetchClassRoster(classId, dateStr, reportId) {
+  if(!classId) return { students:[], absent:{}, missed:{} };
+
+  var students = await _sbGetSafe('students',
+    'select=id,name&class_id='+_eq(classId)+'&status=eq.재원&order=name.asc') || [];
+
+  var ids = students.map(function(s){ return s.id; });
+  var absent = {}, missed = {};
+  if(ids.length){
+    var inList = '(' + ids.join(',') + ')';
+    var abs = await _sbGetSafe('absences',
+      'select=id,student_id,reason&date='+_eq(dateStr)+'&student_id=in.'+inList) || [];
+    abs.forEach(function(a){ absent[a.student_id] = { id:a.id, reason:a.reason||'' }; });
+
+    // 미제출은 수업(리포트) 단위입니다.
+    // 하루에 수업이 둘이면 오전·오후를 따로 적을 수 있어야 하기 때문입니다.
+    if(reportId){
+      var mis = await _sbGetSafe('homework_misses',
+        'select=id,student_id,note&report_id='+_eq(reportId)) || [];
+      mis.forEach(function(m){ missed[m.student_id] = { id:m.id, note:m.note||'' }; });
+    }
+  }
+  // 이번 달 누적 미제출 횟수 (학생별) — 자주 안 해오는 아이를 눈에 띄게
+  var monthly = {};
+  if(ids.length){
+    var d = new Date(dateStr + 'T00:00:00');
+    var from = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-01';
+    var cnt = await _sbGetSafe('homework_misses',
+      'select=student_id&student_id=in.(' + ids.join(',') + ')'
+      + '&date=gte.' + from + '&date=lte.' + dateStr) || [];
+    cnt.forEach(function(m){ monthly[m.student_id] = (monthly[m.student_id]||0) + 1; });
+  }
+
+  return { students:students, absent:absent, missed:missed, monthly:monthly };
+}
+
+// 결석 켜기/끄기
+async function setAbsent(studentId, dateStr, on, reason) {
+  var rows = await _sbGetSafe('absences',
+    'select=id&student_id='+_eq(studentId)+'&date='+_eq(dateStr)+'&limit=1') || [];
+  if(on){
+    if(rows.length) return { success:true, id:rows[0].id };
+    var ins = await sbInsert('absences', {
+      student_id:studentId, date:dateStr, reason:reason||'결석'
+    });
+    return { success:!!ins, id:ins?ins.id:null };
+  }
+  if(rows.length) await sbDelete('absences','id='+_eq(rows[0].id), {allowZero:true});
+  return { success:true, id:null };
+}
+
+// 숙제 미제출 저장 (내용을 비우면 기록을 지웁니다)
+async function setHomeworkMiss(reportId, studentId, dateStr, classId, note, teacherId) {
+  if(!reportId) return { success:false, error:'리포트를 먼저 저장해 주세요.' };
+  var rows = await _sbGetSafe('homework_misses',
+    'select=id&report_id='+_eq(reportId)+'&student_id='+_eq(studentId)+'&limit=1') || [];
+  var txt = (note||'').trim();
+
+  if(!txt){
+    if(rows.length) await sbDelete('homework_misses','id='+_eq(rows[0].id), {allowZero:true});
+    return { success:true, cleared:true };
+  }
+  if(rows.length){
+    await sbPatch('homework_misses','id='+_eq(rows[0].id),
+                  { note:txt, updated_at:new Date().toISOString() });
+    return { success:true, id:rows[0].id };
+  }
+  var ins = await sbInsert('homework_misses', {
+    report_id:reportId, student_id:studentId, date:dateStr, note:txt,
+    class_id:classId||null, teacher_id:teacherId||null
+  });
+  return { success:!!ins, id:ins?ins.id:null };
+}
+
 async function createBlankReport(data) {
   var today = new Date(Date.now()+9*60*60*1000).toISOString().split('T')[0];
   var insert={ title:data.title||'(제목없음)', date:data.dateStr||today };
@@ -1964,7 +2041,7 @@ function _plEsc(s){
 // ── google.script.run 호환 shim ──────────────────────────────
 
 var _serverFunctions = {
-  fetchReportPlannerCtx,
+  fetchReportPlannerCtx, fetchClassRoster, setAbsent, setHomeworkMiss,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
   fetchStudentsByClass,
@@ -2363,14 +2440,15 @@ function renderCard(r, c){
   html +=     "<div class='fg' style='margin-bottom:0'><label>Book <span class='req'>*</span></label><input type='text' id='book-" + r.pageId + "' value='" + r.book + "' placeholder='Textbook name'" + dis + "></div>";
   html +=   "</div>";
   //  학생 명단 (반을 고르면 채워집니다)
-  html +=   "<div id='stubox-" + r.pageId + "' style='display:none;flex:0 1 210px;min-width:170px;"
+  html +=   "<div id='stubox-" + r.pageId + "' style='display:none;flex:1 1 290px;min-width:250px;"
         +     "border:1px solid #E3E8DE;border-radius:9px;overflow:hidden;background:#FCFDFB'>"
         +     "<div style='display:flex;align-items:center;justify-content:space-between;gap:6px;"
         +       "padding:7px 11px;background:#F2F5EE;border-bottom:1px solid #E3E8DE'>"
         +       "<span style='font-size:11px;font-weight:700;color:#5F6B54'>Students</span>"
         +       "<span id='stucnt-" + r.pageId + "' style='font-size:10.5px;color:#9AA391'></span>"
         +     "</div>"
-        +     "<div id='stulist-" + r.pageId + "' style='padding:7px 11px;max-height:132px;overflow-y:auto'></div>"
+        +     "<div id='stulist-" + r.pageId + "' style='padding:7px 11px'></div>"
+        +     "<div id='misstbl-" + r.pageId + "' style='display:none'></div>"
         +   "</div>";
   html += "</div>";
 
@@ -2384,28 +2462,34 @@ function renderCard(r, c){
         +   "<span style='font-size:12px;font-weight:700;color:#3F5233'>&#9998; Today's Class</span>"
         +   "<span style='font-size:10.5px;color:#7E9070'>What you taught and assigned today</span>"
         + "</div>";
-  html += "<div style='padding:13px'>";
-  html +=   "<div class='fg'><label>Test <span class='req'>*</span></label><select id='test-" + r.pageId + "'" + dis + ">" + testHtml + "</select></div>";
-  html +=   "<div class='fg'><label>Today's Lesson <span class='req'>*</span></label><textarea id='lesson-" + r.pageId + "'" + dis + ">" + (r.todayLesson || "") + "</textarea></div>";
+  html += "<div style='display:flex;gap:13px;flex-wrap:wrap;padding:13px'>";
 
-  //  숙제 — 알림장 폼
-  html +=   "<div class='fg' style='margin-bottom:0'><label>Homework <span class='req'>*</span></label>";
-  html +=   "<div style='border:1px solid #DDE5D6;border-radius:9px;overflow:hidden;background:white'>";
-  html +=     "<div style='display:flex;align-items:center;gap:9px;padding:9px 12px;background:#F2F5EE;border-bottom:1px solid #DDE5D6;flex-wrap:wrap'>"
-        +       "<span style='font-size:11.5px;font-weight:700;color:#3F5233;white-space:nowrap'>Planner form</span>"
-        +       "<select id='plform-" + r.pageId + "' onchange='onPlFormChange(\"" + r.pageId + "\")'" + dis
-        +         " style='flex:1;min-width:160px;padding:6px 9px;border:1.5px solid #C9D9BE;border-radius:7px;font-size:13px;background:white'>"
-        +         plFormOptions() + "</select>"
-        +     "</div>";
-  html +=     "<div style='padding:7px 12px;font-size:10.5px;color:#8A9178;border-bottom:1px solid #F0F3EC'>"
-        +       "Pick today's form, tick each book that has homework, then write the pages or details.</div>";
-  html +=     "<div id='plbox-" + r.pageId + "'></div>";
-  html +=     "<div id='plfree-" + r.pageId + "' style='display:none;padding:10px 12px'>"
-        +       "<textarea id='hw-" + r.pageId + "' placeholder='Write homework freely'" + dis + ">"
-        +       (r.homework || "") + "</textarea></div>";
-  html +=     "<div style='padding:7px 12px;font-size:10.5px;color:#A8B09C;background:#F7F9F4;border-top:1px solid #F0F3EC'>"
-        +       "Saved as text in the report — the table is rebuilt from it next time you open this.</div>";
-  html +=   "</div></div>";
+  //  왼쪽 — 시험 / 진도
+  html +=   "<div style='flex:1 1 230px;min-width:200px'>";
+  html +=     "<div class='fg'><label>Test <span class='req'>*</span></label><select id='test-" + r.pageId + "'" + dis + ">" + testHtml + "</select></div>";
+  html +=     "<div class='fg' style='margin-bottom:0'><label>Today's Lesson <span class='req'>*</span></label>"
+        +       "<textarea id='lesson-" + r.pageId + "' style='min-height:118px'" + dis + ">" + (r.todayLesson || "") + "</textarea></div>";
+  html +=   "</div>";
+
+  //  오른쪽 — 숙제(알림장 폼)
+  html +=   "<div style='flex:1 1 320px;min-width:270px'>";
+  html +=     "<div class='fg' style='margin-bottom:0'><label>Homework <span class='req'>*</span></label>";
+  html +=     "<div style='border:1px solid #DDE5D6;border-radius:9px;overflow:hidden;background:white'>";
+  html +=       "<div style='display:flex;align-items:center;gap:8px;padding:7px 11px;background:#F2F5EE;border-bottom:1px solid #DDE5D6;flex-wrap:wrap'>"
+        +         "<span style='font-size:11px;font-weight:700;color:#3F5233;white-space:nowrap'>Form</span>"
+        +         "<select id='plform-" + r.pageId + "' onchange='onPlFormChange(\"" + r.pageId + "\")'" + dis
+        +           " style='flex:1;min-width:130px;padding:5px 8px;border:1.5px solid #C9D9BE;border-radius:6px;font-size:12.5px;background:white'>"
+        +           plFormOptions() + "</select>"
+        +       "</div>";
+  html +=       "<div style='padding:6px 11px;font-size:10px;color:#8A9178;border-bottom:1px solid #F0F3EC'>"
+        +         "Just type the pages — the check turns on by itself.</div>";
+  html +=       "<div id='plbox-" + r.pageId + "'></div>";
+  html +=       "<div id='plfree-" + r.pageId + "' style='display:none;padding:9px 11px'>"
+        +         "<textarea id='hw-" + r.pageId + "' placeholder='Write homework freely'" + dis + ">"
+        +         (r.homework || "") + "</textarea></div>";
+  html +=     "</div></div>";
+  html +=   "</div>";
+
   html += "</div></div>";
 
   html += "<div class='fg'><label>Attitude</label><select id='attitude-" + r.pageId + "'" + dis + ">" + attitudeHtml + "</select></div>";
@@ -2482,44 +2566,58 @@ function onPlFormChange(pageId, preset){
     var val  = items[it.key] || '';
     var subs = items[it.key+'_subs'] || [];
     var on   = !!val;
-    h += "<div style='display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid #F0F3EC;flex-wrap:wrap'>"
+    h += "<div style='display:flex;align-items:center;gap:8px;padding:6px 11px;border-bottom:1px solid #F0F3EC;flex-wrap:wrap'>"
       +    "<input type='checkbox' id='plchk-"+pageId+"-"+it.key+"'"+(on?" checked":"")+dis
       +      " onchange='onPlRowToggle(\""+pageId+"\",\""+it.key+"\")'"
-      +      " style='width:16px;height:16px;flex-shrink:0;cursor:pointer'>"
-      +    "<span id='pllbl-"+pageId+"-"+it.key+"' style='font-size:13px;font-weight:700;min-width:100px;"
+      +      " title='체크를 끄면 내용이 지워집니다'"
+      +      " style='width:15px;height:15px;flex-shrink:0;cursor:pointer'>"
+      +    "<span id='pllbl-"+pageId+"-"+it.key+"' style='font-size:12.5px;font-weight:700;min-width:92px;"
       +      "color:"+(on?'#2D3A28':'#BDBDBD')+"'>"+_plEsc(it.label)+"</span>";
     if(it.fixed){
-      h += "<span style='font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;"
+      h += "<span style='font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px;"
          +   "background:#FDECEC;color:#CC2B2B'>fixed</span>";
     }
     if(it.subs){
       it.subs.forEach(function(s, si){
         var sOn = subs.indexOf(s) >= 0;
-        h += "<label style='font-size:10.5px;color:#8A9178;display:flex;align-items:center;gap:3px;cursor:pointer'>"
+        h += "<label style='font-size:10px;color:#8A9178;display:flex;align-items:center;gap:2px;cursor:pointer'>"
            +   "<input type='checkbox' id='plsub-"+pageId+"-"+it.key+"-"+si+"' data-sub='"+_plEsc(s)+"'"
-           +     (sOn?" checked":"")+dis+" style='width:13px;height:13px'>"+_plEsc(s)+"</label>";
+           +     (sOn?" checked":"")+dis+" style='width:12px;height:12px'>"+_plEsc(s)+"</label>";
       });
     }
+    // 입력칸은 항상 열려 있습니다. 쓰기 시작하면 왼쪽 체크가 자동으로 켜집니다.
     h += "<input type='text' id='plval-"+pageId+"-"+it.key+"' value='"+_plEsc(val)+"'"
-      +    " placeholder='No homework'" + (on?'':' disabled') + dis
-      +    " style='flex:1;min-width:120px;margin-left:auto;padding:6px 9px;border:1.5px solid #E5E9E0;"
-      +      "border-radius:7px;font-size:13px;font-family:inherit;background:"+(on?'#fff':'#F7F7F5')+"'>";
+      +    " placeholder='No homework'" + dis
+      +    " oninput='onPlValInput(\""+pageId+"\",\""+it.key+"\")'"
+      +    " style='flex:1;min-width:96px;margin-left:auto;padding:5px 8px;border:1.5px solid #E5E9E0;"
+      +      "border-radius:6px;font-size:12.5px;font-family:inherit;background:"+(on?'#fff':'#FBFCFA')+"'>";
     h += "</div>";
   });
-
   box.innerHTML = h;
 }
 
-// 체크를 켜고 끄면 입력칸이 열리고 닫힙니다
+// 입력하면 체크가 자동으로 켜지고, 비우면 꺼집니다
+function onPlValInput(pageId, key){
+  var chk = document.getElementById('plchk-'+pageId+'-'+key);
+  var val = document.getElementById('plval-'+pageId+'-'+key);
+  var lbl = document.getElementById('pllbl-'+pageId+'-'+key);
+  if(!chk || !val) return;
+  var on = val.value.trim() !== '';
+  chk.checked = on;
+  val.style.background = on ? '#fff' : '#FBFCFA';
+  if(lbl) lbl.style.color = on ? '#2D3A28' : '#BDBDBD';
+}
+
+// 체크를 직접 끄면 내용을 지웁니다 (켜면 입력칸으로 커서 이동)
 function onPlRowToggle(pageId, key){
   var chk = document.getElementById('plchk-'+pageId+'-'+key);
   var val = document.getElementById('plval-'+pageId+'-'+key);
   var lbl = document.getElementById('pllbl-'+pageId+'-'+key);
   if(!chk || !val) return;
-  val.disabled        = !chk.checked;
-  val.style.background = chk.checked ? '#fff' : '#F7F7F5';
+  if(!chk.checked) val.value = '';
+  else val.focus();
+  val.style.background = chk.checked ? '#fff' : '#FBFCFA';
   if(lbl) lbl.style.color = chk.checked ? '#2D3A28' : '#BDBDBD';
-  if(chk.checked) val.focus(); else val.value = '';
 }
 
 // 화면에 입력된 값을 items 객체로 모읍니다
@@ -2532,10 +2630,9 @@ function plCollectReport(pageId){
 
   var items = {};
   f.items.forEach(function(it){
-    var chk = document.getElementById('plchk-'+pageId+'-'+it.key);
-    var el  = document.getElementById('plval-'+pageId+'-'+it.key);
-    if(!chk || !chk.checked) return;
-    var v = el ? el.value.trim() : '';
+    // 적힌 내용이 있으면 숙제로 봅니다 (체크는 그 상태를 비추는 표시일 뿐)
+    var el = document.getElementById('plval-'+pageId+'-'+it.key);
+    var v  = el ? el.value.trim() : '';
     if(!v) return;
     items[it.key] = v;
     if(it.subs){
@@ -2628,7 +2725,7 @@ function onReportClassChange(pageId){
 }
 
 
-// 그 반 재원생 명단
+// 그 반 재원생 명단 + 그날의 출결 / 숙제 미제출
 function loadReportStudents(pageId, classId){
   var box  = document.getElementById('stubox-'+pageId);
   var list = document.getElementById('stulist-'+pageId);
@@ -2637,35 +2734,145 @@ function loadReportStudents(pageId, classId){
 
   if(!classId){ box.style.display='none'; return; }
   box.style.display = '';
-  list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD'>Loading…</div>";
+  list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD;padding:4px 0'>Loading…</div>";
   if(cnt) cnt.textContent = '';
 
   google.script.run
-    .withSuccessHandler(function(rows){
-      rows = rows || [];
-      if(cnt) cnt.textContent = rows.length + '명';
+    .withSuccessHandler(function(data){
+      var rows = (data && data.students) || [];
+      var absent = (data && data.absent) || {};
+      var missed = (data && data.missed) || {};
+
       if(!rows.length){
-        list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD'>재원생이 없어요</div>";
+        list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD;padding:4px 0'>재원생이 없어요</div>";
+        if(cnt) cnt.textContent = '';
+        var t0 = document.getElementById('misstbl-'+pageId);
+        if(t0){ t0.style.display='none'; t0.innerHTML=''; }
         return;
       }
-      // 학생 이름은 "어예준(Oliver)" 처럼 저장돼 있어서 괄호 앞뒤로 나눠 보여줍니다
+
+      var nAbs = rows.filter(function(s){ return absent[s.id]; }).length;
+      var nMis = rows.filter(function(s){ return missed[s.id]; }).length;
+      if(cnt){
+        var parts = [rows.length + '명'];
+        if(nAbs) parts.push('결석 ' + nAbs);
+        if(nMis) parts.push('미제출 ' + nMis);
+        cnt.textContent = parts.join(' · ');
+      }
+
       list.innerHTML = rows.map(function(s){
         var raw = String(s.name || '').trim();
         var m   = raw.match(/^(.*?)\s*[（(]\s*([^）)]*)\s*[）)]\s*$/);
         var ko  = m ? m[1].trim() : raw;
         var en  = m ? m[2].trim() : '';
-        return "<div style='display:flex;align-items:baseline;gap:6px;padding:3px 0;"
-             +   "border-bottom:1px solid #F3F5F0'>"
-             +   "<span style='font-size:12.5px;font-weight:700;color:#2D3A28'>" + _plEsc(ko) + "</span>"
-             +   (en ? "<span style='font-size:11px;color:#8A9178'>" + _plEsc(en) + "</span>" : "")
-             + "</div>";
+        var ab  = !!absent[s.id];
+        var ms  = missed[s.id];
+        var note = ms ? ms.note : '';
+
+        var h = "<div style='padding:5px 0;border-bottom:1px solid #F3F5F0'>";
+        h +=   "<div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap'>";
+        h +=     "<span style='font-size:12.5px;font-weight:700;color:" + (ab?'#BDBDBD':'#2D3A28') + ";"
+             +     (ab?'text-decoration:line-through;':'') + "'>" + _plEsc(ko) + "</span>";
+        if(en) h += "<span style='font-size:11px;color:#A8B09C'>" + _plEsc(en) + "</span>";
+        //  이번 달에 두 번 이상 안 해온 학생은 눈에 띄게
+        var mc = (data.monthly && data.monthly[s.id]) || 0;
+        if(mc >= 2){
+          h += "<span title='이번 달 미제출 " + mc + "회' style='font-size:9.5px;font-weight:700;"
+             +   "padding:1px 6px;border-radius:20px;background:#FDF0E7;color:#B4651A'>" + mc + "회</span>";
+        }
+        //  결석 / 미제출 토글
+        h +=     "<span style='margin-left:auto;display:flex;gap:4px'>";
+        h +=       "<button type='button' onclick='toggleStuAbsent(\"" + pageId + "\",\"" + s.id + "\"," + (ab?'1':'0') + ")'"
+             +       " title='결석'"
+             +       " style='padding:1px 7px;border:1px solid " + (ab?'#E8A9A9':'#E0E4DC') + ";border-radius:20px;"
+             +         "background:" + (ab?'#FDECEC':'#fff') + ";color:" + (ab?'#C0392B':'#AAB3A2') + ";"
+             +         "font-size:10px;font-weight:700;cursor:pointer'>결석</button>";
+        h +=       "<button type='button' onclick='toggleStuMiss(\"" + pageId + "\",\"" + s.id + "\")'"
+             +       " title='숙제 미제출'"
+             +       " style='padding:1px 7px;border:1px solid " + (ms?'#E0C78A':'#E0E4DC') + ";border-radius:20px;"
+             +         "background:" + (ms?'#FDF6E7':'#fff') + ";color:" + (ms?'#A87B18':'#AAB3A2') + ";"
+             +         "font-size:10px;font-weight:700;cursor:pointer'>미제출</button>";
+        h +=     "</span>";
+        h +=   "</div>";
+        //  미제출 내용 (미제출을 켰을 때만)
+        h +=   "<input type='text' id='stumiss-" + pageId + "-" + s.id + "'"
+             +   " value='" + _plEsc(note) + "' placeholder='안 한 숙제를 적어주세요'"
+             +   " onchange='saveStuMiss(\"" + pageId + "\",\"" + s.id + "\")'"
+             +   " style='display:" + (ms?'block':'none') + ";width:100%;margin-top:4px;padding:4px 7px;"
+             +     "border:1px solid #E8DFC4;border-radius:6px;font-size:11.5px;font-family:inherit;background:#FFFDF6'>";
+        h += "</div>";
+        return h;
       }).join('');
+
+      // ── 오늘 이 수업의 미제출 요약표 ──
+      var tbl = document.getElementById('misstbl-'+pageId);
+      if(tbl){
+        var hit = rows.filter(function(s){ return missed[s.id] && missed[s.id].note; });
+        if(!hit.length){ tbl.style.display='none'; tbl.innerHTML=''; }
+        else {
+          var t = "<div style='border-top:1px solid #E3E8DE;background:#FFFDF6'>";
+          t +=   "<div style='display:flex;align-items:center;justify-content:space-between;gap:6px;"
+             +     "padding:6px 11px;border-bottom:1px solid #F2E9D2'>"
+             +     "<span style='font-size:11px;font-weight:700;color:#8A6A22'>오늘 미제출</span>"
+             +     "<span style='font-size:10.5px;color:#B09355'>" + hit.length + "명</span>"
+             +   "</div>";
+          t +=   "<table style='width:100%;border-collapse:collapse;font-size:11.5px'>";
+          hit.forEach(function(s){
+            var raw = String(s.name||'').trim();
+            var mm  = raw.match(/^(.*?)\s*[（(]\s*([^）)]*)\s*[）)]\s*$/);
+            var nm  = mm ? mm[1].trim() : raw;
+            t += "<tr style='border-bottom:1px solid #F7F0DE'>"
+              +    "<td style='padding:5px 11px;font-weight:700;color:#7A5C1E;white-space:nowrap;"
+              +      "vertical-align:top;width:1%'>" + _plEsc(nm) + "</td>"
+              +    "<td style='padding:5px 11px 5px 0;color:#8A6A22'>" + _plEsc(missed[s.id].note) + "</td>"
+              +  "</tr>";
+          });
+          t += "</table></div>";
+          tbl.innerHTML = t;
+          tbl.style.display = '';
+        }
+      }
     })
     .withFailureHandler(function(){
-      list.innerHTML = "<div style='font-size:11.5px;color:#C88'>불러오지 못했어요</div>";
+      list.innerHTML = "<div style='font-size:11.5px;color:#C88;padding:4px 0'>불러오지 못했어요</div>";
       if(cnt) cnt.textContent = '';
     })
-    .fetchStudentsByClass(classId);
+    .fetchClassRoster(classId, selectedDate, pageId);
+}
+
+// 결석 켜기/끄기 (isAbsent = 지금 결석 상태인지, 1/0)
+function toggleStuAbsent(pageId, studentId, isAbsent){
+  var cls = (document.getElementById('class-'+pageId)||{}).value || '';
+  google.script.run
+    .withSuccessHandler(function(){ loadReportStudents(pageId, cls); })
+    .withFailureHandler(function(e){ showToast('결석 저장 실패: ' + (e&&e.message?e.message:'')); })
+    .setAbsent(studentId, selectedDate, !isAbsent, '결석');
+}
+
+// 미제출 켜기/끄기 — 켜면 입력칸이 열립니다
+function toggleStuMiss(pageId, studentId){
+  var inp = document.getElementById('stumiss-'+pageId+'-'+studentId);
+  if(!inp) return;
+  if(inp.style.display === 'none'){
+    inp.style.display = 'block';
+    inp.focus();
+  } else {
+    inp.value = '';
+    inp.style.display = 'none';
+    saveStuMiss(pageId, studentId);
+  }
+}
+
+// 미제출 내용 저장 (비우면 기록이 지워집니다)
+function saveStuMiss(pageId, studentId){
+  var inp = document.getElementById('stumiss-'+pageId+'-'+studentId);
+  if(!inp) return;
+  var cls = (document.getElementById('class-'+pageId)||{}).value || '';
+  var tid = (document.getElementById('tsel')||{}).value || '';
+  google.script.run
+    .withSuccessHandler(function(){ loadReportStudents(pageId, cls); })
+    .withFailureHandler(function(e){ showToast('미제출 저장 실패: ' + (e&&e.message?e.message:'')); })
+    .setHomeworkMiss(pageId, studentId, selectedDate, cls, inp.value, tid);
 }
 
 // 지난 수업 패널 + 알림장 양식 자동 선택
