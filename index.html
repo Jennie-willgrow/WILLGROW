@@ -1167,7 +1167,7 @@ async function submitReport(data) {
 // 지난주가 휴강이거나 비어 있으면 2·3·4주 전까지 거슬러 올라갑니다.
 // Auto-Generate 가 리포트를 만드는 방식과 같은 규칙입니다.
 async function fetchReportPlannerCtx(classId, dateStr, teacherId) {
-  var empty = { prevLesson:null, prevForm:null };
+  var empty = { prevLesson:null, prevForm:null, prevAbsent:[], prevMissed:[] };
   if(!classId || !dateStr) return empty;
 
   function shiftDays(str, n){
@@ -1190,9 +1190,33 @@ async function fetchReportPlannerCtx(classId, dateStr, teacherId) {
     var rows = await _sbGetSafe('daily_reports', q) || [];
     for (var i = 0; i < rows.length; i++) {
       if (filled(rows[i].todays_lesson) || filled(rows[i].homework)) {
+        // 그날 결석 / 숙제 미제출도 같이 (보기 전용)
+        var prevAbs = [], prevMiss = [];
+        try {
+          var sl = await _sbGetSafe('students',
+            'select=id,name&class_id='+_eq(classId)+'&status=eq.재원') || [];
+          var nameOf = {};
+          sl.forEach(function(s){ nameOf[s.id] = s.name || ''; });
+          if(sl.length){
+            var inList = '(' + sl.map(function(s){ return s.id; }).join(',') + ')';
+            var abs = await _sbGetSafe('absences',
+              'select=student_id,reason&date='+_eq(rows[i].date)+'&student_id=in.'+inList) || [];
+            prevAbs = abs.map(function(a){
+              return { name:nameOf[a.student_id]||'', reason:a.reason||'' };
+            });
+          }
+          var mis = await _sbGetSafe('homework_misses',
+            'select=student_id,note&report_id='+_eq(rows[i].id)) || [];
+          prevMiss = mis.map(function(m){
+            return { name:nameOf[m.student_id]||'', note:m.note||'' };
+          });
+        } catch(e){ console.warn('[prev attendance]', e); }
+
         return {
           prevLesson: rows[i],
-          prevForm: /^\s*\[.+\]/.test(rows[i].homework || '') ? rows[i].homework : null
+          prevForm: /^\s*\[.+\]/.test(rows[i].homework || '') ? rows[i].homework : null,
+          prevAbsent: prevAbs,
+          prevMissed: prevMiss
         };
       }
     }
@@ -1240,18 +1264,59 @@ async function fetchClassRoster(classId, dateStr, reportId) {
 }
 
 // 결석 켜기/끄기
-async function setAbsent(studentId, dateStr, on, reason) {
+async function setAbsent(studentId, dateStr, on, reason, classId, teacherName) {
   var rows = await _sbGetSafe('absences',
     'select=id&student_id='+_eq(studentId)+'&date='+_eq(dateStr)+'&limit=1') || [];
-  if(on){
-    if(rows.length) return { success:true, id:rows[0].id };
+
+  // ── 결석 해제 — 짝지어진 메모도 함께 지웁니다 ──
+  if(!on){
+    if(rows.length){
+      var memos = await _sbGetSafe('korean_memos',
+        'select=id&absence_id='+_eq(rows[0].id)) || [];
+      for(var i=0;i<memos.length;i++){
+        try { await sbDelete('korean_memos','id='+_eq(memos[i].id), {allowZero:true}); }
+        catch(e){ console.warn('[setAbsent] 메모 삭제 실패:', e); }
+      }
+      await sbDelete('absences','id='+_eq(rows[0].id), {allowZero:true});
+    }
+    return { success:true, id:null };
+  }
+
+  // ── 결석 등록 ──
+  var absId;
+  if(rows.length){
+    absId = rows[0].id;
+    if(reason) await sbPatch('absences','id='+_eq(absId), { reason:reason });
+  } else {
     var ins = await sbInsert('absences', {
       student_id:studentId, date:dateStr, reason:reason||'결석'
     });
-    return { success:!!ins, id:ins?ins.id:null };
+    if(!ins) return { success:false };
+    absId = ins.id;
   }
-  if(rows.length) await sbDelete('absences','id='+_eq(rows[0].id), {allowZero:true});
-  return { success:true, id:null };
+
+  // ── 메모보드에도 한 줄 (이미 있으면 다시 안 만듭니다) ──
+  try {
+    var exist = await _sbGetSafe('korean_memos',
+      'select=id&absence_id='+_eq(absId)+'&limit=1') || [];
+    if(!exist.length){
+      var info = await _sbGetSafe('students',
+        'select=name,classes(name)&id='+_eq(studentId)+'&limit=1') || [];
+      var sname = info.length ? (info[0].name||'') : '';
+      var cname = (info.length && info[0].classes) ? (info[0].classes.name||'') : '';
+      var dObj  = new Date(dateStr+'T00:00:00');
+      var days  = ['일','월','화','수','목','금','토'];
+      var line  = '[결석] ' + dateStr + ' (' + days[dObj.getDay()] + ') '
+                + (cname ? cname+' ' : '') + sname
+                + (reason ? ' (' + reason + ')' : '');
+      await sbInsert('korean_memos', {
+        content:line, type:'결석', author:teacherName||'',
+        absence_id:absId, written_at:new Date().toISOString()
+      });
+    }
+  } catch(e){ console.warn('[setAbsent] 메모 생성 실패:', e); }
+
+  return { success:true, id:absId };
 }
 
 // 숙제 미제출 저장 (내용을 비우면 기록을 지웁니다)
@@ -1943,72 +2008,19 @@ async function createLessonPlan(data) {
 // ============================================================
 
 var PLANNER_FORMS = {
-  /* ── PHONICS ── */
-  ljs: {
-    course:'PHONICS', category:'Little Junior Star', accent:'#8FC33F',
-    lessons:['PlayHouse','StoryClub','TalkTime'],
-    items:[
-      {key:'sb',label:'Student Book'},{key:'wba',label:'Workbook A'},
-      {key:'wbb',label:'Workbook B'},{key:'wf',label:'Writing Factory'},
-      {key:'story',label:'Storybook'},{key:'sg',label:'Study Guide'},
-      {key:'on',label:'Online'}
-    ]
-  },
+  /* ── Phonics ── */
   sg: {
-    course:'PHONICS', category:'Phonics', accent:'#CC2B2B',
+    course:'Phonics', category:'Phonics', accent:'#CC2B2B',
     lessons:['Sounds Great'],
     items:[
       {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
       {key:'aw',label:'Alphabet Writing',fixed:true}
     ]
   },
-  /* ── JUNIOR ── */
-  nsj_g: {
-    course:'JUNIOR', category:'New Super Junior', accent:'#2E6FB7',
-    lessons:['Grammar'],
-    items:[
-      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
-      {key:'t2',label:'TEST',subs:['Spelling','Meaning']},
-      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
-      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
-      {key:'story',label:'Storybook'},{key:'etc',label:'Etc'},
-      {key:'on',label:'Online'}
-    ]
-  },
-  nsj_r: {
-    course:'JUNIOR', category:'New Super Junior', accent:'#2E6FB7',
-    lessons:['Reading'],
-    items:[
-      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
-      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
-      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
-      {key:'story',label:'Storybook'},{key:'tr',label:'Translation'},
-      {key:'on',label:'Online'}
-    ]
-  },
-  nsj_s: {
-    course:'JUNIOR', category:'New Super Junior', accent:'#2E6FB7',
-    lessons:['Speaking'],
-    items:[
-      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
-      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
-      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
-      {key:'story',label:'Storybook'},{key:'etc',label:'Etc'},
-      {key:'on',label:'Online'}
-    ]
-  },
-  spk: {
-    course:'JUNIOR', category:'Speaking / Reading', accent:'#7B4FA8',
-    lessons:['Bricks Reading','Hand in Hand','English Time'],
-    items:[
-      {key:'t1',label:'Test',subs:['Speaking','Word Meaning']},
-      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
-      {key:'tr',label:'Translation'},{key:'etc',label:'Etc'}
-    ]
-  },
-  /* ── READING ── */
+
+  /* ── STAR / Galaxy ── */
   ljsg_p: {
-    course:'READING', category:'Little Junior Star / Galaxy', accent:'#8FC33F',
+    course:'STAR / Galaxy', category:'Little Junior Star / Galaxy', accent:'#8FC33F',
     lessons:['PlayHouse','StoryClub'],
     items:[
       {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
@@ -2020,13 +2032,60 @@ var PLANNER_FORMS = {
     ]
   },
   ljsg_t: {
-    course:'READING', category:'Little Junior Star / Galaxy', accent:'#8FC33F',
+    course:'STAR / Galaxy', category:'Little Junior Star / Galaxy', accent:'#8FC33F',
     lessons:['TalkTime'],
     items:[
       {key:'sb',label:'Student Book'},{key:'wba',label:'Workbook A'},
       {key:'wbb',label:'Workbook B'},{key:'wf',label:'Writing Factory'},
       {key:'story',label:'Storybook'},{key:'sg',label:'Study Guide'},
       {key:'on',label:'Online'}
+    ]
+  },
+
+  /* ── Junior ── */
+  nsj_g: {
+    course:'Junior', category:'New Super Junior', accent:'#2E6FB7',
+    lessons:['Grammar'],
+    items:[
+      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'t2',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
+      {key:'story',label:'Storybook'},{key:'etc',label:'Etc'},
+      {key:'on',label:'Online'}
+    ]
+  },
+  nsj_r: {
+    course:'Junior', category:'New Super Junior', accent:'#2E6FB7',
+    lessons:['Reading'],
+    items:[
+      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
+      {key:'story',label:'Storybook'},{key:'tr',label:'Translation'},
+      {key:'on',label:'Online'}
+    ]
+  },
+  nsj_s: {
+    course:'Junior', category:'New Super Junior', accent:'#2E6FB7',
+    lessons:['Speaking'],
+    items:[
+      {key:'t1',label:'TEST',subs:['Spelling','Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'sg',label:'Study Guide'},{key:'hb',label:'Handybook'},
+      {key:'story',label:'Storybook'},{key:'etc',label:'Etc'},
+      {key:'on',label:'Online'}
+    ]
+  },
+
+  /* ── 외부교재 ── */
+  spk: {
+    course:'External', category:'Speaking / Reading', accent:'#7B4FA8',
+    lessons:['Hand in Hand','English Time','Bricks Reading'],
+    items:[
+      {key:'t1',label:'Test',subs:['Speaking','Word Meaning']},
+      {key:'sb',label:'Student Book'},{key:'wb',label:'Workbook'},
+      {key:'tr',label:'Translation'},{key:'etc',label:'Etc'}
     ]
   }
 };
@@ -2725,6 +2784,23 @@ function onReportClassChange(pageId){
 }
 
 
+// ── 결석 사유 ──
+// 화면에는 영어로, 저장은 기존 한글 값으로 (메모보드와 맞추기 위해)
+var ABSENCE_REASONS = [
+  { v:'병결',       en:'Sick' },
+  { v:'가족여행',   en:'Family trip' },
+  { v:'가족행사',   en:'Family event' },
+  { v:'개인사정',   en:'Personal' },
+  { v:'미통보결석', en:'No notice' },
+  { v:'기타',       en:'Other' }
+];
+function _absEn(v){
+  for(var i=0;i<ABSENCE_REASONS.length;i++){
+    if(ABSENCE_REASONS[i].v === v) return ABSENCE_REASONS[i].en;
+  }
+  return v || 'Absent';
+}
+
 // 그 반 재원생 명단 + 그날의 출결 / 숙제 미제출
 function loadReportStudents(pageId, classId){
   var box  = document.getElementById('stubox-'+pageId);
@@ -2737,26 +2813,28 @@ function loadReportStudents(pageId, classId){
   list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD;padding:4px 0'>Loading…</div>";
   if(cnt) cnt.textContent = '';
 
+  var locked = selectedDate < getTodayStr();   // 지난 날짜는 잠급니다
+
   google.script.run
     .withSuccessHandler(function(data){
       var rows = (data && data.students) || [];
       var absent = (data && data.absent) || {};
       var missed = (data && data.missed) || {};
+      var tbl = document.getElementById('misstbl-'+pageId);
 
       if(!rows.length){
-        list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD;padding:4px 0'>재원생이 없어요</div>";
+        list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD;padding:4px 0'>No active students</div>";
         if(cnt) cnt.textContent = '';
-        var t0 = document.getElementById('misstbl-'+pageId);
-        if(t0){ t0.style.display='none'; t0.innerHTML=''; }
+        if(tbl){ tbl.style.display='none'; tbl.innerHTML=''; }
         return;
       }
 
       var nAbs = rows.filter(function(s){ return absent[s.id]; }).length;
       var nMis = rows.filter(function(s){ return missed[s.id]; }).length;
       if(cnt){
-        var parts = [rows.length + '명'];
-        if(nAbs) parts.push('결석 ' + nAbs);
-        if(nMis) parts.push('미제출 ' + nMis);
+        var parts = [rows.length];
+        if(nAbs) parts.push(nAbs + ' absent');
+        if(nMis) parts.push(nMis + ' missing');
         cnt.textContent = parts.join(' · ');
       }
 
@@ -2765,7 +2843,7 @@ function loadReportStudents(pageId, classId){
         var m   = raw.match(/^(.*?)\s*[（(]\s*([^）)]*)\s*[）)]\s*$/);
         var ko  = m ? m[1].trim() : raw;
         var en  = m ? m[2].trim() : '';
-        var ab  = !!absent[s.id];
+        var ab  = absent[s.id];
         var ms  = missed[s.id];
         var note = ms ? ms.note : '';
 
@@ -2774,29 +2852,37 @@ function loadReportStudents(pageId, classId){
         h +=     "<span style='font-size:12.5px;font-weight:700;color:" + (ab?'#BDBDBD':'#2D3A28') + ";"
              +     (ab?'text-decoration:line-through;':'') + "'>" + _plEsc(ko) + "</span>";
         if(en) h += "<span style='font-size:11px;color:#A8B09C'>" + _plEsc(en) + "</span>";
-        //  이번 달에 두 번 이상 안 해온 학생은 눈에 띄게
         var mc = (data.monthly && data.monthly[s.id]) || 0;
         if(mc >= 2){
-          h += "<span title='이번 달 미제출 " + mc + "회' style='font-size:9.5px;font-weight:700;"
-             +   "padding:1px 6px;border-radius:20px;background:#FDF0E7;color:#B4651A'>" + mc + "회</span>";
+          h += "<span title='" + mc + " missed this month' style='font-size:9.5px;font-weight:700;"
+             +   "padding:1px 6px;border-radius:20px;background:#FDF0E7;color:#B4651A'>" + mc + "</span>";
         }
-        //  결석 / 미제출 토글
-        h +=     "<span style='margin-left:auto;display:flex;gap:4px'>";
-        h +=       "<button type='button' onclick='toggleStuAbsent(\"" + pageId + "\",\"" + s.id + "\"," + (ab?'1':'0') + ")'"
-             +       " title='결석'"
-             +       " style='padding:1px 7px;border:1px solid " + (ab?'#E8A9A9':'#E0E4DC') + ";border-radius:20px;"
-             +         "background:" + (ab?'#FDECEC':'#fff') + ";color:" + (ab?'#C0392B':'#AAB3A2') + ";"
-             +         "font-size:10px;font-weight:700;cursor:pointer'>결석</button>";
+
+        h +=     "<span style='margin-left:auto;display:flex;gap:4px;align-items:center'>";
+        h +=       "<select onchange='onStuAttendance(\"" + pageId + "\",\"" + s.id + "\",this)'"
+             +       (locked ? " disabled" : "")
+             +       " style='padding:1px 5px;border:1px solid " + (ab?'#E8A9A9':'#E0E4DC') + ";border-radius:20px;"
+             +         "background:" + (ab?'#FDECEC':'#fff') + ";color:" + (ab?'#C0392B':'#8A9178') + ";"
+             +         "font-size:10px;font-weight:700;cursor:" + (locked?'default':'pointer') + ";font-family:inherit'>"
+             +       "<option value=''" + (ab?'':' selected') + ">Present</option>";
+        ABSENCE_REASONS.forEach(function(r){
+          var sel = (ab && ab.reason === r.v) ? ' selected' : '';
+          h +=     "<option value='" + _plEsc(r.v) + "'" + sel + ">" + _plEsc(r.en) + "</option>";
+        });
+        if(ab && ab.reason && !ABSENCE_REASONS.some(function(r){ return r.v===ab.reason; })){
+          h +=     "<option value='" + _plEsc(ab.reason) + "' selected>" + _plEsc(ab.reason) + "</option>";
+        }
+        h +=       "</select>";
         h +=       "<button type='button' onclick='toggleStuMiss(\"" + pageId + "\",\"" + s.id + "\")'"
-             +       " title='숙제 미제출'"
+             +       " title='Homework not submitted'" + (locked ? " disabled" : "")
              +       " style='padding:1px 7px;border:1px solid " + (ms?'#E0C78A':'#E0E4DC') + ";border-radius:20px;"
              +         "background:" + (ms?'#FDF6E7':'#fff') + ";color:" + (ms?'#A87B18':'#AAB3A2') + ";"
-             +         "font-size:10px;font-weight:700;cursor:pointer'>미제출</button>";
+             +         "font-size:10px;font-weight:700;cursor:" + (locked?'default':'pointer') + "'>No HW</button>";
         h +=     "</span>";
         h +=   "</div>";
-        //  미제출 내용 (미제출을 켰을 때만)
         h +=   "<input type='text' id='stumiss-" + pageId + "-" + s.id + "'"
-             +   " value='" + _plEsc(note) + "' placeholder='안 한 숙제를 적어주세요'"
+             +   " value='" + _plEsc(note) + "' placeholder='What was not done?'"
+             +   (locked ? " disabled" : "")
              +   " onchange='saveStuMiss(\"" + pageId + "\",\"" + s.id + "\")'"
              +   " style='display:" + (ms?'block':'none') + ";width:100%;margin-top:4px;padding:4px 7px;"
              +     "border:1px solid #E8DFC4;border-radius:6px;font-size:11.5px;font-family:inherit;background:#FFFDF6'>";
@@ -2805,7 +2891,6 @@ function loadReportStudents(pageId, classId){
       }).join('');
 
       // ── 오늘 이 수업의 미제출 요약표 ──
-      var tbl = document.getElementById('misstbl-'+pageId);
       if(tbl){
         var hit = rows.filter(function(s){ return missed[s.id] && missed[s.id].note; });
         if(!hit.length){ tbl.style.display='none'; tbl.innerHTML=''; }
@@ -2813,8 +2898,8 @@ function loadReportStudents(pageId, classId){
           var t = "<div style='border-top:1px solid #E3E8DE;background:#FFFDF6'>";
           t +=   "<div style='display:flex;align-items:center;justify-content:space-between;gap:6px;"
              +     "padding:6px 11px;border-bottom:1px solid #F2E9D2'>"
-             +     "<span style='font-size:11px;font-weight:700;color:#8A6A22'>오늘 미제출</span>"
-             +     "<span style='font-size:10.5px;color:#B09355'>" + hit.length + "명</span>"
+             +     "<span style='font-size:11px;font-weight:700;color:#8A6A22'>Not submitted</span>"
+             +     "<span style='font-size:10.5px;color:#B09355'>" + hit.length + "</span>"
              +   "</div>";
           t +=   "<table style='width:100%;border-collapse:collapse;font-size:11.5px'>";
           hit.forEach(function(s){
@@ -2834,25 +2919,44 @@ function loadReportStudents(pageId, classId){
       }
     })
     .withFailureHandler(function(){
-      list.innerHTML = "<div style='font-size:11.5px;color:#C88;padding:4px 0'>불러오지 못했어요</div>";
+      list.innerHTML = "<div style='font-size:11.5px;color:#C88;padding:4px 0'>Couldn't load</div>";
       if(cnt) cnt.textContent = '';
     })
     .fetchClassRoster(classId, selectedDate, pageId);
 }
 
-// 결석 켜기/끄기 (isAbsent = 지금 결석 상태인지, 1/0)
-function toggleStuAbsent(pageId, studentId, isAbsent){
+// 출결 바꾸기 — Present 로 되돌릴 땐 한 번 더 확인합니다
+function onStuAttendance(pageId, studentId, sel){
   var cls = (document.getElementById('class-'+pageId)||{}).value || '';
+  var reason = sel.value;
+  var name = '';
+  try {
+    var row = sel.closest('div');
+    name = row ? ((row.querySelector('span')||{}).textContent || '') : '';
+  } catch(e){}
+
+  if(!reason){
+    if(!confirm('Mark ' + (name || 'this student') + ' as PRESENT?\n\n'
+              + 'The absence record will be removed,\n'
+              + 'along with the linked memo on the memo board.')){
+      loadReportStudents(pageId, cls);
+      return;
+    }
+  }
+
   google.script.run
     .withSuccessHandler(function(){ loadReportStudents(pageId, cls); })
-    .withFailureHandler(function(e){ showToast('결석 저장 실패: ' + (e&&e.message?e.message:'')); })
-    .setAbsent(studentId, selectedDate, !isAbsent, '결석');
+    .withFailureHandler(function(e){
+      showToast("Couldn't save attendance: " + (e&&e.message?e.message:''));
+      loadReportStudents(pageId, cls);
+    })
+    .setAbsent(studentId, selectedDate, !!reason, reason, cls, _userName || '');
 }
 
 // 미제출 켜기/끄기 — 켜면 입력칸이 열립니다
 function toggleStuMiss(pageId, studentId){
   var inp = document.getElementById('stumiss-'+pageId+'-'+studentId);
-  if(!inp) return;
+  if(!inp || inp.disabled) return;
   if(inp.style.display === 'none'){
     inp.style.display = 'block';
     inp.focus();
@@ -2871,7 +2975,9 @@ function saveStuMiss(pageId, studentId){
   var tid = (document.getElementById('tsel')||{}).value || '';
   google.script.run
     .withSuccessHandler(function(){ loadReportStudents(pageId, cls); })
-    .withFailureHandler(function(e){ showToast('미제출 저장 실패: ' + (e&&e.message?e.message:'')); })
+    .withFailureHandler(function(e){
+      showToast("Couldn't save: " + (e&&e.message?e.message:''));
+    })
     .setHomeworkMiss(pageId, studentId, selectedDate, cls, inp.value, tid);
 }
 
@@ -2888,7 +2994,7 @@ function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
 
   function has(v){ return v && String(v).trim() !== ''; }
 
-  function paint(lessonTxt, bookTxt, hwTxt, srcDate){
+  function paint(lessonTxt, bookTxt, hwTxt, absList, missList){
     var cells = '';
     if(has(lessonTxt)){
       cells += "<div style='flex:1;min-width:150px;padding:10px 12px'>"
@@ -2919,8 +3025,39 @@ function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
             +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:4px'>Last homework</div>"
             +    "<div style='font-size:12.5px;color:#666;white-space:pre-wrap'>"+_plEsc(hwTxt)+"</div></div>";
     }
-    pbody.innerHTML = cells;
-    pbox.style.display = cells ? '' : 'none';
+    // ── 지난 수업 출결 / 미제출 (보기 전용) ──
+    function chips(arr, fmt, bg, bd, fg){
+      if(!arr || !arr.length) return '';
+      return arr.map(function(x){
+        return "<span style='display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;"
+             +   "border-radius:20px;background:"+bg+";border:1px solid "+bd+";color:"+fg+";"
+             +   "margin:0 4px 3px 0'>" + _plEsc(fmt(x)) + "</span>";
+      }).join('');
+    }
+    var absChips = chips(absList, function(x){
+      return x.name + (x.reason ? ' · ' + _absEn(x.reason) : '');
+    }, '#FDECEC', '#F0C9C9', '#A7362B');
+    var missChips = chips(missList, function(x){
+      return x.name + (x.note ? ' · ' + x.note : '');
+    }, '#FDF6E7', '#EDDFB8', '#8A6A22');
+
+    var extra = '';
+    if(absChips || missChips){
+      extra = "<div style='width:100%;border-top:1px solid #E4EBDE;padding:8px 12px;background:#FAFBF8'>";
+      if(absChips){
+        extra += "<div style='margin-bottom:" + (missChips?'6px':'0') + "'>"
+              +    "<span style='font-size:10px;font-weight:700;color:#8A9178;margin-right:6px'>Was absent</span>"
+              +    absChips + "</div>";
+      }
+      if(missChips){
+        extra += "<div><span style='font-size:10px;font-weight:700;color:#8A9178;margin-right:6px'>Didn't do HW</span>"
+              +    missChips + "</div>";
+      }
+      extra += "</div>";
+    }
+
+    pbody.innerHTML = cells + extra;
+    pbox.style.display = (cells || extra) ? '' : 'none';
     return parsed;
   }
 
@@ -2940,14 +3077,15 @@ function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
 
   // 리포트에 박혀 있는 값으로 먼저 그려두고 (화면이 비어 보이지 않게),
   // 같은 교재의 지난 수업을 찾으면 그걸로 덮어씁니다.
-  if(has(fbLesson) || has(fbHW)) pickForm(paint(fbLesson, fbBook, fbHW));
+  if(has(fbLesson) || has(fbHW)) pickForm(paint(fbLesson, fbBook, fbHW, [], []));
   if(!classId){ if(!has(fbLesson) && !has(fbHW)) pbox.style.display='none'; return; }
 
   google.script.run
     .withSuccessHandler(function(ctx){
       var prev = ctx.prevLesson;
       if(prev){
-        paint(prev.todays_lesson, prev.book, prev.homework);
+        paint(prev.todays_lesson, prev.book, prev.homework,
+              ctx.prevAbsent || [], ctx.prevMissed || []);
       } else if(!has(fbLesson) && !has(fbHW)){
         pbox.style.display='none';
       }
