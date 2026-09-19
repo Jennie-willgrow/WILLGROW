@@ -486,7 +486,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 반 관리</div><div style="font-size:11px;color:#999;margin-top:2px">담임 선생님 · 반별 교재와 진도</div></div><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 이름 또는 선생님 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 반 관리</div><div style="font-size:11px;color:#999;margin-top:2px">담임 선생님 · 학생 명단 · 이번주/지난주 진도</div></div><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 이름 또는 선생님 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <div style="font-size:14px;font-weight:700;color:#363D2E">📊 월별 현황</div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -793,7 +793,19 @@ var _classInfoMapCache = null;
 //  확인합니다.
 // ════════════════════════════════════════════════════════════
 
-// 반 + 담임 + 최근 수업 내용
+// ── 주(週) 계산: 월요일 시작 ──────────────────────────────
+function _ymd(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+       + '-' + String(d.getDate()).padStart(2,'0');
+}
+function _mondayOf(d){
+  var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  var dow = x.getDay();                       // 0=일 … 6=토
+  x.setDate(x.getDate() + (dow === 0 ? -6 : 1 - dow));
+  return x;
+}
+
+// 반 + 담임 + 학생 명단 + 지난주·이번주 진도
 async function fetchClassManage() {
   var classes = await _sbGetSafe('classes',
     'select=id,name,teacher_id,teachers!teacher_id(name)&order=name.asc') || [];
@@ -801,59 +813,70 @@ async function fetchClassManage() {
 
   var teachers = await fetchTeachers();
 
-  // 최근 리포트를 넉넉히 가져와 반별로 정리합니다
-  var reports = await _sbGetSafe('daily_reports',
-    'select=id,class_id,date,title,book,todays_lesson,homework,teacher_id'
-    + '&order=date.desc&limit=1500') || [];
+  // ── 이번 주(월~일) 와 지난주 범위 ──
+  var now      = new Date(Date.now() + 9*60*60*1000);   // 한국 시간
+  var thisMon  = _mondayOf(new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  var lastMon  = new Date(thisMon); lastMon.setDate(lastMon.getDate() - 7);
+  var thisSun  = new Date(thisMon); thisSun.setDate(thisSun.getDate() + 6);
+  var rangeFrom = _ymd(lastMon), rangeTo = _ymd(thisSun);
+  var thisFrom  = _ymd(thisMon);
 
-  var byClass = {};
-  reports.forEach(function(r){
-    if(!r.class_id) return;
-    (byClass[r.class_id] = byClass[r.class_id] || []).push(r);
-  });
+  var ids = classes.map(function(c){ return c.id; });
+  var inList = '(' + ids.join(',') + ')';
+
+  var reports = await _sbGetSafe('daily_reports',
+    'select=id,class_id,date,book,todays_lesson,teacher_id'
+    + '&class_id=in.' + inList
+    + '&date=gte.' + rangeFrom + '&date=lte.' + rangeTo
+    + '&order=date.asc') || [];
+
+  var students = await _sbGetSafe('students',
+    'select=id,name,class_id&class_id=in.' + inList
+    + '&status=eq.재원&order=name.asc') || [];
 
   var tName = {};
   teachers.forEach(function(t){ tName[t.id] = t.name; });
 
+  var stuBy = {}, repBy = {};
+  students.forEach(function(s){ (stuBy[s.class_id] = stuBy[s.class_id] || []).push(s); });
+  reports.forEach(function(r){ (repBy[r.class_id] = repBy[r.class_id] || []).push(r); });
+
+  function lessons(rows){
+    return (rows || [])
+      .filter(function(r){
+        return (r.book && r.book.trim()) || (r.todays_lesson && r.todays_lesson.trim());
+      })
+      .map(function(r){
+        return { date:   r.date || '',
+                 book:   String(r.book || '').trim(),
+                 lesson: String(r.todays_lesson || '').trim(),
+                 teacher: r.teacher_id ? (tName[r.teacher_id] || '') : '' };
+      });
+  }
+
   var out = classes.map(function(cls){
-    var rows = byClass[cls.id] || [];
+    var rows = repBy[cls.id] || [];
+    var stus = (stuBy[cls.id] || []).map(function(s){
+      // "김민준 (Leo)" → "김민준"
+      var m = String(s.name || '').trim().match(/^(.*?)\s*[（(]/);
+      return m ? m[1].trim() : String(s.name || '').trim();
+    }).filter(Boolean);
 
-    // 내용이 있는 수업만 (Auto-Generate 로 만들어진 빈 껍데기는 건너뜀)
-    var filled = rows.filter(function(r){
-      return (r.book && r.book.trim()) || (r.todays_lesson && r.todays_lesson.trim());
-    });
-
-    // 교재별로 마지막 진도와 횟수를 모읍니다
-    var books = [], seen = {};
-    filled.forEach(function(r){
-      var b = String(r.book || '').trim() || '(교재 미기재)';
-      if(!seen[b]){
-        seen[b] = { book:b, lastLesson:String(r.todays_lesson||'').trim(),
-                    lastDate:r.date || '', count:0 };
-        books.push(seen[b]);
-      }
-      seen[b].count++;
-      if(!seen[b].lastLesson && r.todays_lesson) seen[b].lastLesson = String(r.todays_lesson).trim();
-    });
-
-    var last = filled.length ? filled[0] : null;
     return {
       id: cls.id,
       name: cls.name || '',
       teacherId: cls.teacher_id || '',
       teacherName: cls.teachers ? (cls.teachers.name || '') : '',
-      lastDate:    last ? (last.date || '') : '',
-      lastBook:    last ? String(last.book || '').trim() : '',
-      lastLesson:  last ? String(last.todays_lesson || '').trim() : '',
-      lastTeacher: last && last.teacher_id ? (tName[last.teacher_id] || '') : '',
-      reportCount: filled.length,
-      books: books
+      students: stus,
+      studentCount: stus.length,
+      thisWeek: lessons(rows.filter(function(r){ return String(r.date||'') >= thisFrom; })),
+      lastWeek: lessons(rows.filter(function(r){ return String(r.date||'') <  thisFrom; }))
     };
   });
 
-  return { classes: _classSort(out), teachers: teachers };
+  return { classes: _classSort(out), teachers: teachers,
+           thisWeekFrom: thisFrom, lastWeekFrom: rangeFrom };
 }
-
 // 담임 바꾸기
 async function setClassTeacher(classId, teacherId) {
   await sbPatch('classes', 'id=' + _eq(classId), { teacher_id: teacherId || null });
@@ -2598,6 +2621,27 @@ function addDays(dateStr, delta){
 }
 // ── Generic date picker (key-based, supports multiple instances) ──
 var dpState = {};
+var _dpWraps = {};          // 달력마다 바깥 테두리를 기억해 둡니다
+var _dpClickBound = false;  // 감지기는 딱 한 번만 답니다
+
+function _dpInstallOutsideClick(){
+  if(_dpClickBound) return;
+  _dpClickBound = true;
+  // 캡처 단계(세 번째 인자 true)에서 검사합니다.
+  //   ‹ › 를 누르면 dpNav 가 달력을 다시 그려서 눌린 버튼이 DOM 에서 사라지는데,
+  //   버블 단계에서 검사하면 "달력 바깥을 눌렀다"고 잘못 보고 닫혔습니다.
+  //   캡처 단계는 버튼이 아직 살아 있을 때 실행돼서 제대로 판단합니다.
+  document.addEventListener("click", function(e){
+    Object.keys(_dpWraps).forEach(function(key){
+      var wrap = _dpWraps[key];
+      var pop  = document.getElementById("dpPop-"+key);
+      if(!pop) return;
+      // 화면에서 떨어져 나간 옛 달력은 판단에서 뺍니다
+      if(!wrap || !document.body.contains(wrap)) return;
+      if(!wrap.contains(e.target)) pop.classList.remove("open");
+    });
+  }, true);
+}
 function buildDpPicker(key, containerId, initDate){
   var d0 = new Date(initDate + "T00:00:00");
   dpState[key] = { year: d0.getFullYear(), month: d0.getMonth(), sel: initDate };
@@ -2611,16 +2655,12 @@ function buildDpPicker(key, containerId, initDate){
   wrap.appendChild(btn); wrap.appendChild(pop);
   container.appendChild(wrap);
   renderDpPicker(key);
-  // ★ 캡처 단계(세 번째 인자 true)에서 검사합니다.
-  //   ‹ › 를 누르면 dpNav 가 달력을 통째로 다시 그려서 눌린 버튼이 사라지는데,
-  //   그 뒤(버블 단계)에 검사하면 "달력 바깥을 눌렀다"고 잘못 보고 닫혔습니다.
-  //   캡처 단계는 버튼이 아직 살아 있을 때 실행돼서 제대로 판단합니다.
-  document.addEventListener("click", function(e){
-    if(!wrap.contains(e.target)){
-      var p = document.getElementById("dpPop-"+key);
-      if(p) p.classList.remove("open");
-    }
-  }, true);
+  // ★ 바깥 클릭 감지는 아래 _dpInstallOutsideClick() 한 곳에서만 합니다.
+  //   (예전에는 buildDpPicker 를 부를 때마다 감지기를 새로 달았는데,
+  //    교재 주문 화면처럼 두 번 불리는 곳에서는 옛 감지기가 남아
+  //    이미 사라진 옛 달력을 기준으로 판단해 현재 달력을 바로 닫아버렸습니다.)
+  _dpWraps[key] = wrap;
+  _dpInstallOutsideClick();
 }
 function formatDpDate(ds){
   var d = new Date(ds + "T00:00:00");
@@ -4601,27 +4641,19 @@ function submitWGOrderForm(){
     requesterId: _teacherId
   });
 }
-// 외부교재 부가자료 — 기본으로 늘 보여주는 항목
+// 외부교재 부가자료 — 고를 수 있는 항목
+//  ※ 예전에 쓰던 "wordlist", "Word List/Test" 같은 표기는 더 보여주지 않습니다.
+//    목록에 없는 건 아래 [기타] 칸에 직접 적으시면 됩니다.
 var EXT_SUPMAT_DEFAULTS = [
-  "wordlist",
-  "test",
-  "translation sheet",
-  "unit/review test",
-  "organization/review test"
+  "Word List",
+  "Word Test",
+  "Translation Sheet",
+  "Unit/Review Test",
+  "Organization/Review Test"
 ];
 
-// 기본 항목 + 지금까지 실제로 쓰인 항목을 합칩니다 (중복 제거, 대소문자 무시)
 function _extSupmatList(){
-  var out = [], seen = {};
-  EXT_SUPMAT_DEFAULTS.concat(extSupmatOptions || []).forEach(function(s){
-    var v = String(s || '').trim();
-    if(!v) return;
-    var k = v.toLowerCase();
-    if(seen[k]) return;
-    seen[k] = true;
-    out.push(v);
-  });
-  return out;
+  return EXT_SUPMAT_DEFAULTS.slice();
 }
 
 function renderExtSupmatChks(){
@@ -4635,43 +4667,35 @@ function renderExtSupmatChks(){
       + "style='width:15px;height:15px;cursor:pointer'> " + _plEsc(opt) + "</label>";
   }).join("")
   // ── 기타: 직접 입력 ──
-  + "<div style='display:flex;align-items:center;gap:6px;width:100%;margin-top:4px'>"
-  +   "<label style='display:inline-flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;"
-  +     "white-space:nowrap'>"
-  +     "<input type='checkbox' id='extSupmatEtcChk' onchange='onExtSupmatEtcToggle()' "
-  +       "style='width:15px;height:15px;cursor:pointer'> 기타</label>"
-  +   "<input type='text' id='extSupmatEtc' placeholder='직접 입력 (여러 개는 쉼표로)' disabled "
+  // ── 기타: 그냥 쓰기만 하면 됩니다 ──
+  + "<div style='display:flex;align-items:center;gap:7px;width:100%;margin-top:4px'>"
+  +   "<span id='extSupmatEtcLbl' style='font-size:13px;color:#999;white-space:nowrap'>기타</span>"
+  +   "<input type='text' id='extSupmatEtc' placeholder='여기에 적으면 함께 신청돼요 (여러 개는 쉼표로)' "
   +     "oninput='onExtSupmatEtcInput()' "
-  +     "style='flex:1;min-width:150px;padding:6px 9px;border:1.5px solid #e0e0e0;border-radius:8px;"
-  +     "font-size:12.5px;box-sizing:border-box;background:#f7f7f7;color:#999'>"
+  +     "style='flex:1;min-width:170px;padding:6px 9px;border:1.5px solid #e0e0e0;border-radius:8px;"
+  +     "font-size:12.5px;box-sizing:border-box'>"
   + "</div>";
+  onExtSupmatEtcInput();
 }
 
-// 기타를 켜면 입력칸이 열립니다
-function onExtSupmatEtcToggle(){
-  var chk = document.getElementById("extSupmatEtcChk");
-  var inp = document.getElementById("extSupmatEtc");
-  if(!chk || !inp) return;
-  inp.disabled = !chk.checked;
-  inp.style.background = chk.checked ? '#fff'  : '#f7f7f7';
-  inp.style.color      = chk.checked ? '#333'  : '#999';
-  inp.style.borderColor = chk.checked ? '#2D6A4F' : '#e0e0e0';
-  if(chk.checked) inp.focus(); else inp.value = '';
-}
-// 반대로, 글을 쓰면 체크가 켜집니다
+// 글을 쓰면 "기타"가 켜진 것으로 봅니다 (체크박스를 따로 누를 필요 없습니다)
 function onExtSupmatEtcInput(){
-  var chk = document.getElementById("extSupmatEtcChk");
   var inp = document.getElementById("extSupmatEtc");
-  if(!chk || !inp) return;
-  if(inp.value.trim() && !chk.checked){ chk.checked = true; }
+  var lbl = document.getElementById("extSupmatEtcLbl");
+  if(!inp) return;
+  var on = !!inp.value.trim();
+  inp.style.borderColor = on ? '#2D6A4F' : '#e0e0e0';
+  if(lbl){
+    lbl.textContent = on ? '기타 ✓' : '기타';
+    lbl.style.color = on ? '#2D6A4F' : '#999';
+    lbl.style.fontWeight = on ? '700' : '400';
+  }
 }
 
 // 고른 것 + 직접 쓴 것을 한 목록으로
 function getExtSupMats(){
   var chks = document.querySelectorAll("#extSupmatChkBox input[type=checkbox]:checked");
-  var out = Array.prototype.slice.call(chks)
-    .filter(function(cb){ return cb.id !== 'extSupmatEtcChk'; })
-    .map(function(cb){ return cb.value; });
+  var out = Array.prototype.slice.call(chks).map(function(cb){ return cb.value; });
   var etc = document.getElementById("extSupmatEtc");
   if(etc && etc.value.trim()){
     etc.value.split(",").forEach(function(s){
@@ -4703,7 +4727,9 @@ function submitExtOrderForm(){
       buildDpPicker("extStartDate","extStartDateCon",getTodayStr());
       var chkAll = document.querySelectorAll("#extSupmatChkBox input[type=checkbox]");
       Array.prototype.forEach.call(chkAll, function(cb){ cb.checked=false; });
-      onExtSupmatEtcToggle();   // 기타 입력칸도 비우고 잠급니다
+      var _etc = document.getElementById("extSupmatEtc");
+      if(_etc) _etc.value = "";
+      onExtSupmatEtcInput();    // 기타 칸도 비웁니다
     } else { showToast("❌ " + (r.error || "Notion 오류. 관리자에게 문의하세요.")); }
   })
   .withFailureHandler(function(){ btn.disabled=false; btn.textContent="📔 외부교재 주문 신청"; showToast("Error. Please try again."); })
@@ -7311,7 +7337,8 @@ function renderClassMgmt(){
   var list = (_cmData.classes || []).filter(function(c){
     if(!q) return true;
     return (c.name || '').toLowerCase().indexOf(q) >= 0
-        || (c.teacherName || '').toLowerCase().indexOf(q) >= 0;
+        || (c.teacherName || '').toLowerCase().indexOf(q) >= 0
+        || (c.students || []).some(function(s){ return s.toLowerCase().indexOf(q) >= 0; });
   });
 
   if(!list.length){
@@ -7322,68 +7349,71 @@ function renderClassMgmt(){
 
   var teachers = _cmData.teachers || [];
 
-  el.innerHTML = "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:11px'>"
+  // 한 주치 진도 줄
+  function weekRows(rows){
+    if(!rows || !rows.length){
+      return "<div style='font-size:11px;color:#C7CCC0;padding:3px 0'>수업 기록 없음</div>";
+    }
+    return rows.map(function(r){
+      var d = String(r.date || '');
+      var md = d ? (Number(d.slice(5,7)) + '/' + Number(d.slice(8,10))) : '';
+      var dw = '';
+      if(d){
+        var dd = new Date(d + 'T00:00:00');
+        dw = ['일','월','화','수','목','금','토'][dd.getDay()];
+      }
+      return "<div style='display:flex;gap:6px;align-items:flex-start;padding:3px 0'>"
+        +   "<span style='font-size:10.5px;font-weight:700;color:#8A9178;white-space:nowrap;"
+        +     "flex-shrink:0;min-width:36px'>" + md + (dw ? "(" + dw + ")" : "") + "</span>"
+        +   "<span style='font-size:11.5px;color:#4A5344;flex:1;line-height:1.45;word-break:break-word'>"
+        +     (r.book ? "<b style='color:#2D3A28'>" + _plEsc(r.book) + "</b> " : "")
+        +     (_plEsc(r.lesson) || "<span style='color:#C7CCC0'>진도 미기재</span>")
+        +   "</span>"
+        + "</div>";
+    }).join("");
+  }
+
+  el.innerHTML = "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px'>"
     + list.map(function(c){
     var opts = "<option value=''>— 담임 없음 —</option>"
       + teachers.map(function(t){
           return "<option value='" + t.id + "'" + (t.id === c.teacherId ? " selected" : "") + ">"
-               + _plEsc(t.name) + (t.role ? " · " + _plEsc(t.role) : "") + "</option>";
+               + _plEsc(t.name) + "</option>";
         }).join("");
 
-    // 교재별 마지막 진도 (최근 것부터 최대 4개)
-    var books = (c.books || []).slice(0, 4);
-    var bookRows = books.length
-      ? books.map(function(b){
-          return "<div style='display:flex;gap:7px;align-items:flex-start;padding:5px 0;"
-            + "border-top:1px dotted #EDEFE9'>"
-            +   "<span style='font-size:11.5px;font-weight:700;color:#2D3A28;flex-shrink:0;"
-            +     "max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>📖 "
-            +     _plEsc(b.book) + "</span>"
-            +   "<span style='font-size:11.5px;color:#5B6551;flex:1;line-height:1.45;"
-            +     "word-break:break-word'>" + (_plEsc(b.lastLesson) || "<span style='color:#C7CCC0'>진도 미기재</span>") + "</span>"
-            +   "<span style='font-size:10px;color:#A8B09C;flex-shrink:0'>" + b.count + "회</span>"
-            + "</div>";
-        }).join("")
-        + ((c.books || []).length > 4
-            ? "<div style='font-size:10px;color:#A8B09C;padding-top:4px'>외 "
-              + ((c.books || []).length - 4) + "종</div>"
-            : "")
-      : "<div style='font-size:11.5px;color:#C7CCC0;padding:6px 0'>Daily Report 기록이 아직 없어요</div>";
+    var names = (c.students || []).join(', ');
 
     return "<div style='background:#fff;border-radius:12px;padding:12px 14px;"
       + "box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)'>"
-      // 반 이름
-      + "<div style='display:flex;align-items:center;gap:6px;margin-bottom:9px'>"
+      // ── 반 이름 + 인원수
+      + "<div style='display:flex;align-items:center;gap:6px;margin-bottom:8px'>"
       +   "<div style='font-size:14px;font-weight:700;color:#2D3A28;flex:1;overflow:hidden;"
       +     "text-overflow:ellipsis;white-space:nowrap'>" + _plEsc(c.name) + "</div>"
-      +   (c.reportCount
-            ? "<span style='background:#F1F3EE;color:#8A9178;border-radius:9px;padding:1px 8px;"
-              + "font-size:10.5px;font-weight:700'>수업 " + c.reportCount + "회</span>"
-            : "")
+      +   "<span style='background:#F1F3EE;color:#6B7563;border-radius:9px;padding:1px 8px;"
+      +     "font-size:10.5px;font-weight:700;flex-shrink:0'>👥 " + c.studentCount + "명</span>"
       + "</div>"
-      // 담임
-      + "<div style='margin-bottom:9px'>"
-      +   "<label style='font-size:10.5px;font-weight:700;color:#8A9178;display:block;margin-bottom:3px'>"
-      +     "담임 선생님</label>"
+      // ── 학생 명단 (한 줄, 길면 … 으로)
+      + "<div style='font-size:10.5px;color:#A8B09C;line-height:1.5;margin-bottom:9px;"
+      +   "overflow:hidden;text-overflow:ellipsis;white-space:nowrap' title=\"" + _mgAttr(names) + "\">"
+      +   (names || "재원생 없음") + "</div>"
+      // ── 담임
+      + "<div style='display:flex;align-items:center;gap:7px;margin-bottom:9px'>"
+      +   "<span style='font-size:10.5px;font-weight:700;color:#8A9178;white-space:nowrap'>담임</span>"
       +   "<select id='cmT-" + c.id + "' onchange='saveClassTeacher(\"" + c.id + "\")' "
-      +     "style='width:100%;padding:7px 9px;border:1.5px solid #E2E8D8;border-radius:8px;"
+      +     "style='flex:1;padding:6px 9px;border:1.5px solid #E2E8D8;border-radius:8px;"
       +     "font-size:12.5px;background:#fff;box-sizing:border-box'>" + opts + "</select>"
       + "</div>"
-      // 최근 수업
+      // ── 이번 주 / 지난주 진도
       + "<div style='background:#FAFBF8;border-radius:9px;padding:8px 10px'>"
-      +   "<div style='display:flex;align-items:baseline;gap:6px;margin-bottom:2px'>"
-      +     "<span style='font-size:10.5px;font-weight:700;color:#8A9178'>최근 수업</span>"
-      +     "<span style='font-size:10.5px;color:#A8B09C'>"
-      +       (c.lastDate ? _plEsc(String(c.lastDate).slice(5).replace('-','/')) : '—')
-      +       (c.lastTeacher ? " · " + _plEsc(c.lastTeacher) : "")
-      +     "</span>"
-      +   "</div>"
-      +   bookRows
+      +   "<div style='font-size:10.5px;font-weight:700;color:#2D6A4F;margin-bottom:1px'>이번 주</div>"
+      +   weekRows(c.thisWeek)
+      +   "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin:7px 0 1px;"
+      +     "padding-top:6px;border-top:1px solid #EDEFE9'>지난주</div>"
+      +   weekRows(c.lastWeek)
       + "</div>"
       + "</div>";
   }).join("") + "</div>";
 }
-
 function saveClassTeacher(classId){
   var sel = document.getElementById("cmT-" + classId);
   if(!sel) return;
