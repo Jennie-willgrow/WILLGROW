@@ -485,7 +485,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-</div><div id="absenceScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+</div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <div style="font-size:14px;font-weight:700;color:#363D2E">📊 월별 현황</div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -6415,7 +6415,7 @@ function renderMonthGrid(data, monthStart){
   for(var i=1;i<=days;i++){
     var dw = new Date(d0.getFullYear(), d0.getMonth(), i).getDay();
     var col = dw===0 ? '#E06B6B' : (dw===6 ? '#5B86C6' : '#9AA391');
-    h += "<th style='padding:4px 0;border-bottom:2px solid #E3E6DE;min-width:26px;font-weight:700;"
+    h += "<th style='padding:4px 0;border-bottom:2px solid #E3E6DE;min-width:22px;font-weight:700;"
       +   "color:"+col+";font-size:10px;line-height:1.25'>"+i+"<br>"
       +   "<span style='font-size:8.5px;font-weight:600;opacity:.75'>"+DAY[dw]+"</span></th>";
   }
@@ -6451,8 +6451,8 @@ function renderMonthGrid(data, monthStart){
           seen[k] = 1;
           var st = STY[k];
           var tip = hit.map(function(x){ return x.t; }).filter(Boolean).join(' / ');
-          cell += "<span title='" + _plEsc(tip || st.ch) + "' style='display:inline-block;width:13px;height:13px;"
-               +   "line-height:12px;border-radius:3px;background:"+st.bg+";border:1px solid "+st.bd+";"
+          cell += "<span title='" + _plEsc(tip || st.ch) + "' style='display:inline-block;width:12px;height:12px;"
+               +   "line-height:11px;border-radius:3px;background:"+st.bg+";border:1px solid "+st.bd+";"
                +   "color:"+st.fg+";font-size:8.5px;font-weight:700;margin:0 1px'>"+st.ch+"</span>";
         });
       }
@@ -6472,7 +6472,9 @@ function renderMonthGrid(data, monthStart){
   });
 
   h += "</table>";
-  h += "<div style='font-size:10px;color:#A8B09C;margin-top:8px'>표시에 마우스를 올리면 자세한 내용이 보여요</div>";
+  h += "<div style='font-size:10px;color:#A8B09C;margin-top:8px'>"
+    +      "표시에 마우스를 올리면 자세한 내용이 보여요"
+    +      "<span style='margin-left:10px'>· 화면이 좁으면 표를 좌우로 밀어보세요</span></div>";
   grid.innerHTML = h;
 }
 
