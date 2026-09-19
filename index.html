@@ -1160,37 +1160,44 @@ async function submitReport(data) {
   return { success:true };
 }
 
-// Daily Report 화면용 — 같은 반의 직전 수업 (지난 레슨 + 지난 숙제)
+// Daily Report 화면용 — 지난주 같은 요일, 같은 선생님·같은 반의 리포트
 //
-// ⚠ Auto-Generate 가 빈 리포트를 미리 만들어 두기 때문에
-//   그냥 "가장 최근 1건" 을 가져오면 빈 껍데기가 딸려옵니다.
-//   그래서 여러 건을 훑어서 실제로 내용이 있는 것만 고릅니다.
-async function fetchReportPlannerCtx(classId, dateStr) {
-  if(!classId) return { prevLesson:null, prevForm:null };
+// 시간표가 주 단위로 반복되므로 "지난주 같은 요일" 이 곧 같은 수업입니다.
+// (같은 반 · 같은 교재 · 같은 선생님이 자동으로 맞아떨어집니다)
+// 지난주가 휴강이거나 비어 있으면 2·3·4주 전까지 거슬러 올라갑니다.
+// Auto-Generate 가 리포트를 만드는 방식과 같은 규칙입니다.
+async function fetchReportPlannerCtx(classId, dateStr, teacherId) {
+  var empty = { prevLesson:null, prevForm:null };
+  if(!classId || !dateStr) return empty;
 
-  var rows = await _sbGetSafe('daily_reports',
-    'select=date,todays_lesson,book,homework,created_at&class_id='+_eq(classId)
-    + '&date=lt.'+dateStr
-    + '&order=date.desc,created_at.desc&limit=30');
-  rows = rows || [];
-
+  function shiftDays(str, n){
+    var p = str.split('-');
+    var d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    d.setDate(d.getDate() + n);
+    return d.getFullYear() + '-'
+         + String(d.getMonth()+1).padStart(2,'0') + '-'
+         + String(d.getDate()).padStart(2,'0');
+  }
   function filled(v){ return v && String(v).trim() !== ''; }
 
-  // ① 지난 수업 — 레슨이나 숙제 중 하나라도 적힌 가장 최근 것
-  var prevLesson = null;
-  for (var i = 0; i < rows.length; i++) {
-    if (filled(rows[i].todays_lesson) || filled(rows[i].homework)) { prevLesson = rows[i]; break; }
-  }
+  for (var w = 1; w <= 4; w++) {
+    var target = shiftDays(dateStr, -w * 7);
+    var q = 'select=date,title,todays_lesson,book,homework&class_id=' + _eq(classId)
+          + '&date=' + _eq(target);
+    if (teacherId) q += '&teacher_id=' + _eq(teacherId);
+    q += '&order=created_at.desc&limit=5';
 
-  // ② 알림장 양식 — 숙제가 알림장 모양으로 적힌 가장 최근 것
-  //    (지난 수업이 자유 입력이었어도 그 전 회차에서 양식을 찾아옵니다)
-  var prevForm = null;
-  for (var j = 0; j < rows.length; j++) {
-    if (!filled(rows[j].homework)) continue;
-    if (/^\s*\[.+\]/.test(rows[j].homework)) { prevForm = rows[j].homework; break; }
+    var rows = await _sbGetSafe('daily_reports', q) || [];
+    for (var i = 0; i < rows.length; i++) {
+      if (filled(rows[i].todays_lesson) || filled(rows[i].homework)) {
+        return {
+          prevLesson: rows[i],
+          prevForm: /^\s*\[.+\]/.test(rows[i].homework || '') ? rows[i].homework : null
+        };
+      }
+    }
   }
-
-  return { prevLesson: prevLesson, prevForm: prevForm };
+  return empty;
 }
 
 async function createBlankReport(data) {
@@ -2615,9 +2622,11 @@ function plTextToItems(text){
 // 반을 바꾸면 지난 수업과 학생 명단을 다시 불러옵니다
 function onReportClassChange(pageId){
   var cls = (document.getElementById('class-'+pageId)||{}).value || '';
-  loadReportPlannerCtx(pageId, cls);
+  // 반을 바꾸면 리포트에 적혀 있던 지난 값은 더 이상 맞지 않으므로 새로 찾습니다
+  loadReportPlannerCtx(pageId, cls, '', '', '');
   loadReportStudents(pageId, cls);
 }
+
 
 // 그 반 재원생 명단
 function loadReportStudents(pageId, classId){
@@ -2659,74 +2668,88 @@ function loadReportStudents(pageId, classId){
     .fetchStudentsByClass(classId);
 }
 
-function loadReportPlannerCtx(pageId, classId){
+// 지난 수업 패널 + 알림장 양식 자동 선택
+//
+// 1순위: 리포트 행에 이미 들어있는 last_lesson / last_hw
+//        (Auto-Generate 가 "같은 요일 · 같은 수업" 에서 복사해 둔 값이라 가장 정확합니다)
+// 2순위: 값이 비어 있으면 같은 수업의 지난 리포트를 직접 찾아봅니다
+function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
+  var teacherId = (document.getElementById('tsel')||{}).value || '';
   var pbox = document.getElementById('prevbox-'+pageId);
   var pbody= document.getElementById('prevbody-'+pageId);
-  if(!classId){ if(pbox) pbox.style.display='none'; return; }
+  if(!pbox || !pbody) return;
+
+  function has(v){ return v && String(v).trim() !== ''; }
+
+  function paint(lessonTxt, bookTxt, hwTxt, srcDate){
+    var cells = '';
+    if(has(lessonTxt)){
+      cells += "<div style='flex:1;min-width:150px;padding:10px 12px'>"
+            +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:3px'>Last lesson</div>"
+            +    "<div style='font-size:13px;line-height:1.5'>"
+            +      (has(bookTxt) ? "<b>"+_plEsc(bookTxt)+"</b> · " : "")
+            +      _plEsc(lessonTxt)+"</div></div>";
+    }
+    var parsed = plTextToItems(hwTxt);
+    if(parsed){
+      var pf = PLANNER_FORMS[parsed.formKey], lines = '';
+      if(pf){
+        pf.items.forEach(function(it){
+          if(!parsed.items[it.key]) return;
+          lines += "<div style='display:flex;gap:7px;align-items:baseline;margin-bottom:2px'>"
+                +    "<span style='width:5px;height:5px;border-radius:50%;background:"+(pf.accent||'#CC2B2B')+";flex-shrink:0'></span>"
+                +    "<b style='font-size:12.5px'>"+_plEsc(it.label)+"</b>"
+                +    "<span style='font-size:12.5px;color:#666'>"+_plEsc(parsed.items[it.key])+"</span></div>";
+        });
+      }
+      if(lines){
+        cells += "<div style='flex:1;min-width:150px;padding:10px 12px;border-left:1px solid #E4EBDE'>"
+              +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:4px'>Last homework</div>"
+              +    lines + "</div>";
+      }
+    } else if(has(hwTxt)){
+      cells += "<div style='flex:1;min-width:150px;padding:10px 12px;border-left:1px solid #E4EBDE'>"
+            +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:4px'>Last homework</div>"
+            +    "<div style='font-size:12.5px;color:#666;white-space:pre-wrap'>"+_plEsc(hwTxt)+"</div></div>";
+    }
+    pbody.innerHTML = cells;
+    pbox.style.display = cells ? '' : 'none';
+    return parsed;
+  }
+
+  function pickForm(base){
+    var sel = document.getElementById('plform-'+pageId);
+    if(!sel || sel.value || !base) return;
+    var guess = base.formKey + '|' + base.lessonName;
+    var ok = Array.prototype.some.call(sel.options, function(o){ return o.value===guess; });
+    if(!ok) return;
+    sel.value = guess;
+    var pre = {}, gf = PLANNER_FORMS[base.formKey];
+    if(gf) gf.items.forEach(function(it){
+      if(it.fixed && base.items[it.key]) pre[it.key] = base.items[it.key];
+    });
+    onPlFormChange(pageId, pre);
+  }
+
+  // 리포트에 박혀 있는 값으로 먼저 그려두고 (화면이 비어 보이지 않게),
+  // 같은 교재의 지난 수업을 찾으면 그걸로 덮어씁니다.
+  if(has(fbLesson) || has(fbHW)) pickForm(paint(fbLesson, fbBook, fbHW));
+  if(!classId){ if(!has(fbLesson) && !has(fbHW)) pbox.style.display='none'; return; }
 
   google.script.run
     .withSuccessHandler(function(ctx){
       var prev = ctx.prevLesson;
-      if(!prev){ if(pbox) pbox.style.display='none'; return; }
-
-      var cells = '';
-      if(prev.todays_lesson){
-        cells += "<div style='flex:1;min-width:150px;padding:10px 12px'>"
-              +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:3px'>Last lesson</div>"
-              +    "<div style='font-size:13px;line-height:1.5'>"
-              +      (prev.book ? "<b>"+_plEsc(prev.book)+"</b> · " : "")
-              +      _plEsc(prev.todays_lesson)+"</div></div>";
+      if(prev){
+        paint(prev.todays_lesson, prev.book, prev.homework);
+      } else if(!has(fbLesson) && !has(fbHW)){
+        pbox.style.display='none';
       }
-
-      // 지난 숙제 — 저장된 글을 표로 되돌려 보여줍니다
-      var parsedPrev = plTextToItems(prev.homework);
-      if(parsedPrev){
-        var pf = PLANNER_FORMS[parsedPrev.formKey], lines = '';
-        if(pf){
-          pf.items.forEach(function(it){
-            if(!parsedPrev.items[it.key]) return;
-            lines += "<div style='display:flex;gap:7px;align-items:baseline;margin-bottom:2px'>"
-                  +    "<span style='width:5px;height:5px;border-radius:50%;background:"+(pf.accent||'#CC2B2B')+";flex-shrink:0'></span>"
-                  +    "<b style='font-size:12.5px'>"+_plEsc(it.label)+"</b>"
-                  +    "<span style='font-size:12.5px;color:#666'>"+_plEsc(parsedPrev.items[it.key])+"</span></div>";
-          });
-        }
-        if(lines){
-          cells += "<div style='flex:1;min-width:150px;padding:10px 12px;border-left:1px solid #E4EBDE'>"
-                +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:4px'>Last homework</div>"
-                +    lines + "</div>";
-        }
-      } else if(prev.homework){
-        cells += "<div style='flex:1;min-width:150px;padding:10px 12px;border-left:1px solid #E4EBDE'>"
-              +    "<div style='font-size:10.5px;font-weight:700;color:#8A9178;margin-bottom:4px'>Last homework</div>"
-              +    "<div style='font-size:12.5px;color:#666;white-space:pre-wrap'>"+_plEsc(prev.homework)+"</div></div>";
-      }
-
-      if(pbody) pbody.innerHTML = cells;
-      if(pbox)  pbox.style.display = cells ? '' : 'none';
-
-      // ── 알림장 양식 자동 선택 ──
-      // 오늘 아직 안 쓴 경우, 지난 회차에 쓰던 양식을 그대로 골라줍니다.
-      // 고정 숙제(Alphabet Writing 등)는 값까지 미리 채워둡니다.
-      var sel = document.getElementById('plform-'+pageId);
-      if(sel && !sel.value){
-        var base = plTextToItems(ctx.prevForm) || parsedPrev;
-        if(base){
-          var guess = base.formKey + '|' + base.lessonName;
-          var has = Array.prototype.some.call(sel.options, function(o){ return o.value===guess; });
-          if(has){
-            sel.value = guess;
-            var pre = {}, gf = PLANNER_FORMS[base.formKey];
-            if(gf) gf.items.forEach(function(it){
-              if(it.fixed && base.items[it.key]) pre[it.key] = base.items[it.key];
-            });
-            onPlFormChange(pageId, pre);
-          }
-        }
-      }
+      pickForm(plTextToItems(ctx.prevForm));
     })
-    .withFailureHandler(function(){ if(pbox) pbox.style.display='none'; })
-    .fetchReportPlannerCtx(classId, selectedDate);
+    .withFailureHandler(function(){
+      if(!has(fbLesson) && !has(fbHW)) pbox.style.display='none';
+    })
+    .fetchReportPlannerCtx(classId, selectedDate, teacherId);
 }
 
 function initReportPlanner(r){
@@ -2741,7 +2764,8 @@ function initReportPlanner(r){
   if(sel && !sel.value){
     document.getElementById('plfree-'+r.pageId).style.display = '';
   }
-  loadReportPlannerCtx(r.pageId, r.classId || '');
+  loadReportPlannerCtx(r.pageId, r.classId || '',
+                       r.lastLesson || '', '', r.lastHW || '');
   loadReportStudents(r.pageId, r.classId || '');
 }
 function doSubmit(pageId){
