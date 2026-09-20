@@ -8612,18 +8612,9 @@ function _schedTable(rows, showClassName){
 }
 
 function _schedOpenPrint(title, bodyHtml){
-  var w = window.open('', '_blank');
-  if(!w){ showToast("팝업이 막혀 있어요. 브라우저에서 이 사이트의 팝업을 허용해 주세요."); return; }
-  w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>"
-    + title + "</title>" + _schedPrintCSS() + "</head><body>"
-    + "<div class='noprint'>"
-    +   "<button onclick='window.print()'>🖨 인쇄 · PDF로 저장</button>"
-    +   "<button class='g' onclick='window.close()'>닫기</button>"
-    +   "<div style='font-size:11px;color:#8A9178;margin-top:7px'>"
-    +     "인쇄창에서 <b>대상</b>을 [PDF로 저장] 으로 고르시면 PDF 파일이 됩니다.</div>"
-    + "</div>"
-    + bodyHtml + "</body></html>");
-  w.document.close();
+  // 내부용 표도 같은 창을 씁니다 (이미지 저장 버튼 포함)
+  _prOpen(title, _schedPrintCSS() + "<style>.sheet{padding:14px 18px}</style>",
+          "<div class='sheet'>" + bodyHtml + "</div>", title);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -8657,6 +8648,17 @@ function _schedDayList(rows){
   var on = {};
   (rows || []).forEach(function(s){ on[s.weekday] = true; });
   return WG_WEEKDAYS.slice(0,7).filter(function(w){ return on[w.d]; });
+}
+
+// 수업 시간 범위 — "15:30~17:25"
+function _schedTimeRange(rows){
+  var minP = 99, maxP = 1;
+  (rows || []).forEach(function(s){
+    if(s.period < minP) minP = s.period;
+    if(s.period > maxP) maxP = s.period;
+  });
+  var a = _periodInfo(minP), b = _periodInfo(maxP);
+  return (a && b) ? (a.start + '~' + b.end) : '';
 }
 
 // 한 칸에 들어갈 교재 (표지 + 이름)
@@ -8742,10 +8744,8 @@ function openSchedPrintDialog(){
     +     "font-size:12.5px;box-sizing:border-box'>"
     + "</div>"
 
-    + card('new',    'FOR NEW STUDENTS', '학부모 안내 · 신규',
-           'A4 가로 1장. 등록 안내와 함께 시간표를 보여줍니다.')
-    + card('change', 'SCHEDULE CHANGE',  '학부모 안내 · 시간 변경',
-           'A4 가로 1장. 바뀐 시간을 확인해 달라는 안내문이 들어갑니다.')
+    + card('parent', 'FOR PARENTS', '학부모 안내문',
+           'A4 가로 1장. 요일 · 시간 · 교재를 한눈에.')
     + card('slip',   'FOR STUDENT PLANNER', '알림장 붙임용 · 5매',
            'A4 세로에 같은 표 5장. 잘라서 알림장에 붙입니다.')
 
@@ -8802,7 +8802,7 @@ function _prLogo(w, h){
 }
 
 // ── 시간표 표 ──────────────────────────────────────────────
-function _prTable(rows, days, big){
+function _prTable(rows, days, big, forceRowPx){
   var used = {}, minP = 99, maxP = 1;
   rows.forEach(function(s){
     used[s.weekday + '-' + s.period] = s;
@@ -8813,18 +8813,21 @@ function _prTable(rows, days, big){
   // 줄 수에 맞춰 높이를 줄여 한 장에 들어가게 합니다
   //   안내문: 표에 쓸 수 있는 높이 ≈ 397px / 알림장 카드 안: ≈ 96px
   var nRows  = Math.max(1, maxP - minP + 1);
-  var rowPx  = Math.min(big ? 62 : 40, Math.floor((big ? 397 : 96) / nRows));
-  if(rowPx < (big ? 26 : 14)) rowPx = big ? 26 : 14;
-  var tight  = rowPx < (big ? 50 : 30);
+  // 안내문은 남는 공간을 꽉 채웁니다 (표에 쓸 수 있는 높이 ≈ 470px)
+  // 머리글 줄(안내문 ≈36px · 알림장 ≈16px)을 뺀 나머지를 줄 수로 나눕니다
+  var rowPx  = forceRowPx
+             || Math.min(big ? 86 : 46, Math.floor((big ? 434 : 102) / nRows));
+  if(rowPx < (big ? 30 : 16)) rowPx = big ? 30 : 16;
+  var tight  = rowPx < (big ? 52 : 30);
 
-  var timeW  = big ? '96px' : '58px';
-  var cvH    = Math.max(big ? 26 : 16, rowPx - (big ? 10 : 7));
+  var timeW  = big ? '104px' : '56px';
+  var cvH    = Math.max(big ? 30 : 17, rowPx - (big ? 12 : 7));
   var cvW    = Math.round(cvH * 0.74);
-  var nameFs = big ? (tight ? '12.5px' : '15px')  : (tight ? '8.5px' : '9.5px');
-  var subFs  = big ? (tight ? '10px'   : '11px')  : (tight ? '7.5px' : '8px');
-  var thFs   = big ? '11.5px' : '8.5px';
-  var timeFs = big ? (tight ? '11px' : '12.5px') : '8.5px';
-  var thPad  = big ? '7px 6px' : '3px 4px';
+  var nameFs = big ? (tight ? '13px'   : '16px')  : (tight ? '8.5px' : '10px');
+  var subFs  = big ? (tight ? '10.5px' : '11.5px'): (tight ? '7.5px' : '8.5px');
+  var thFs   = big ? '12px' : '8.5px';
+  var timeFs = big ? (tight ? '11.5px' : '13px') : '8.5px';
+  var thPad  = big ? '8px 6px' : '3px 4px';
 
   var h = "<table><tr>"
         + "<th style='width:" + timeW + ";font-size:" + thFs + ";padding:" + thPad + "'>시간</th>";
@@ -8845,7 +8848,7 @@ function _prTable(rows, days, big){
         h += "<td style='text-align:center;color:#C9C4B4;font-size:" + nameFs + "'>·</td>";
         return;
       }
-      h += "<td style='padding:" + (big ? '5px 10px' : '3px 5px') + "'>"
+      h += "<td style='padding:" + (big ? '4px 11px' : '2px 5px') + "'>"
         +    "<div class='cw'>"
         +      (cell.cover
                 ? "<img class='cover' src=\"" + _mgAttr(cell.cover) + "\" "
@@ -8863,18 +8866,59 @@ function _prTable(rows, days, big){
   return h + "</table>";
 }
 
-function _prOpen(title, css, body){
+function _prOpen(title, css, body, fileName){
   var w = window.open('', '_blank');
   if(!w){ showToast("팝업이 막혀 있어요. 이 사이트의 팝업을 허용해 주세요."); return; }
-  w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>"
-    + title + "</title>" + css + "</head><body>"
+
+  // 파일 이름에 못 쓰는 글자를 걸러냅니다
+  var fn = String(fileName || title || 'willgrow').replace(/[\\\/:*?"<>|]/g, '');
+
+  w.document.write(
+      "<!doctype html><html><head><meta charset='utf-8'><title>" + title + "</title>"
+    + css
+    + "<scr" + "ipt src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/"
+    + "html2canvas.min.js'></scr" + "ipt>"
+    + "</head><body>"
     + "<div class='noprint'>"
-    +   "<button onclick='window.print()'>🖨 인쇄 · PDF로 저장</button>"
+    +   "<button onclick='saveImg()' id='imgBtn'>🖼 이미지로 저장 (PNG)</button>"
+    +   "<button class='g' onclick='window.print()'>🖨 인쇄 · PDF</button>"
     +   "<button class='g' onclick='window.close()'>닫기</button>"
     +   "<div style='font-size:11px;color:#8A9178;margin-top:7px'>"
-    +     "인쇄창에서 <b>대상</b>을 [PDF로 저장] 으로 고르면 PDF 파일이 됩니다. "
-    +     "<b>배경 그래픽</b> 을 켜면 표 색이 함께 나옵니다.</div>"
-    + "</div>" + body + "</body></html>");
+    +     "이미지로 저장하면 카카오톡·문자로 바로 보내실 수 있어요. "
+    +     "인쇄할 때는 <b>배경 그래픽</b> 을 켜주세요.</div>"
+    + "</div>"
+    + body
+    + "<scr" + "ipt>"
+    + "var WG_FN = " + JSON.stringify(fn) + ";"
+    + "function saveImg(){"
+    +   "var btn = document.getElementById('imgBtn');"
+    +   "if(typeof html2canvas !== 'function'){"
+    +     "alert('이미지 만들기 도구를 불러오지 못했어요.\\n인터넷 연결을 확인하고 새로고침해 주세요.');"
+    +     "return; }"
+    +   "btn.disabled = true; btn.textContent = '만드는 중…';"
+    +   "var sheets = document.querySelectorAll('.sheet');"
+    +   "var i = 0;"
+    +   "function done(){ btn.disabled = false; btn.textContent = '🖼 이미지로 저장 (PNG)'; }"
+    +   "function next(){"
+    +     "if(i >= sheets.length){ done(); return; }"
+    +     "html2canvas(sheets[i], { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false })"
+    +     ".then(function(cv){"
+    +       "var a = document.createElement('a');"
+    +       "a.download = WG_FN + (sheets.length > 1 ? ('_' + (i+1)) : '') + '.png';"
+    +       "a.href = cv.toDataURL('image/png');"
+    +       "document.body.appendChild(a); a.click(); a.remove();"
+    +       "i++; setTimeout(next, 500);"
+    +     "})"
+    +     ".catch(function(e){"
+    +       "done();"
+    +       "alert('이미지를 만들지 못했어요.\\n' + (e && e.message ? e.message : '') +"
+    +       "'\\n\\n교재 표지 사진 때문일 수 있어요. 인쇄 · PDF 로 저장해 보세요.');"
+    +     "});"
+    +   "}"
+    +   "next();"
+    + "}"
+    + "</scr" + "ipt>"
+    + "</body></html>");
   w.document.close();
 }
 
@@ -8891,46 +8935,45 @@ function runSchedPrint(kind){
   mon = String(mon).replace(/[^0-9]/g,'') || _prMonth();
 
   if(kind === 'slip') return _prSlip(cls, mon, rows, days);
-  _prParent(kind, cls, mon, stu, rows, days, dayTxt);
+  _prParent(cls, mon, stu, rows, days, dayTxt);
 }
 
-// ── ①② 학부모 안내 (A4 가로) ──────────────────────────────
-function _prParent(kind, cls, mon, stu, rows, days, dayTxt){
-  var isNew = (kind === 'new');
-
-  // 안내문은 두 형식이 같습니다. 위쪽 작은 글씨만 다릅니다.
-  var eyebrow = mon + "월 · " + (isNew ? "NEW STUDENT" : "SCHEDULE CHANGE");
-  var lead    = _plEsc(cls) + "은 " + dayTxt + " 주 " + days.length + "회 수업으로 진행됩니다.";
+// ── ① 학부모 안내문 (A4 가로) ──────────────────────────────
+function _prParent(cls, mon, stu, rows, days, dayTxt){
+  var timeTxt = _schedTimeRange(rows);
+  var lead    = _plEsc(cls) + "은 " + dayTxt + " 주 " + days.length + "회"
+              + (timeTxt ? ", " + timeTxt : "") + " 수업으로 진행됩니다.";
   var note    = "※ 수업 시간과 교재명은 학원 운영 일정에 따라 조정될 수 있으며, "
               + "변경 시 별도로 안내드립니다.";
 
   var body =
-      "<div class='sheet' style='width:297mm;height:210mm;padding:13mm 16mm;"
+      "<div class='sheet' style='width:297mm;height:210mm;padding:9mm 11mm 8mm;"
     +   "display:flex;flex-direction:column'>"
 
-    // 머리 — 로고 박스 / 오른쪽 작은 글씨
+    // 머리 — 로고 / 오른쪽 작은 글씨
     + "<div style='display:flex;align-items:flex-start;justify-content:space-between'>"
-    +   _prLogo(70, 15)
-    +   "<div class='eyebrow' style='font-size:8.5px;padding-top:5mm'>" + eyebrow + "</div>"
+    +   _prLogo(62, 13)
+    +   "<div class='eyebrow' style='font-size:8.5px;padding-top:4mm'>"
+    +     mon + "월 · CLASS SCHEDULE</div>"
     + "</div>"
 
     // 제목
-    + "<div style='margin-top:9mm'>"
+    + "<div style='margin-top:5mm'>"
     +   (stu ? "<div style='font-size:12.5px;font-weight:700;color:" + PR.lead + ";"
-              + "margin-bottom:3px'>" + _plEsc(stu) + " 학생</div>" : "")
-    +   "<div style='font-size:31px;font-weight:800;letter-spacing:-1px;line-height:1.12;"
+              + "margin-bottom:2px'>" + _plEsc(stu) + " 학생</div>" : "")
+    +   "<div style='font-size:33px;font-weight:800;letter-spacing:-1.2px;line-height:1.08;"
     +     "color:" + PR.head + "'>" + _plEsc(cls) + " 시간표</div>"
-    +   "<div style='font-size:13px;color:" + PR.lead + ";margin-top:6px'>" + lead + "</div>"
+    +   "<div style='font-size:13.5px;color:" + PR.lead + ";margin-top:5px'>" + lead + "</div>"
     + "</div>"
 
-    + "<div style='height:1px;background:" + PR.rule + ";margin:6mm 0 5mm'></div>"
+    + "<div style='height:1px;background:" + PR.rule + ";margin:4mm 0 3.5mm'></div>"
 
-    // 표
-    + "<div style='flex:1;min-height:0;overflow:hidden'>"
-    +   _prTable(rows, days, true) + "</div>"
+    // 표 — 남는 공간을 꽉 채웁니다
+    + "<div style='flex:1;min-height:0;display:flex'>"
+    +   "<div style='flex:1;min-height:0'>" + _prTable(rows, days, true) + "</div></div>"
 
     // 꼬리
-    + "<div style='height:1px;background:" + PR.rul2 + ";margin:5mm 0 3mm'></div>"
+    + "<div style='height:1px;background:" + PR.rul2 + ";margin:3.5mm 0 2.5mm'></div>"
     + "<div style='display:flex;justify-content:space-between;align-items:center'>"
     +   "<div style='font-size:9px;color:" + PR.note + "'>" + _plEsc(note) + "</div>"
     +   "<div class='eyebrow' style='font-size:7.5px;color:" + PR.mark + "'>"
@@ -8938,35 +8981,33 @@ function _prParent(kind, cls, mon, stu, rows, days, dayTxt){
     + "</div>"
     + "</div>";
 
-  _prOpen(cls + " 시간표 안내", _prCSS(true), body);
+  _prOpen(cls + " 시간표 안내", _prCSS(true), body, cls + "_시간표_안내문");
 }
 
-// ── ③ 알림장 붙임용 (A4 세로 · 5매) ────────────────────────
+// ── ② 알림장 붙임용 (A4 세로 · 5매) ────────────────────────
 function _prSlip(cls, mon, rows, days){
-  // 교시가 많으면 카드가 커집니다. 잘라서 감추지 않고 둘째 장으로 넘깁니다.
   var nP = 0, seen = {};
   rows.forEach(function(s){ if(!seen[s.period]){ seen[s.period]=1; nP++; } });
-  var rowPx  = Math.max(14, Math.min(40, Math.floor(96 / Math.max(1,nP))));
-  var needMm = 10 + 6 + 3 + (rowPx * nP + 14) * 0.2646;
-  var cardMm = Math.max(47, Math.ceil(needMm));
+  var rowPx  = Math.max(16, Math.min(46, Math.floor(102 / Math.max(1,nP))));
+  var needMm = 8 + 5 + 2 + (rowPx * nP + 15) * 0.2646;
+  var cardMm = Math.max(52, Math.ceil(needMm));
 
   function one(i){
-    return "<div style='border:1px solid " + PR.rule + ";padding:4mm 5mm;"
-      +      "height:" + cardMm + "mm;margin-bottom:4mm;page-break-inside:avoid'>"
+    return "<div style='border:1px solid " + PR.rule + ";padding:3mm 4mm;"
+      +      "height:" + cardMm + "mm;margin-bottom:2.5mm;page-break-inside:avoid'>"
       +    "<div style='display:flex;justify-content:space-between;align-items:center;"
-      +      "margin-bottom:2.5mm'>"
+      +      "margin-bottom:2mm'>"
       +      "<div style='display:flex;align-items:center;gap:2.5mm'>"
-      +        "<div class='logobox' style='width:21mm;height:5mm;border-radius:1px'>"
-      +          "<img src='" + WG_LOGO + "' alt='' style='width:18mm;display:block'></div>"
+      +        "<div class='logobox' style='width:20mm;height:4.6mm'>"
+      +          "<img src='" + WG_LOGO + "' alt='' style='width:17mm;display:block'></div>"
       +        "<div style='font-size:10.5px;font-weight:800;color:" + PR.head + "'>"
       +          _plEsc(cls) + " · " + mon + "월 시간표</div>"
       +      "</div>"
-      +      "<div class='eyebrow' style='font-size:7px;color:" + PR.mark + "'>"
-      +        "WILLGROW</div>"
+      +      "<div class='eyebrow' style='font-size:7px;color:" + PR.mark + "'>WILLGROW</div>"
       +    "</div>"
-      +    _prTable(rows, days, false)
+      +    _prTable(rows, days, false, rowPx)
       +  "</div>"
-      + (i < 4 ? "<div style='border-top:1px dashed #C7C2B2;margin:0 0 4mm;"
+      + (i < 4 ? "<div style='border-top:1px dashed #C7C2B2;margin:0 0 2.5mm;"
                  + "position:relative;height:0'>"
                  + "<span style='position:absolute;right:0;top:-7px;font-size:9px;"
                  + "color:#B9B4A4;background:#fff;padding-left:4px'>✂</span></div>"
@@ -8975,9 +9016,9 @@ function _prSlip(cls, mon, rows, days){
   var cards = '';
   for(var i=0;i<5;i++) cards += one(i);
 
-  var body = "<div class='sheet' style='width:210mm;min-height:297mm;padding:10mm 9mm'>"
+  var body = "<div class='sheet' style='width:210mm;min-height:297mm;padding:7mm 7mm'>"
            + cards + "</div>";
-  _prOpen(cls + " 알림장용 시간표", _prCSS(false), body);
+  _prOpen(cls + " 알림장용 시간표", _prCSS(false), body, cls + "_알림장_시간표");
 }
 
 // 한 반 시간표
