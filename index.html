@@ -878,20 +878,23 @@ function _mapSchedRow(r){
            subject:r.subject||'', teacherId:r.teacher_id||'' };
 }
 
-// 여러 칸을 한 번에 넣기 (요일 × 교시)
+// 여러 칸을 한 번에 넣기
+//   weekdays : [1,3,5]
+//   items    : [{ period:2, subject:'Grammar' }, { period:3, subject:'Reading' }]
+//              → 시간마다 수업명이 다릅니다
 //   같은 자리에 이미 있으면 덮어씁니다 (merge-duplicates)
-async function saveClassSlots(classId, weekdays, periods, subject, teacherId) {
-  if(!classId || !weekdays || !weekdays.length || !periods || !periods.length){
-    return { success:false, error:'요일과 교시를 골라주세요.' };
+async function saveClassSlots(classId, weekdays, items, teacherId) {
+  if(!classId || !weekdays || !weekdays.length || !items || !items.length){
+    return { success:false, error:'요일과 시간을 골라주세요.' };
   }
   var body = [];
   weekdays.forEach(function(d){
-    periods.forEach(function(p){
-      var info = _periodInfo(p);
+    items.forEach(function(it){
+      var info = _periodInfo(it.period);
       if(!info) return;
-      body.push({ class_id:classId, weekday:d, period:p,
+      body.push({ class_id:classId, weekday:d, period:it.period,
                   start_time:info.start, end_time:info.end,
-                  subject:(subject||'').trim() || null,
+                  subject:(it.subject||'').trim() || null,
                   teacher_id:teacherId || null,
                   updated_at:new Date().toISOString() });
     });
@@ -6233,10 +6236,11 @@ function loadMemoList(){
       el.innerHTML = "<div style='text-align:center;color:#bbb;padding:20px;font-size:13px'>작성된 메모가 없습니다.</div>";
       return;
     }
-    // 이번 달은 펼치고, 지난 달부터는 접어 둡니다
-    el.innerHTML = renderMonthGroups(nonAbs,
+    // 확인해야 할 선생님이 전부 도장을 찍었으면 아래 [확인 완료] 칸으로
+    el.innerHTML = renderMemoSections(nonAbs, wgTeacherNames(),
       function(m){ return String(m.createdAt || "").slice(0,10); },
-      renderMemoCard, "mgMemo", "작성된 메모가 없습니다.");
+      renderMemoCard,
+      { prefix:"mgMemo", doneLabel:"확인 완료", emptyMsg:"진행중인 메모가 없습니다." });
   })
   .withFailureHandler(function(){ el.innerHTML = "<div style='color:#c62828;padding:12px'>불러오기 실패.</div>"; })
   .fetchMemos();
@@ -6321,6 +6325,66 @@ function _hasMe(list){
   var me = _bareName(_userName);
   if(!me) return false;
   return (list||[]).some(function(x){ return _bareName(x) === me; });
+}
+
+// ════════════════════════════════════════════════════════════
+//  메모 "확인 완료" 판정
+//
+//  확인해야 할 사람이 전부 도장을 찍었으면 완료로 봅니다.
+//    · 받는 사람을 지정한 메모  → 그 사람들 전부
+//    · 전체 공지 (받는 사람 없음) → 재직중인 선생님 전부
+//
+//  confirmed_by 에는 "✅ Sue" 꼴로, recipients 에는 "Sue" 꼴로
+//  들어 있어서 ✅ 를 떼고 견줍니다.
+// ════════════════════════════════════════════════════════════
+function memoAllConfirmed(m, everyoneNames){
+  var need = (m && m.recipients && m.recipients.length)
+    ? m.recipients
+    : (everyoneNames || []);
+  if(!need.length) return false;                    // 견줄 대상이 없으면 완료로 보지 않습니다
+
+  var got = {};
+  (m.confirmed || []).forEach(function(x){ got[_bareName(x)] = true; });
+
+  return need.every(function(n){ return got[_bareName(n)]; });
+}
+
+// 진행중 / 확인 완료로 가릅니다
+function splitByConfirmed(list, everyoneNames){
+  var open = [], done = [];
+  (list || []).forEach(function(m){
+    (memoAllConfirmed(m, everyoneNames) ? done : open).push(m);
+  });
+  return { open:open, done:done };
+}
+
+// 두 칸을 그립니다 (아래 확인 완료 칸은 접어 둠)
+//   opt = { prefix, lang, doneLabel, emptyMsg }
+function renderMemoSections(list, everyoneNames, getDate, renderCard, opt){
+  opt = opt || {};
+  var s = splitByConfirmed(list, everyoneNames);
+  var lang = opt.lang;
+
+  var html = renderMonthGroups(s.open, getDate, renderCard,
+                opt.prefix + 'O', opt.emptyMsg || '', lang);
+
+  if(s.done.length){
+    var id = opt.prefix + 'DoneBox';
+    html += "<div style='margin-top:18px'>"
+      + "<button onclick=\"toggleMonthGroup('" + id + "')\" "
+      +   "style='display:flex;align-items:center;gap:7px;width:100%;text-align:left;"
+      +   "background:#EDF4EE;border:none;border-radius:10px;padding:9px 13px;cursor:pointer;"
+      +   "font-size:12.5px;font-weight:800;color:#2D6A4F'>"
+      +   "<span id='" + id + "_ar' style='font-size:10px;color:#7FA98C'>▶</span>"
+      +   "<span>✅ " + (opt.doneLabel || '확인 완료') + "</span>"
+      +   "<span style='margin-left:auto;background:#fff;color:#2D6A4F;border-radius:9px;"
+      +     "padding:1px 9px;font-size:11px;font-weight:700'>" + s.done.length + "</span>"
+      + "</button>"
+      + "<div id='" + id + "' style='display:none;margin-top:9px'>"
+      +   renderMonthGroups(s.done, getDate, renderCard, opt.prefix + 'D', '', lang, true)
+      + "</div></div>";
+  }
+  return html;
 }
 
 // ── 메모 작성칸의 "받는 사람" 칩 ──────────────────────────
@@ -6559,7 +6623,13 @@ function _monthKey(s){
   var v = String(s || '').trim();
   return v.length >= 7 ? v.slice(0,7) : '';   // "2026-09"
 }
-function _monthLabel(key){
+var _MONTH_EN = ['January','February','March','April','May','June',
+                 'July','August','September','October','November','December'];
+function _monthLabel(key, lang){
+  if(lang === 'en'){
+    if(!key) return 'No date';
+    return _MONTH_EN[Number(key.slice(5,7)) - 1] + ' ' + key.slice(0,4);
+  }
   if(!key) return '날짜 없음';
   return Number(key.slice(0,4)) + '년 ' + Number(key.slice(5,7)) + '월';
 }
@@ -6578,7 +6648,9 @@ function toggleMonthGroup(id){
 // renderCard  : 카드 HTML 만드는 함수
 // prefix      : 화면마다 다른 id 앞머리 (겹치지 않게)
 // emptyMsg    : 항목이 없을 때 문구
-function renderMonthGroups(items, getDate, renderCard, prefix, emptyMsg){
+// lang        : 'en' 이면 September 2026 / 숫자만 처럼 영어로
+// allClosed   : true 면 전부 접어 둡니다 (확인 완료 칸처럼)
+function renderMonthGroups(items, getDate, renderCard, prefix, emptyMsg, lang, allClosed){
   if(!items || !items.length){
     return "<div class='empty'>" + (emptyMsg || '내역이 없습니다.') + "</div>";
   }
@@ -6595,18 +6667,19 @@ function renderMonthGroups(items, getDate, renderCard, prefix, emptyMsg){
     return a < b ? 1 : (a > b ? -1 : 0);
   });
 
+  var unit = (lang === 'en') ? '' : '건';
   return keys.map(function(k, i){
     var id   = prefix + '_' + (k || 'none').replace(/-/g,'');
-    var open = i === 0;                         // 가장 최근 달만 펼침
+    var open = (i === 0) && !allClosed;         // 가장 최근 달만 펼침
     return "<div style='margin-bottom:10px'>"
       + "<button onclick=\"toggleMonthGroup('" + id + "')\" "
       +   "style='display:flex;align-items:center;gap:7px;width:100%;text-align:left;"
       +   "background:#F1F3EE;border:none;border-radius:9px;padding:8px 12px;cursor:pointer;"
       +   "font-size:12.5px;font-weight:700;color:#4A5344'>"
       +   "<span id='" + id + "_ar' style='font-size:10px;color:#9AA391'>" + (open ? '▼' : '▶') + "</span>"
-      +   "<span>" + _monthLabel(k) + "</span>"
+      +   "<span>" + _monthLabel(k, lang) + "</span>"
       +   "<span style='margin-left:auto;background:#fff;color:#8A9178;border-radius:9px;"
-      +     "padding:1px 9px;font-size:11px;font-weight:700'>" + groups[k].length + "건</span>"
+      +     "padding:1px 9px;font-size:11px;font-weight:700'>" + groups[k].length + unit + "</span>"
       + "</button>"
       + "<div id='" + id + "' style='display:" + (open ? '' : 'none') + ";margin-top:8px'>"
       +   groups[k].map(renderCard).join("")
@@ -7134,9 +7207,11 @@ function renderNativeMemoList(memos){
   }
   _nativeMemoData = {};
   memos.forEach(function(m){ _nativeMemoData[m.id] = m; });
-  el.innerHTML = renderMonthGroups(memos,
+  el.innerHTML = renderMemoSections(memos, nativeTeacherNames(),
     function(m){ return String(m.date || "").slice(0,10); },
-    renderNativeMemoCard, "mgNat", "No memos yet.");
+    renderNativeMemoCard,
+    { prefix:"mgNat", lang:"en", doneLabel:"Confirmed by everyone",
+      emptyMsg:"No memos waiting." });
 }
 function renderNativeMemoCard(m){
   var catColors = { Student:"#e3f0ff,#1565c0", Class:"#e8f5e9,#2e7d32", Schedule:"#fff3e0,#e65100", General:"#f5f5f5,#616161" };
@@ -7678,10 +7753,10 @@ function renderClassMgmt(){
 // ════════════════════════════════════════════════════════════
 //  시간표 만들기
 //
-//  요일과 교시를 고르고 수업명을 적으면 그 칸들이 한 번에 들어갑니다.
-//  2시간 수업은 교시를 두 개 고르되, 수업이 다르면 따로 두 번 넣으세요.
-//    예)  월·수·금  2교시 = Grammar   →  넣기
-//         월·수·금  3교시 = Reading   →  넣기
+//  요일을 고르고, 할 시간마다 그 시간에 하는 수업을 적습니다.
+//  시간마다 수업이 달라도 한 번에 들어갑니다.
+//    예)  월·수·금  +  15:30 Grammar / 16:30 Reading   →  6칸
+//         화·목     +  15:30 Phonics / 16:30 Speaking / 17:30 Writing → 6칸
 // ════════════════════════════════════════════════════════════
 var _schedClassId = null;
 var _schedRows    = [];
@@ -7722,7 +7797,7 @@ function openSchedModal(classId){
     +     "cursor:pointer;color:#A8B09C;line-height:1'>✕</button>"
     + "</div>"
     + "<div style='font-size:11px;color:#A8B09C;margin-bottom:14px'>"
-    +   "한 칸은 55분이에요. 2시간 수업이면 교시를 두 개 고르세요.</div>"
+    +   "한 칸은 55분이에요. 시간마다 다른 수업을 적을 수 있습니다.</div>"
 
     // ── 요일 ──
     + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:5px'>요일</div>"
@@ -7743,32 +7818,34 @@ function openSchedModal(classId){
         }).join("")
     + "</div>"
 
-    // ── 교시 ──
-    + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:5px'>교시</div>"
-    + "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));"
-    +   "gap:5px;margin-bottom:14px'>"
+    // ── 시간 + 그 시간에 할 수업 ──
+    + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:2px'>"
+    +   "시간과 수업</div>"
+    + "<div style='font-size:10.5px;color:#A8B09C;margin-bottom:6px'>"
+    +   "할 시간을 누르고, 그 옆에 그 시간에 할 수업을 적으세요. "
+    +   "시간마다 다르게 적을 수 있어요.</div>"
+    + "<div style='margin-bottom:14px'>"
     +   WG_PERIODS.map(function(p){
-          return "<button type='button' id='sdP-" + p.p + "' data-on='0' "
-               + "onclick='schedToggle(this)' style='background:#f4f4f4;color:#777;"
-               + "border:1.5px solid #e0e0e0;border-radius:9px;padding:6px 4px;cursor:pointer;"
-               + "font-size:12px;font-weight:700;line-height:1.35'>" + p.p + "교시<br>"
-               + "<span style='font-size:10px;font-weight:600;opacity:.8'>"
-               + p.start + "~" + p.end + "</span></button>";
+          return "<div style='display:flex;align-items:center;gap:7px;margin-bottom:5px'>"
+               + "<button type='button' id='sdP-" + p.p + "' data-on='0' "
+               +   "onclick='schedToggle(this); schedSyncRow(" + p.p + ")' "
+               +   "style='background:#f4f4f4;color:#777;border:1.5px solid #e0e0e0;"
+               +   "border-radius:9px;padding:7px 10px;cursor:pointer;font-size:12px;"
+               +   "font-weight:700;white-space:nowrap;flex-shrink:0;min-width:106px'>"
+               +   p.start + "~" + p.end + "</button>"
+               + "<input type='text' id='sdS-" + p.p + "' disabled "
+               +   "oninput='schedRowTyped(" + p.p + ")' "
+               +   "placeholder='이 시간에 할 수업 (예: Grammar)' "
+               +   "style='flex:1;min-width:0;padding:7px 10px;border:1.5px solid #e0e0e0;"
+               +   "border-radius:8px;font-size:12.5px;box-sizing:border-box;"
+               +   "background:#f7f7f7;color:#999'>"
+               + "</div>";
         }).join("")
     + "</div>"
 
-    // ── 수업명 ──
-    + "<div style='display:flex;gap:8px;align-items:flex-end;margin-bottom:16px'>"
-    +   "<div style='flex:1'>"
-    +     "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:5px'>"
-    +       "수업명 <span style='font-weight:400;color:#A8B09C'>(비워도 됩니다)</span></div>"
-    +     "<input type='text' id='sdSubject' placeholder='예) Grammar, Reading, Phonics' "
-    +       "style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
-    +       "font-size:13px;box-sizing:border-box'></div>"
-    +   "<button onclick='schedAdd()' id='sdAddBtn' style='background:#2D6A4F;color:#fff;border:none;"
-    +     "border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;"
-    +     "white-space:nowrap'>＋ 넣기</button>"
-    + "</div>"
+    + "<button onclick='schedAdd()' id='sdAddBtn' style='width:100%;background:#2D6A4F;color:#fff;"
+    +   "border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;"
+    +   "cursor:pointer;margin-bottom:16px'>＋ 시간표에 넣기</button>"
 
     // ── 현재 시간표 ──
     + "<div style='display:flex;align-items:center;gap:8px;margin-bottom:7px'>"
@@ -7816,6 +7893,39 @@ function schedPreset(i){
     if(b) _schedSet(b, p.days.indexOf(w.d) >= 0);
   });
 }
+// 시간 버튼을 켜면 그 줄의 수업명 칸이 열립니다
+function schedSyncRow(p){
+  var btn = document.getElementById('sdP-' + p);
+  var inp = document.getElementById('sdS-' + p);
+  if(!btn || !inp) return;
+  var on = btn.getAttribute('data-on') === '1';
+  inp.disabled = !on;
+  inp.style.background  = on ? '#fff'    : '#f7f7f7';
+  inp.style.color       = on ? '#333'    : '#999';
+  inp.style.borderColor = on ? '#CFE0C6' : '#e0e0e0';
+  if(!on) inp.value = '';
+}
+// 반대로, 수업명을 쓰면 그 시간이 켜집니다
+function schedRowTyped(p){
+  var btn = document.getElementById('sdP-' + p);
+  if(btn && btn.getAttribute('data-on') !== '1' &&
+     (document.getElementById('sdS-' + p) || {}).value){
+    _schedSet(btn, true);
+    schedSyncRow(p);
+  }
+}
+// 고른 시간 + 그 시간에 적은 수업
+function schedItems(){
+  var out = [];
+  WG_PERIODS.forEach(function(p){
+    var btn = document.getElementById('sdP-' + p.p);
+    if(!btn || btn.getAttribute('data-on') !== '1') return;
+    var inp = document.getElementById('sdS-' + p.p);
+    out.push({ period:p.p, subject: inp ? inp.value : '' });
+  });
+  return out;
+}
+
 function schedPicked(prefix){
   var out = [];
   var src = prefix === 'sdD-' ? WG_WEEKDAYS.slice(0,5).map(function(w){ return w.d; })
@@ -7855,8 +7965,8 @@ function schedRender(){
 
   var h = "<table style='width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;"
         + "table-layout:fixed'>";
-  h += "<tr><th style='width:66px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
-    +  "font-size:10.5px;color:#8A9178'>교시</th>";
+  h += "<tr><th style='width:80px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
+    +  "font-size:10.5px;color:#8A9178'>시간</th>";
   WG_WEEKDAYS.slice(0,5).forEach(function(w){
     h += "<th style='padding:5px 2px;border-bottom:2px solid #E3E6DE;font-size:11.5px;"
       +  "font-weight:700;color:#5B6551'>" + w.ko + "</th>";
@@ -7865,9 +7975,10 @@ function schedRender(){
 
   for(var p = minP; p <= maxP; p++){
     var info = _periodInfo(p);
-    h += "<tr><td style='padding:4px;border-bottom:1px solid #F1F2EE;text-align:center'>"
-      +    "<div style='font-size:11px;font-weight:700;color:#5B6551'>" + p + "교시</div>"
-      +    "<div style='font-size:9px;color:#A8B09C'>" + (info ? info.start : '') + "</div></td>";
+    h += "<tr><td style='padding:4px 2px;border-bottom:1px solid #F1F2EE;text-align:center'>"
+      +    "<div style='font-size:10.5px;font-weight:700;color:#5B6551;line-height:1.35'>"
+      +      (info ? info.start : '') + "</div>"
+      +    "<div style='font-size:9px;color:#A8B09C'>" + (info ? info.end : '') + "</div></td>";
     WG_WEEKDAYS.slice(0,5).forEach(function(w){
       var s = used[w.d + '-' + p];
       h += "<td style='padding:3px 2px;border-bottom:1px solid #F1F2EE;text-align:center'>";
@@ -7892,31 +8003,33 @@ function schedRender(){
 }
 
 function schedAdd(){
-  var days    = schedPicked('sdD-');
-  var periods = schedPicked('sdP-');
-  if(!days.length){    showToast("요일을 골라주세요."); return; }
-  if(!periods.length){ showToast("교시를 골라주세요."); return; }
-  var subject = (document.getElementById('sdSubject') || {}).value || '';
+  var days  = schedPicked('sdD-');
+  var items = schedItems();
+  if(!days.length){  showToast("요일을 골라주세요."); return; }
+  if(!items.length){ showToast("시간을 골라주세요."); return; }
   var btn = document.getElementById('sdAddBtn');
   if(btn){ btn.disabled = true; btn.textContent = '넣는 중…'; }
 
   google.script.run
   .withSuccessHandler(function(r){
-    if(btn){ btn.disabled = false; btn.textContent = '＋ 넣기'; }
+    if(btn){ btn.disabled = false; btn.textContent = '＋ 시간표에 넣기'; }
     if(r && r.success){
       showToast(r.count + "칸 넣었어요.");
-      var si = document.getElementById('sdSubject');
-      if(si) si.value = '';
+      // 고른 것들을 비웁니다 (이어서 다른 요일을 넣기 쉽게)
+      WG_PERIODS.forEach(function(p){
+        var b = document.getElementById('sdP-' + p.p);
+        if(b && b.getAttribute('data-on') === '1'){ _schedSet(b, false); schedSyncRow(p.p); }
+      });
       schedLoad();
     } else {
       showToast((r && r.error) || "넣지 못했어요.");
     }
   })
   .withFailureHandler(function(e){
-    if(btn){ btn.disabled = false; btn.textContent = '＋ 넣기'; }
+    if(btn){ btn.disabled = false; btn.textContent = '＋ 시간표에 넣기'; }
     showToast("넣지 못했어요: " + (e && e.message ? e.message : ''));
   })
-  .saveClassSlots(_schedClassId, days, periods, subject, null);
+  .saveClassSlots(_schedClassId, days, items, null);
 }
 
 function schedDel(slotId){
@@ -7953,7 +8066,7 @@ function _schedPrintCSS(){
     + "th,td{border:1px solid #CBD2C2;padding:5px 4px;text-align:center;"
     +   "font-size:11px;vertical-align:top;word-break:break-word}"
     + "th{background:#EFF2EB;font-weight:700;font-size:11.5px}"
-    + "td.per{background:#F7F9F4;font-weight:700;width:74px}"
+    + "td.per{background:#F7F9F4;font-weight:700;width:82px;font-size:10.5px}"
     + "td.per span{display:block;font-weight:400;font-size:9px;color:#8A9178}"
     + ".cell{font-weight:700;color:#2D6A4F;line-height:1.35}"
     + ".cell small{display:block;font-weight:400;color:#6B7563;font-size:9.5px}"
@@ -7981,14 +8094,14 @@ function _schedTable(rows, showClassName){
     if(s.period > maxP) maxP = s.period;
   });
 
-  var h = "<table><tr><th style='width:74px'>교시</th>";
+  var h = "<table><tr><th style='width:82px'>시간</th>";
   WG_WEEKDAYS.slice(0,5).forEach(function(w){ h += "<th>" + w.ko + "</th>"; });
   h += "</tr>";
 
   for(var p = minP; p <= maxP; p++){
     var info = _periodInfo(p);
-    h += "<tr><td class='per'>" + p + "교시<span>"
-      +  (info ? info.start + "~" + info.end : "") + "</span></td>";
+    h += "<tr><td class='per'>" + (info ? info.start : "")
+      +  "<span>" + (info ? info.end : "") + "</span></td>";
     WG_WEEKDAYS.slice(0,5).forEach(function(w){
       var list = used[w.d + '-' + p] || [];
       if(!list.length){ h += "<td class='empty'>·</td>"; return; }
