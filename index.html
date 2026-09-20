@@ -2647,14 +2647,13 @@ var PLANNER_FORMS = {
     ]
   },
 
-  /* ── Junior High (TEMS) ──
-     중학생 양식은 영역만 다르고 생김새는 모두 같습니다.
+  /* ── Junior High ──
+     중학생은 영역이 달라도 양식이 모두 같아서 하나로 둡니다.
      TEST 두 줄 + 자유롭게 적는 다섯 줄.
-     free:true 인 줄은 항목 이름도 선생님이 직접 적습니다. */
+     free:true 인 줄은 칸 하나에 그냥 적기만 하면 됩니다. */
   tems: {
-    course:'Junior High', category:'TEMS', accent:'#1E2218',
-    lessons:['Junior High Grammar','Junior High Reading','Junior High Production',
-             'Junior High Listening','Junior High Subject / Material'],
+    course:'Junior High', category:'Junior High', accent:'#1E2218',
+    lessons:['Junior High'],
     items:[
       {key:'t1',label:'TEST'},
       {key:'t2',label:'TEST'},
@@ -3297,15 +3296,8 @@ function onPlFormChange(pageId, preset){
       +      " title='체크를 끄면 내용이 지워집니다'"
       +      " style='width:15px;height:15px;flex-shrink:0;cursor:pointer'>"
       +    (it.free
-            // 이름도 직접 적는 줄
-            ? "<input type='text' id='pllbl-"+pageId+"-"+it.key+"'"
-              + " value='"+_plEsc(items[it.key+'_label'] || '')+"'"
-              + " placeholder='항목 이름'" + dis
-              + " oninput='onPlValInput(\""+pageId+"\",\""+it.key+"\")'"
-              + " style='width:92px;flex-shrink:0;padding:4px 7px;border:1.5px solid #E5E9E0;"
-              +   "border-radius:6px;font-size:12px;font-weight:700;font-family:inherit;"
-              +   "background:"+(on?'#fff':'#FBFCFA')+"'>"
-            // 이름이 정해진 줄
+            // 빈 줄 — 칸 하나에 그냥 적습니다
+            ? ""
             : "<span id='pllbl-"+pageId+"-"+it.key+"' style='font-size:12.5px;font-weight:700;"
               + "min-width:92px;color:"+(on?'#2D3A28':'#BDBDBD')+"'>"+_plEsc(it.label)+"</span>");
     if(it.fixed){
@@ -3375,10 +3367,6 @@ function plCollectReport(pageId){
     var v  = el ? el.value.trim() : '';
     if(!v) return;
     items[it.key] = v;
-    if(it.free){
-      var lb = document.getElementById('pllbl-'+pageId+'-'+it.key);
-      items[it.key+'_label'] = (lb ? lb.value.trim() : '') || '기타';
-    }
     if(it.subs){
       var on = [];
       it.subs.forEach(function(s, si){
@@ -3408,9 +3396,9 @@ function plItemsToText(formKey, lessonName, items){
     .map(function(it){
       var subs = items[it.key+'_subs'];
       var tail = (subs && subs.length) ? ' ('+subs.join('/')+')' : '';
-      // 이름을 직접 적는 줄은 그 이름을 씁니다
-      var lab = it.free ? (items[it.key+'_label'] || '기타') : it.label;
-      return '· ' + lab + tail + ' | ' + items[it.key];
+      // 빈 줄은 이름 없이 내용만 적습니다
+      if(it.free) return '· ' + items[it.key];
+      return '· ' + it.label + tail + ' | ' + items[it.key];
     });
   if(!lines.length) return '';
   return '[' + lessonName + ']\n' + lines.join('\n');
@@ -3430,8 +3418,14 @@ function plTextToItems(text){
   // 본문 줄 파싱:  · 라벨 (부가) | 값
   var parsed = [];
   for(var i=1;i<lines.length;i++){
-    var m = lines[i].match(/^[·\-*]?\s*(.+?)\s*\|\s*(.*)$/);
-    if(!m) continue;
+    var raw = lines[i];
+    var m = raw.match(/^[·\-*]?\s*(.+?)\s*\|\s*(.*)$/);
+    if(!m){
+      // 이름 없이 내용만 적힌 줄 (빈 줄)
+      var only = raw.replace(/^[·\-*]\s*/, '').trim();
+      if(only) parsed.push({ label:'', value:only, subs:null });
+      continue;
+    }
     var label = m[1].trim(), value = m[2].trim(), subs = null;
     var sm = label.match(/^(.+?)\s*\(([^()]+)\)$/);
     if(sm){ label = sm[1].trim(); subs = sm[2].split('/').map(function(s){ return s.trim(); }); }
@@ -3474,8 +3468,8 @@ function plTextToItems(text){
     }
     // ② 못 찾으면 "이름도 직접 적는 줄" 에 차례대로 채웁니다
     if(fi < freeKeys.length){
-      items[freeKeys[fi]] = pp.value;
-      items[freeKeys[fi] + '_label'] = pp.label;
+      // 이름이 붙어 있던 줄이면 "이름 내용" 으로 이어 붙입니다
+      items[freeKeys[fi]] = pp.label ? (pp.label + ' ' + pp.value).trim() : pp.value;
       fi++;
     }
   });
