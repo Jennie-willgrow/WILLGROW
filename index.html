@@ -7849,28 +7849,18 @@ function openSchedModal(classId){
         }).join("")
     + "</div>"
 
-    // ── 시간 + 그 시간에 할 수업 ──
-    + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:2px'>"
-    +   "시간과 수업</div>"
+    // ── 시간 ──
+    + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:2px'>시간</div>"
     + "<div style='font-size:10.5px;color:#A8B09C;margin-bottom:6px'>"
-    +   "할 시간을 누르고, 그 옆에 그 시간에 할 수업을 적으세요. "
-    +   "시간마다 다르게 적을 수 있어요.</div>"
-    + "<div style='margin-bottom:14px'>"
+    +   "수업하는 시간을 고르세요. 수업명은 아래 표에서 칸마다 적으시면 됩니다.</div>"
+    + "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));"
+    +   "gap:5px;margin-bottom:14px'>"
     +   WG_PERIODS.map(function(p){
-          return "<div style='display:flex;align-items:center;gap:7px;margin-bottom:5px'>"
-               + "<button type='button' id='sdP-" + p.p + "' data-on='0' "
-               +   "onclick='schedToggle(this); schedSyncRow(" + p.p + ")' "
-               +   "style='background:#f4f4f4;color:#777;border:1.5px solid #e0e0e0;"
-               +   "border-radius:9px;padding:7px 10px;cursor:pointer;font-size:12px;"
-               +   "font-weight:700;white-space:nowrap;flex-shrink:0;min-width:106px'>"
-               +   p.start + "~" + p.end + "</button>"
-               + "<input type='text' id='sdS-" + p.p + "' disabled "
-               +   "oninput='schedRowTyped(" + p.p + ")' "
-               +   "placeholder='이 시간에 할 수업 (예: Grammar)' "
-               +   "style='flex:1;min-width:0;padding:7px 10px;border:1.5px solid #e0e0e0;"
-               +   "border-radius:8px;font-size:12.5px;box-sizing:border-box;"
-               +   "background:#f7f7f7;color:#999'>"
-               + "</div>";
+          return "<button type='button' id='sdP-" + p.p + "' data-on='0' "
+               + "onclick='schedToggle(this)' style='background:#f4f4f4;color:#777;"
+               + "border:1.5px solid #e0e0e0;border-radius:9px;padding:8px 4px;cursor:pointer;"
+               + "font-size:12px;font-weight:700;white-space:nowrap'>"
+               + p.start + "~" + p.end + "</button>";
         }).join("")
     + "</div>"
 
@@ -7924,35 +7914,12 @@ function schedPreset(i){
     if(b) _schedSet(b, p.days.indexOf(w.d) >= 0);
   });
 }
-// 시간 버튼을 켜면 그 줄의 수업명 칸이 열립니다
-function schedSyncRow(p){
-  var btn = document.getElementById('sdP-' + p);
-  var inp = document.getElementById('sdS-' + p);
-  if(!btn || !inp) return;
-  var on = btn.getAttribute('data-on') === '1';
-  inp.disabled = !on;
-  inp.style.background  = on ? '#fff'    : '#f7f7f7';
-  inp.style.color       = on ? '#333'    : '#999';
-  inp.style.borderColor = on ? '#CFE0C6' : '#e0e0e0';
-  if(!on) inp.value = '';
-}
-// 반대로, 수업명을 쓰면 그 시간이 켜집니다
-function schedRowTyped(p){
-  var btn = document.getElementById('sdP-' + p);
-  if(btn && btn.getAttribute('data-on') !== '1' &&
-     (document.getElementById('sdS-' + p) || {}).value){
-    _schedSet(btn, true);
-    schedSyncRow(p);
-  }
-}
-// 고른 시간 + 그 시간에 적은 수업
+// 고른 시간들 (수업명은 아래 표에서 칸마다 적습니다)
 function schedItems(){
   var out = [];
   WG_PERIODS.forEach(function(p){
     var btn = document.getElementById('sdP-' + p.p);
-    if(!btn || btn.getAttribute('data-on') !== '1') return;
-    var inp = document.getElementById('sdS-' + p.p);
-    out.push({ period:p.p, subject: inp ? inp.value : '' });
+    if(btn && btn.getAttribute('data-on') === '1') out.push({ period:p.p, subject:'' });
   });
   return out;
 }
@@ -7987,22 +7954,24 @@ function schedRender(){
       + "background:#FAFBF8;border-radius:10px'>아직 시간표가 없어요. 위에서 골라 넣어보세요.</div>";
     return;
   }
-  var used = {}, minP = 99, maxP = 1;
+  var used = {}, minP = 99, maxP = 1, dayOn = {};
   _schedRows.forEach(function(s){
     used[s.weekday + '-' + s.period] = s;
+    dayOn[s.weekday] = true;                    // 실제로 수업하는 요일만 기억
     if(s.period < minP) minP = s.period;
     if(s.period > maxP) maxP = s.period;
   });
+  // 월수금 반이면 화·목 칸은 아예 안 보여줍니다
+  var days = WG_WEEKDAYS.slice(0,7).filter(function(w){ return dayOn[w.d]; });
 
   var h = "<div style='font-size:10.5px;color:#A8B09C;margin-bottom:6px'>"
-        + "칸을 눌러 수업명을 고칠 수 있어요. 요일마다 다르게 적어도 됩니다. "
-        + "빈 칸은 ＋ 를 누르면 생겨요.</div>";
+        + "칸을 눌러 수업명을 고칠 수 있어요. 요일마다 다르게 적어도 됩니다.</div>";
 
   h += "<table style='width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;"
     +  "table-layout:fixed'>";
   h += "<tr><th style='width:66px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
     +  "font-size:10.5px;color:#8A9178'>시간</th>";
-  WG_WEEKDAYS.slice(0,5).forEach(function(w){
+  days.forEach(function(w){
     h += "<th style='padding:5px 2px;border-bottom:2px solid #E3E6DE;font-size:11.5px;"
       +  "font-weight:700;color:#5B6551'>" + w.ko + "</th>";
   });
@@ -8017,7 +7986,7 @@ function schedRender(){
 
     /* jshint loopfunc:true */
     (function(period){
-      WG_WEEKDAYS.slice(0,5).forEach(function(w){
+      days.forEach(function(w){
         var s = used[w.d + '-' + period];
         h += "<td style='padding:3px 2px;border-bottom:1px solid #F1F2EE'>";
         if(s){
@@ -8114,7 +8083,7 @@ function schedAdd(){
       // 고른 것들을 비웁니다 (이어서 다른 요일을 넣기 쉽게)
       WG_PERIODS.forEach(function(p){
         var b = document.getElementById('sdP-' + p.p);
-        if(b && b.getAttribute('data-on') === '1'){ _schedSet(b, false); schedSyncRow(p.p); }
+        if(b && b.getAttribute('data-on') === '1') _schedSet(b, false);
       });
       schedLoad();
     } else {
@@ -8182,23 +8151,29 @@ function _schedTable(rows, showClassName){
   if(!rows || !rows.length){
     return "<div style='color:#999;font-size:12px;padding:10px'>시간표가 없습니다.</div>";
   }
-  var used = {}, minP = 99, maxP = 1;
+  var used = {}, minP = 99, maxP = 1, dayOn = {};
   rows.forEach(function(s){
     var k = s.weekday + '-' + s.period;
     (used[k] = used[k] || []).push(s);
+    dayOn[s.weekday] = true;
     if(s.period < minP) minP = s.period;
     if(s.period > maxP) maxP = s.period;
   });
+  // 전체 시간표(showClassName)는 월~금을 다 보여주고,
+  // 반별 시간표는 그 반이 실제로 수업하는 요일만 보여줍니다.
+  var days = WG_WEEKDAYS.slice(0,7).filter(function(w){
+    return showClassName ? w.d <= 5 : dayOn[w.d];
+  });
 
   var h = "<table><tr><th style='width:82px'>시간</th>";
-  WG_WEEKDAYS.slice(0,5).forEach(function(w){ h += "<th>" + w.ko + "</th>"; });
+  days.forEach(function(w){ h += "<th>" + w.ko + "</th>"; });
   h += "</tr>";
 
   for(var p = minP; p <= maxP; p++){
     var info = _periodInfo(p);
     h += "<tr><td class='per'>" + (info ? info.start : "")
       +  "<span>" + (info ? info.end : "") + "</span></td>";
-    WG_WEEKDAYS.slice(0,5).forEach(function(w){
+    days.forEach(function(w){
       var list = used[w.d + '-' + p] || [];
       if(!list.length){ h += "<td class='empty'>·</td>"; return; }
       h += "<td>" + list.map(function(s){
