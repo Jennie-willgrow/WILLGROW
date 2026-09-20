@@ -965,7 +965,8 @@ async function clearClassSchedule(classId) {
 //      └─ 교재 (1-1, 1-2 …)        ← 표지가 붙는 단위
 //      └─ 영역 (PLAYHOUSE …)        ← 시리즈마다 정해져 있음
 //
-//  외부교재는 영역이 없고 교재 하나가 곧 그 수업입니다.
+//  외부교재(Bricks Reading 등)도 시리즈로 묶되 영역은 없습니다.
+//  기타교재('외부')는 목록에 없는 것을 직접 적을 때 쓰는 자리입니다.
 // ════════════════════════════════════════════════════════════
 var _catCache = null;
 
@@ -1021,7 +1022,7 @@ function findTextbook(catalog, id){
 function textbookLabel(catalog, id){
   var f = findTextbook(catalog, id);
   if(!f) return '';
-  if(f.series.code === '외부') return f.book.name;       // 외부교재는 이름이 곧 전부
+  if(f.series.code === '외부') return f.book.name;       // 기타교재는 이름이 곧 전부
   return f.series.name + ' ' + f.book.name;
 }
 
@@ -2646,6 +2647,25 @@ var PLANNER_FORMS = {
     ]
   },
 
+  /* ── Junior High (TEMS) ──
+     중학생 양식은 영역만 다르고 생김새는 모두 같습니다.
+     TEST 두 줄 + 자유롭게 적는 다섯 줄.
+     free:true 인 줄은 항목 이름도 선생님이 직접 적습니다. */
+  tems: {
+    course:'Junior High', category:'TEMS', accent:'#1E2218',
+    lessons:['Junior High Grammar','Junior High Reading','Junior High Production',
+             'Junior High Listening','Junior High Subject / Material'],
+    items:[
+      {key:'t1',label:'TEST'},
+      {key:'t2',label:'TEST'},
+      {key:'f1',label:'',free:true},
+      {key:'f2',label:'',free:true},
+      {key:'f3',label:'',free:true},
+      {key:'f4',label:'',free:true},
+      {key:'f5',label:'',free:true}
+    ]
+  },
+
   /* ── 외부교재 ── */
   spk: {
     course:'External', category:'Speaking / Reading', accent:'#7B4FA8',
@@ -3276,8 +3296,18 @@ function onPlFormChange(pageId, preset){
       +      " onchange='onPlRowToggle(\""+pageId+"\",\""+it.key+"\")'"
       +      " title='체크를 끄면 내용이 지워집니다'"
       +      " style='width:15px;height:15px;flex-shrink:0;cursor:pointer'>"
-      +    "<span id='pllbl-"+pageId+"-"+it.key+"' style='font-size:12.5px;font-weight:700;min-width:92px;"
-      +      "color:"+(on?'#2D3A28':'#BDBDBD')+"'>"+_plEsc(it.label)+"</span>";
+      +    (it.free
+            // 이름도 직접 적는 줄
+            ? "<input type='text' id='pllbl-"+pageId+"-"+it.key+"'"
+              + " value='"+_plEsc(items[it.key+'_label'] || '')+"'"
+              + " placeholder='항목 이름'" + dis
+              + " oninput='onPlValInput(\""+pageId+"\",\""+it.key+"\")'"
+              + " style='width:92px;flex-shrink:0;padding:4px 7px;border:1.5px solid #E5E9E0;"
+              +   "border-radius:6px;font-size:12px;font-weight:700;font-family:inherit;"
+              +   "background:"+(on?'#fff':'#FBFCFA')+"'>"
+            // 이름이 정해진 줄
+            : "<span id='pllbl-"+pageId+"-"+it.key+"' style='font-size:12.5px;font-weight:700;"
+              + "min-width:92px;color:"+(on?'#2D3A28':'#BDBDBD')+"'>"+_plEsc(it.label)+"</span>");
     if(it.fixed){
       h += "<span style='font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px;"
          +   "background:#FDECEC;color:#CC2B2B'>fixed</span>";
@@ -3345,6 +3375,10 @@ function plCollectReport(pageId){
     var v  = el ? el.value.trim() : '';
     if(!v) return;
     items[it.key] = v;
+    if(it.free){
+      var lb = document.getElementById('pllbl-'+pageId+'-'+it.key);
+      items[it.key+'_label'] = (lb ? lb.value.trim() : '') || '기타';
+    }
     if(it.subs){
       var on = [];
       it.subs.forEach(function(s, si){
@@ -3374,7 +3408,9 @@ function plItemsToText(formKey, lessonName, items){
     .map(function(it){
       var subs = items[it.key+'_subs'];
       var tail = (subs && subs.length) ? ' ('+subs.join('/')+')' : '';
-      return '· ' + it.label + tail + ' | ' + items[it.key];
+      // 이름을 직접 적는 줄은 그 이름을 씁니다
+      var lab = it.free ? (items[it.key+'_label'] || '기타') : it.label;
+      return '· ' + lab + tail + ' | ' + items[it.key];
     });
   if(!lines.length) return '';
   return '[' + lessonName + ']\n' + lines.join('\n');
@@ -3408,20 +3444,40 @@ function plTextToItems(text){
   Object.keys(PLANNER_FORMS).forEach(function(k){
     var f = PLANNER_FORMS[k];
     if(f.lessons.indexOf(lessonName) < 0) return;
-    var labels = f.items.map(function(it){ return it.label; });
+    var labels = f.items.filter(function(it){ return !it.free; })
+                        .map(function(it){ return it.label; });
     var score = parsed.filter(function(pp){ return labels.indexOf(pp.label) >= 0; }).length;
+    // 이름을 직접 적는 줄이 있으면 나머지도 담을 수 있으므로 살짝 가산
+    if(f.items.some(function(it){ return it.free; })) score += 0.5;
     if(score > bestScore){ bestScore = score; best = k; }
   });
   if(!best) return null;
 
   var form = PLANNER_FORMS[best], items = {};
+  var used = {};                                   // 한 줄을 두 번 쓰지 않게
+  var freeKeys = form.items.filter(function(it){ return it.free; })
+                           .map(function(it){ return it.key; });
+  var fi = 0;
+
   parsed.forEach(function(pp){
-    var it = form.items.filter(function(x){ return x.label === pp.label; })[0];
-    if(!it) return;
-    items[it.key] = pp.value;
-    if(pp.subs && it.subs) items[it.key+'_subs'] = pp.subs.filter(function(s){
-      return it.subs.indexOf(s) >= 0;
-    });
+    // ① 이름이 정해진 줄 중 아직 안 쓴 것 (TEST 처럼 같은 이름이 둘이어도 순서대로)
+    var it = form.items.filter(function(x){
+      return !x.free && x.label === pp.label && !used[x.key];
+    })[0];
+    if(it){
+      used[it.key] = true;
+      items[it.key] = pp.value;
+      if(pp.subs && it.subs) items[it.key+'_subs'] = pp.subs.filter(function(s){
+        return it.subs.indexOf(s) >= 0;
+      });
+      return;
+    }
+    // ② 못 찾으면 "이름도 직접 적는 줄" 에 차례대로 채웁니다
+    if(fi < freeKeys.length){
+      items[freeKeys[fi]] = pp.value;
+      items[freeKeys[fi] + '_label'] = pp.label;
+      fi++;
+    }
   });
   return { formKey:best, lessonName:lessonName, items:items };
 }
@@ -8175,12 +8231,15 @@ var _pickSlotId = null;
 var _pickSeries = null;   // 지금 보고 있는 시리즈 code
 var _pickBookId = null;
 var _pickSection = '';
+var _pickFree   = '';   // 목록에 없는 교재를 직접 적은 글자
 
 function openBookPicker(slotId){
   _pickSlotId = slotId;
   var s = _schedRows.filter(function(x){ return x.id === slotId; })[0];
   _pickBookId  = s ? s.textbookId : '';
   _pickSection = s ? s.section : '';
+  // 교재를 안 고른 채 글자만 있던 칸이면 그 글자를 직접 입력칸에 되살립니다
+  _pickFree    = (s && !s.textbookId) ? (s.subject || '') : '';
   var f = _catalog ? findTextbook(_catalog, _pickBookId) : null;
   _pickSeries = f ? f.series.code : (_catalog && _catalog.series[0] ? _catalog.series[0].code : null);
 
@@ -8287,6 +8346,19 @@ function renderBookPicker(){
       + "</div>";
   }
 
+  // ── 목록에 없는 교재는 직접 ──
+  h += "<div style='border-top:1px solid #F1F2EE;padding-top:12px;margin-bottom:14px'>"
+    + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:2px'>"
+    +   "기타교재 · 직접 입력</div>"
+    + "<div style='font-size:10.5px;color:#A8B09C;margin-bottom:6px'>"
+    +   "고등 모의고사처럼 목록에 없는 건 여기에 적으세요. "
+    +   "적으면 위에서 고른 교재 대신 이 글자가 들어갑니다.</div>"
+    + "<input type='text' id='bpFree' value=\"" + _mgAttr(_pickFree) + "\" "
+    +   "oninput='bpFreeTyped()' placeholder='예) 2026 고3 6월 모의고사' "
+    +   "style='width:100%;padding:8px 10px;border:1.5px solid "
+    +   (_pickFree ? '#2D6A4F' : '#E2E8D8') + ";border-radius:8px;font-size:12.5px;"
+    +   "box-sizing:border-box'></div>";
+
   h += "<div style='display:flex;gap:8px'>"
     + "<button onclick='bpClear()' style='flex:1;background:#F1F3EE;color:#5B6551;border:none;"
     +   "border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer'>"
@@ -8307,22 +8379,35 @@ function bpSeries(code){
 }
 function bpBook(id){
   _pickBookId = (_pickBookId === id) ? '' : id;
+  if(_pickBookId) _pickFree = '';     // 교재를 골랐으면 직접 입력은 지웁니다
   renderBookPicker();
 }
 function bpSection(sec){
   _pickSection = (_pickSection === sec) ? '' : sec;
   renderBookPicker();
 }
+// 직접 입력칸에 글을 쓰면 고른 교재는 놓아줍니다 (둘 중 하나만)
+function bpFreeTyped(){
+  var el = document.getElementById('bpFree');
+  if(!el) return;
+  _pickFree = el.value;
+  el.style.borderColor = _pickFree.trim() ? '#2D6A4F' : '#E2E8D8';
+}
 function bpClear(){
-  _pickBookId = ''; _pickSection = '';
+  _pickBookId = ''; _pickSection = ''; _pickFree = '';
   bpSave();
 }
 function bpSave(){
   if(!_pickSlotId) return;
   var slotId = _pickSlotId;
-  var label = _pickBookId
-    ? (textbookLabel(_catalog, _pickBookId) + (_pickSection ? ' · ' + _pickSection : ''))
-    : '';
+  // 직접 적은 글자가 있으면 그게 우선입니다 (교재는 비움)
+  var free = (_pickFree || '').trim();
+  if(free){ _pickBookId = ''; _pickSection = ''; }
+  var label = free
+    ? free
+    : (_pickBookId
+        ? (textbookLabel(_catalog, _pickBookId) + (_pickSection ? ' · ' + _pickSection : ''))
+        : '');
   var btn = document.getElementById('bpSaveBtn');
   if(btn){ btn.disabled = true; btn.textContent = '넣는 중…'; }
 
