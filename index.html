@@ -915,6 +915,36 @@ async function saveClassSlots(classId, weekdays, items, teacherId) {
   return { success:true, count:body.length };
 }
 
+// 칸 하나의 수업명만 고치기
+async function updateSlotSubject(slotId, subject) {
+  await sbPatch('class_schedules', 'id=' + _eq(slotId), {
+    subject: (subject || '').trim() || null,
+    updated_at: new Date().toISOString()
+  });
+  return { success:true };
+}
+
+// 빈 칸에 새로 하나 만들기
+async function addOneSlot(classId, weekday, period, subject) {
+  var info = _periodInfo(period);
+  if(!info) return { success:false, error:'없는 시간입니다.' };
+  var res = await fetch(SUPABASE_URL + '/rest/v1/class_schedules'
+    + '?on_conflict=class_id,weekday,period', {
+    method:'POST',
+    headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=representation' }),
+    body:JSON.stringify([{ class_id:classId, weekday:weekday, period:period,
+                           start_time:info.start, end_time:info.end,
+                           subject:(subject||'').trim() || null,
+                           updated_at:new Date().toISOString() }])
+  });
+  if(!res.ok){
+    var err = await res.text();
+    if(_handleAuthError(res.status)) throw new Error('AUTH');
+    throw new Error('[칸 추가] ' + err);
+  }
+  return { success:true };
+}
+
 // 칸 하나 지우기
 async function deleteClassSlot(slotId) {
   await sbDelete('class_schedules', 'id=' + _eq(slotId), { allowZero:true });
@@ -2554,6 +2584,7 @@ var _serverFunctions = {
   fetchSchoolEvents, fetchMeetings, saveMeeting, deleteMeeting, toggleMeetingField,
   fetchClassManage, setClassTeacher, setTeacherActive,
   fetchClassSchedule, fetchAllSchedules2, saveClassSlots, deleteClassSlot, clearClassSchedule,
+  updateSlotSubject, addOneSlot,
   initMemoSchema: async function(){ return; }
 };
 
@@ -7963,9 +7994,13 @@ function schedRender(){
     if(s.period > maxP) maxP = s.period;
   });
 
-  var h = "<table style='width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;"
-        + "table-layout:fixed'>";
-  h += "<tr><th style='width:80px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
+  var h = "<div style='font-size:10.5px;color:#A8B09C;margin-bottom:6px'>"
+        + "칸을 눌러 수업명을 고칠 수 있어요. 요일마다 다르게 적어도 됩니다. "
+        + "빈 칸은 ＋ 를 누르면 생겨요.</div>";
+
+  h += "<table style='width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;"
+    +  "table-layout:fixed'>";
+  h += "<tr><th style='width:66px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
     +  "font-size:10.5px;color:#8A9178'>시간</th>";
   WG_WEEKDAYS.slice(0,5).forEach(function(w){
     h += "<th style='padding:5px 2px;border-bottom:2px solid #E3E6DE;font-size:11.5px;"
@@ -7976,32 +8011,93 @@ function schedRender(){
   for(var p = minP; p <= maxP; p++){
     var info = _periodInfo(p);
     h += "<tr><td style='padding:4px 2px;border-bottom:1px solid #F1F2EE;text-align:center'>"
-      +    "<div style='font-size:10.5px;font-weight:700;color:#5B6551;line-height:1.35'>"
+      +    "<div style='font-size:10.5px;font-weight:700;color:#5B6551;line-height:1.3'>"
       +      (info ? info.start : '') + "</div>"
       +    "<div style='font-size:9px;color:#A8B09C'>" + (info ? info.end : '') + "</div></td>";
-    WG_WEEKDAYS.slice(0,5).forEach(function(w){
-      var s = used[w.d + '-' + p];
-      h += "<td style='padding:3px 2px;border-bottom:1px solid #F1F2EE;text-align:center'>";
-      if(s){
-        h += "<div style='background:#EFF4EA;border:1px solid #CFE0C6;border-radius:7px;"
-          +    "padding:4px 3px;position:relative'>"
-          +    "<div style='font-size:10.5px;font-weight:700;color:#2D6A4F;line-height:1.3;"
-          +      "word-break:break-word'>" + (_plEsc(s.subject) || "수업") + "</div>"
-          +    "<button onclick='schedDel(\"" + s.id + "\")' style='position:absolute;top:-5px;"
-          +      "right:-5px;background:#fff;border:1px solid #E0E3DC;border-radius:50%;width:16px;"
-          +      "height:16px;font-size:9px;line-height:1;color:#A8B09C;cursor:pointer;padding:0'>"
-          +      "✕</button></div>";
-      } else {
-        h += "<span style='color:#E4E7DE'>·</span>";
-      }
-      h += "</td>";
-    });
+
+    /* jshint loopfunc:true */
+    (function(period){
+      WG_WEEKDAYS.slice(0,5).forEach(function(w){
+        var s = used[w.d + '-' + period];
+        h += "<td style='padding:3px 2px;border-bottom:1px solid #F1F2EE'>";
+        if(s){
+          // ── 바로 고칠 수 있는 칸 ──
+          h += "<div style='display:flex;align-items:center;gap:2px;background:#EFF4EA;"
+            +    "border:1px solid #CFE0C6;border-radius:7px;padding:2px 2px 2px 4px'>"
+            +    "<input id='sdC-" + s.id + "' value=\"" + _mgAttr(s.subject || '') + "\" "
+            +      "placeholder='수업명' "
+            +      "onchange='schedSaveSubject(\"" + s.id + "\")' "
+            +      "onkeydown='if(event.key===\"Enter\"){ this.blur(); }' "
+            +      "style='flex:1;min-width:0;background:transparent;border:none;outline:none;"
+            +      "font-size:10.5px;font-weight:700;color:#2D6A4F;text-align:center;padding:2px 0'>"
+            +    "<button onclick='schedDel(\"" + s.id + "\")' title='이 칸 지우기' "
+            +      "style='background:none;border:none;font-size:10px;line-height:1;color:#A8C0A0;"
+            +      "cursor:pointer;padding:0 2px;flex-shrink:0'>✕</button>"
+            +  "</div>";
+        } else {
+          // ── 빈 칸: 눌러서 만들기 ──
+          h += "<button onclick='schedAddOne(" + w.d + "," + period + ")' title='여기에 수업 넣기' "
+            +    "style='width:100%;background:none;border:1px dashed #E4E7DE;border-radius:7px;"
+            +    "padding:5px 0;font-size:11px;color:#D2D7CB;cursor:pointer'>＋</button>";
+        }
+        h += "</td>";
+      });
+    })(p);
     h += "</tr>";
   }
   h += "</table>";
   g.innerHTML = h;
 }
 
+// 칸의 수업명 저장 (표를 다시 그리지 않아 입력 흐름이 끊기지 않습니다)
+function schedSaveSubject(slotId){
+  var inp = document.getElementById('sdC-' + slotId);
+  if(!inp) return;
+  var v = inp.value;
+  var box = inp.parentNode;
+
+  google.script.run
+  .withSuccessHandler(function(){
+    // 화면에 들고 있는 자료도 맞춰 둡니다
+    for(var i=0;i<_schedRows.length;i++){
+      if(_schedRows[i].id === slotId){ _schedRows[i].subject = v.trim(); break; }
+    }
+    if(box){                         // 저장됐다는 표시로 잠깐 초록 테두리
+      box.style.borderColor = '#2D6A4F';
+      setTimeout(function(){ box.style.borderColor = '#CFE0C6'; }, 700);
+    }
+  })
+  .withFailureHandler(function(e){
+    if(box) box.style.borderColor = '#C0392B';
+    showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+  })
+  .updateSlotSubject(slotId, v);
+}
+
+// 빈 칸에 새로 만들고 바로 입력하게
+function schedAddOne(weekday, period){
+  google.script.run
+  .withSuccessHandler(function(){
+    google.script.run
+    .withSuccessHandler(function(rows){
+      _schedRows = rows || [];
+      schedRender();
+      // 방금 만든 칸에 바로 커서를 둡니다
+      var made = _schedRows.filter(function(x){
+        return x.weekday === weekday && x.period === period; })[0];
+      if(made){
+        var el = document.getElementById('sdC-' + made.id);
+        if(el && el.focus) el.focus();
+      }
+    })
+    .withFailureHandler(function(){ schedLoad(); })
+    .fetchClassSchedule(_schedClassId);
+  })
+  .withFailureHandler(function(e){
+    showToast("만들지 못했어요: " + (e && e.message ? e.message : ''));
+  })
+  .addOneSlot(_schedClassId, weekday, period, '');
+}
 function schedAdd(){
   var days  = schedPicked('sdD-');
   var items = schedItems();
