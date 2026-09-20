@@ -212,7 +212,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
 .appt-time {font-size:13px;color:#5A6350;margin-top:5px}
 .appt-phone {font-size:13px;color:#4A5240;margin-top:4px;font-weight:600}
 .appt-phone a {color:#4A5240;text-decoration:none}
-</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:40px">Cheolsan Campus</div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><button class="snav-item" data-mode="schedule" onclick="navigateTo('schedule')"><span class="si-icon">📅</span> Schedule</button><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">반 관리</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> 반 · 담임 · 교재</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="weeklyhw" onclick="navigateTo('weeklyhw')"><span class="si-icon">📋</span> Weekly Homework</button><button class="snav-item" data-mode="roster" onclick="navigateTo('roster')"><span class="si-icon">📋</span> Class Roster</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><button class="snav-item" data-mode="lessonplan" onclick="navigateTo('lessonplan')"><span class="si-icon">📖</span> Lesson Plan</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규등록</button><button class="snav-item" data-mode="consultcal" onclick="navigateTo('consultcal')"><span class="si-icon">📅</span> 신규상담일정</button><button class="snav-item" data-mode="newstudent" onclick="navigateTo('newstudent')"><span class="si-icon">🙋</span> 신규학생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> Book Orders</button><button class="snav-item" data-mode="wgorder" onclick="navigateTo('wgorder')"><span class="si-icon">📗</span> WG 교재 주문</button><button class="snav-item" data-mode="extorder" onclick="navigateTo('extorder')"><span class="si-icon">📔</span> 외부 교재 주문</button><button class="snav-item" data-mode="extraorder" onclick="navigateTo('extraorder')"><span class="si-icon">➕</span> 부가자료 추가주문</button><button class="snav-item" data-mode="parentmsg" onclick="navigateTo('parentmsg')"><span class="si-icon">💬</span> 교재구입메세지</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button></nav></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
+</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:40px">Cheolsan Campus</div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><button class="snav-item" data-mode="schedule" onclick="navigateTo('schedule')"><span class="si-icon">📅</span> Schedule</button><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">Class Hub</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> Classes &amp; Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="weeklyhw" onclick="navigateTo('weeklyhw')"><span class="si-icon">📋</span> Weekly Homework</button><button class="snav-item" data-mode="roster" onclick="navigateTo('roster')"><span class="si-icon">📋</span> Class Roster</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><button class="snav-item" data-mode="lessonplan" onclick="navigateTo('lessonplan')"><span class="si-icon">📖</span> Lesson Plan</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규등록</button><button class="snav-item" data-mode="consultcal" onclick="navigateTo('consultcal')"><span class="si-icon">📅</span> 신규상담일정</button><button class="snav-item" data-mode="newstudent" onclick="navigateTo('newstudent')"><span class="si-icon">🙋</span> 신규학생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> Book Orders</button><button class="snav-item" data-mode="wgorder" onclick="navigateTo('wgorder')"><span class="si-icon">📗</span> WG 교재 주문</button><button class="snav-item" data-mode="extorder" onclick="navigateTo('extorder')"><span class="si-icon">📔</span> 외부 교재 주문</button><button class="snav-item" data-mode="extraorder" onclick="navigateTo('extraorder')"><span class="si-icon">➕</span> 부가자료 추가주문</button><button class="snav-item" data-mode="parentmsg" onclick="navigateTo('parentmsg')"><span class="si-icon">💬</span> 교재구입메세지</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button></nav></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
 
 <!-- ======= Weekly Homework Screen ======= -->
 <div id="weeklyHwScreen" style="display:none">
@@ -486,7 +486,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 반 관리</div><div style="font-size:11px;color:#999;margin-top:2px">담임 선생님 · 학생 명단 · 이번주/지난주 진도</div></div><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 이름 또는 선생님 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 Class Hub</div><div style="font-size:11px;color:#999;margin-top:2px">담임 · 학생 명단 · 시간표 · 이번주/지난주 진도</div></div><div style="display:flex;gap:6px"><button onclick="schedPrintAll()" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨 전체 시간표</button><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 · 선생님 · 학생 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <div style="font-size:14px;font-weight:700;color:#363D2E">📊 월별 현황</div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -825,6 +825,105 @@ var _classInfoMapCache = null;
 //  확인합니다.
 // ════════════════════════════════════════════════════════════
 
+
+// ════════════════════════════════════════════════════════════
+//  시간표
+//
+//  한 칸 = 한 반 · 한 요일 · 한 교시 (55분)
+//  2시간 수업은 두 칸이라 한 칸씩 다른 수업을 넣을 수 있습니다.
+// ════════════════════════════════════════════════════════════
+
+// 교시 시각표 — SQL 주석과 같아야 합니다
+var WG_PERIODS = [
+  { p:1, start:'14:30', end:'15:25' },
+  { p:2, start:'15:30', end:'16:25' },
+  { p:3, start:'16:30', end:'17:25' },
+  { p:4, start:'17:30', end:'18:25' },
+  { p:5, start:'18:30', end:'19:25' },
+  { p:6, start:'19:30', end:'20:25' },
+  { p:7, start:'20:30', end:'21:25' },
+  { p:8, start:'21:30', end:'22:25' }
+];
+var WG_WEEKDAYS = [
+  { d:1, ko:'월', en:'Mon' }, { d:2, ko:'화', en:'Tue' }, { d:3, ko:'수', en:'Wed' },
+  { d:4, ko:'목', en:'Thu' }, { d:5, ko:'금', en:'Fri' },
+  { d:6, ko:'토', en:'Sat' }, { d:7, ko:'일', en:'Sun' }
+];
+function _periodInfo(p){
+  for(var i=0;i<WG_PERIODS.length;i++) if(WG_PERIODS[i].p === p) return WG_PERIODS[i];
+  return null;
+}
+
+// 한 반의 시간표 읽기
+async function fetchClassSchedule(classId) {
+  if(!classId) return [];
+  var rows = await _sbGetSafe('class_schedules',
+    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id'
+    + '&class_id=' + _eq(classId) + '&order=weekday.asc,period.asc') || [];
+  return rows.map(_mapSchedRow);
+}
+
+// 학원 전체 시간표 (인쇄용)
+async function fetchAllSchedules2() {
+  var rows = await _sbGetSafe('class_schedules',
+    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id'
+    + '&order=weekday.asc,period.asc') || [];
+  return rows.map(_mapSchedRow);
+}
+
+function _mapSchedRow(r){
+  return { id:r.id, classId:r.class_id, weekday:r.weekday, period:r.period,
+           start:String(r.start_time||'').slice(0,5),
+           end:  String(r.end_time||'').slice(0,5),
+           subject:r.subject||'', teacherId:r.teacher_id||'' };
+}
+
+// 여러 칸을 한 번에 넣기 (요일 × 교시)
+//   같은 자리에 이미 있으면 덮어씁니다 (merge-duplicates)
+async function saveClassSlots(classId, weekdays, periods, subject, teacherId) {
+  if(!classId || !weekdays || !weekdays.length || !periods || !periods.length){
+    return { success:false, error:'요일과 교시를 골라주세요.' };
+  }
+  var body = [];
+  weekdays.forEach(function(d){
+    periods.forEach(function(p){
+      var info = _periodInfo(p);
+      if(!info) return;
+      body.push({ class_id:classId, weekday:d, period:p,
+                  start_time:info.start, end_time:info.end,
+                  subject:(subject||'').trim() || null,
+                  teacher_id:teacherId || null,
+                  updated_at:new Date().toISOString() });
+    });
+  });
+  if(!body.length) return { success:false, error:'넣을 칸이 없습니다.' };
+
+  var res = await fetch(SUPABASE_URL + '/rest/v1/class_schedules'
+    + '?on_conflict=class_id,weekday,period', {
+    method:'POST',
+    headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=representation' }),
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){
+    var err = await res.text();
+    if(_handleAuthError(res.status)) throw new Error('AUTH');
+    throw new Error('[시간표 저장] ' + err);
+  }
+  return { success:true, count:body.length };
+}
+
+// 칸 하나 지우기
+async function deleteClassSlot(slotId) {
+  await sbDelete('class_schedules', 'id=' + _eq(slotId), { allowZero:true });
+  return { success:true };
+}
+
+// 한 반의 시간표 전부 지우기
+async function clearClassSchedule(classId) {
+  await sbDelete('class_schedules', 'class_id=' + _eq(classId), { allowZero:true });
+  return { success:true };
+}
+
 // ── 주(週) 계산: 월요일 시작 ──────────────────────────────
 function _ymd(d){
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
@@ -863,8 +962,15 @@ async function fetchClassManage() {
     + '&order=date.asc') || [];
 
   var students = await _sbGetSafe('students',
-    'select=id,name,class_id&class_id=in.' + inList
+    'select=id,name,class_id,grade&class_id=in.' + inList
     + '&status=eq.재원&order=name.asc') || [];
+
+  // 시간표 (반마다 몇 칸이 짜여 있는지)
+  var slots = await _sbGetSafe('class_schedules',
+    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id'
+    + '&class_id=in.' + inList + '&order=weekday.asc,period.asc') || [];
+  var slotBy = {};
+  slots.forEach(function(s){ (slotBy[s.class_id] = slotBy[s.class_id] || []).push(_mapSchedRow(s)); });
 
   var tName = {};
   teachers.forEach(function(t){ tName[t.id] = t.name; });
@@ -889,10 +995,11 @@ async function fetchClassManage() {
   var out = classes.map(function(cls){
     var rows = repBy[cls.id] || [];
     var stus = (stuBy[cls.id] || []).map(function(s){
-      // "김민준 (Leo)" → "김민준"
+      // "김민준 (Leo)" → "김민준"  + 학년을 괄호로
       var m = String(s.name || '').trim().match(/^(.*?)\s*[（(]/);
-      return m ? m[1].trim() : String(s.name || '').trim();
-    }).filter(Boolean);
+      var nm = m ? m[1].trim() : String(s.name || '').trim();
+      return { name: nm, grade: String(s.grade || '').trim() };
+    }).filter(function(s){ return s.name; });
 
     return {
       id: cls.id,
@@ -901,6 +1008,7 @@ async function fetchClassManage() {
       teacherName: cls.teachers ? (cls.teachers.name || '') : '',
       students: stus,
       studentCount: stus.length,
+      slots: slotBy[cls.id] || [],
       thisWeek: lessons(rows.filter(function(r){ return String(r.date||'') >= thisFrom; })),
       lastWeek: lessons(rows.filter(function(r){ return String(r.date||'') <  thisFrom; }))
     };
@@ -2442,6 +2550,7 @@ var _serverFunctions = {
   fetchLessonPlans, updateLessonPlanStatus, updateLessonPlanFull, createLessonPlan,
   fetchSchoolEvents, fetchMeetings, saveMeeting, deleteMeeting, toggleMeetingField,
   fetchClassManage, setClassTeacher, setTeacherActive,
+  fetchClassSchedule, fetchAllSchedules2, saveClassSlots, deleteClassSlot, clearClassSchedule,
   initMemoSchema: async function(){ return; }
 };
 
@@ -3959,6 +4068,12 @@ function navigateTo(mode){
   if(mode === "meetings" || mode === "schoolcal"){
     var sc = document.getElementById("schoolCalScreen");
     var mt = document.getElementById("meetingsScreen");
+    // 달력이 위, 회의록이 아래로 오게 순서를 맞춥니다
+    // (원래 마크업은 회의록이 먼저라서 한 번 자리를 바꿔 둡니다)
+    if(sc && mt && mt.parentNode === sc.parentNode && !sc._movedUp){
+      mt.parentNode.insertBefore(sc, mt);   // 달력을 회의록 바로 앞으로
+      sc._movedUp = true;                   // 한 번만
+    }
     if(sc) sc.style.setProperty("display", "block", "important");
     if(mt) mt.style.setProperty("display", "block", "important");
     currentMode = "meetings";
@@ -6118,7 +6233,10 @@ function loadMemoList(){
       el.innerHTML = "<div style='text-align:center;color:#bbb;padding:20px;font-size:13px'>작성된 메모가 없습니다.</div>";
       return;
     }
-    el.innerHTML = nonAbs.map(function(m){ return renderMemoCard(m); }).join("");
+    // 이번 달은 펼치고, 지난 달부터는 접어 둡니다
+    el.innerHTML = renderMonthGroups(nonAbs,
+      function(m){ return String(m.createdAt || "").slice(0,10); },
+      renderMemoCard, "mgMemo", "작성된 메모가 없습니다.");
   })
   .withFailureHandler(function(){ el.innerHTML = "<div style='color:#c62828;padding:12px'>불러오기 실패.</div>"; })
   .fetchMemos();
@@ -7016,7 +7134,9 @@ function renderNativeMemoList(memos){
   }
   _nativeMemoData = {};
   memos.forEach(function(m){ _nativeMemoData[m.id] = m; });
-  el.innerHTML = memos.map(function(m){ return renderNativeMemoCard(m); }).join("");
+  el.innerHTML = renderMonthGroups(memos,
+    function(m){ return String(m.date || "").slice(0,10); },
+    renderNativeMemoCard, "mgNat", "No memos yet.");
 }
 function renderNativeMemoCard(m){
   var catColors = { Student:"#e3f0ff,#1565c0", Class:"#e8f5e9,#2e7d32", Schedule:"#fff3e0,#e65100", General:"#f5f5f5,#616161" };
@@ -7400,6 +7520,25 @@ function initClassMgmtScreen(){
   .fetchClassManage();
 }
 
+// ── 반 이름에서 학년 묶음 알아내기 ─────────────────────────
+//   "2A" "2B"      → 2학년
+//   "M1A"          → 중1        "H2B" → 고2
+//   "Galaxy 1"     → Galaxy     (글자로 시작하면 그 낱말로 묶습니다)
+function _classGroup(name){
+  var n = String(name || '').trim();
+  var m = n.match(/^([MmHh])?\s*(\d+)/);
+  if(m){
+    var p = (m[1] || '').toUpperCase();
+    var num = m[2];
+    if(p === 'M') return { key:'2-' + String(num).padStart(2,'0'), label:'중' + num };
+    if(p === 'H') return { key:'3-' + String(num).padStart(2,'0'), label:'고' + num };
+    return { key:'1-' + String(num).padStart(2,'0'), label:num + '학년' };
+  }
+  var w = n.match(/^[A-Za-z가-힣]+/);
+  var word = w ? w[0] : '기타';
+  return { key:'9-' + word.toLowerCase(), label:word };
+}
+
 function renderClassMgmt(){
   var el = document.getElementById("classMgmtList");
   if(!el) return;
@@ -7410,7 +7549,7 @@ function renderClassMgmt(){
     if(!q) return true;
     return (c.name || '').toLowerCase().indexOf(q) >= 0
         || (c.teacherName || '').toLowerCase().indexOf(q) >= 0
-        || (c.students || []).some(function(s){ return s.toLowerCase().indexOf(q) >= 0; });
+        || (c.students || []).some(function(s){ return s.name.toLowerCase().indexOf(q) >= 0; });
   });
 
   if(!list.length){
@@ -7421,7 +7560,6 @@ function renderClassMgmt(){
 
   var teachers = _cmData.teachers || [];
 
-  // 한 주치 진도 줄
   function weekRows(rows){
     if(!rows || !rows.length){
       return "<div style='font-size:11px;color:#C7CCC0;padding:3px 0'>수업 기록 없음</div>";
@@ -7430,10 +7568,7 @@ function renderClassMgmt(){
       var d = String(r.date || '');
       var md = d ? (Number(d.slice(5,7)) + '/' + Number(d.slice(8,10))) : '';
       var dw = '';
-      if(d){
-        var dd = new Date(d + 'T00:00:00');
-        dw = ['일','월','화','수','목','금','토'][dd.getDay()];
-      }
+      if(d){ dw = ['일','월','화','수','목','금','토'][new Date(d + 'T00:00:00').getDay()]; }
       return "<div style='display:flex;gap:6px;align-items:flex-start;padding:3px 0'>"
         +   "<span style='font-size:10.5px;font-weight:700;color:#8A9178;white-space:nowrap;"
         +     "flex-shrink:0;min-width:36px'>" + md + (dw ? "(" + dw + ")" : "") + "</span>"
@@ -7445,38 +7580,68 @@ function renderClassMgmt(){
     }).join("");
   }
 
-  el.innerHTML = "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px'>"
-    + list.map(function(c){
-    // 퇴사한 선생님은 안 보입니다. 단, 이미 담임으로 돼 있으면 남겨둡니다.
+  // 시간표 한 줄 요약 — "월·수·금 15:30~17:25"
+  function slotSummary(slots){
+    if(!slots || !slots.length) return "";
+    var days = {}, minP = 99, maxP = 0;
+    slots.forEach(function(s){
+      days[s.weekday] = true;
+      if(s.period < minP) minP = s.period;
+      if(s.period > maxP) maxP = s.period;
+    });
+    var dayTxt = WG_WEEKDAYS.filter(function(w){ return days[w.d]; })
+                            .map(function(w){ return w.ko; }).join('·');
+    var a = _periodInfo(minP), b = _periodInfo(maxP);
+    return dayTxt + (a && b ? "  " + a.start + "~" + b.end : "");
+  }
+
+  function card(c){
     var opts = "<option value=''>— 담임 없음 —</option>"
       + activeTeachers(teachers, c.teacherId).map(function(t){
           return "<option value='" + t.id + "'" + (t.id === c.teacherId ? " selected" : "") + ">"
                + _plEsc(t.name) + (t.active === false ? " (퇴사)" : "") + "</option>";
         }).join("");
 
-    var names = (c.students || []).join(', ');
+    // 학생 이름 (학년)
+    var names = (c.students || []).map(function(s){
+      return _plEsc(s.name) + (s.grade ? " <span style='color:#C3C9BB'>(" + _plEsc(s.grade) + ")</span>" : "");
+    }).join(', ');
+    var plain = (c.students || []).map(function(s){
+      return s.name + (s.grade ? ' (' + s.grade + ')' : '');
+    }).join(', ');
+
+    var sum = slotSummary(c.slots);
 
     return "<div style='background:#fff;border-radius:12px;padding:12px 14px;"
       + "box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)'>"
-      // ── 반 이름 + 인원수
       + "<div style='display:flex;align-items:center;gap:6px;margin-bottom:8px'>"
       +   "<div style='font-size:14px;font-weight:700;color:#2D3A28;flex:1;overflow:hidden;"
       +     "text-overflow:ellipsis;white-space:nowrap'>" + _plEsc(c.name) + "</div>"
       +   "<span style='background:#F1F3EE;color:#6B7563;border-radius:9px;padding:1px 8px;"
       +     "font-size:10.5px;font-weight:700;flex-shrink:0'>👥 " + c.studentCount + "명</span>"
       + "</div>"
-      // ── 학생 명단 (한 줄, 길면 … 으로)
+      // 학생 명단
       + "<div style='font-size:10.5px;color:#A8B09C;line-height:1.5;margin-bottom:9px;"
-      +   "overflow:hidden;text-overflow:ellipsis;white-space:nowrap' title=\"" + _mgAttr(names) + "\">"
+      +   "overflow:hidden;text-overflow:ellipsis;white-space:nowrap' title=\"" + _mgAttr(plain) + "\">"
       +   (names || "재원생 없음") + "</div>"
-      // ── 담임
+      // 담임
       + "<div style='display:flex;align-items:center;gap:7px;margin-bottom:9px'>"
       +   "<span style='font-size:10.5px;font-weight:700;color:#8A9178;white-space:nowrap'>담임</span>"
-      +   "<select id='cmT-" + c.id + "' onchange='saveClassTeacher(\"" + c.id + "\")' "
+      +   "<select id='cmT-" + c.id + "' onchange='askChangeHomeroom(\"" + c.id + "\")' "
       +     "style='flex:1;padding:6px 9px;border:1.5px solid #E2E8D8;border-radius:8px;"
       +     "font-size:12.5px;background:#fff;box-sizing:border-box'>" + opts + "</select>"
       + "</div>"
-      // ── 이번 주 / 지난주 진도
+      // 시간표
+      + "<div style='display:flex;align-items:center;gap:7px;margin-bottom:9px'>"
+      +   "<span style='font-size:10.5px;font-weight:700;color:#8A9178;white-space:nowrap'>시간표</span>"
+      +   "<span style='flex:1;font-size:11.5px;color:" + (sum ? "#4A5344" : "#C7CCC0") + ";"
+      +     "overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"
+      +     (sum || "아직 없음") + "</span>"
+      +   "<button onclick='openSchedModal(\"" + c.id + "\")' style='background:#EFF4EA;color:#2D6A4F;"
+      +     "border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;"
+      +     "cursor:pointer;flex-shrink:0'>" + (sum ? "수정" : "＋ 만들기") + "</button>"
+      + "</div>"
+      // 진도
       + "<div style='background:#FAFBF8;border-radius:9px;padding:8px 10px'>"
       +   "<div style='font-size:10.5px;font-weight:700;color:#2D6A4F;margin-bottom:1px'>이번 주</div>"
       +   weekRows(c.thisWeek)
@@ -7485,34 +7650,583 @@ function renderClassMgmt(){
       +   weekRows(c.lastWeek)
       + "</div>"
       + "</div>";
-  }).join("") + "</div>";
+  }
+
+  // ── 학년별로 묶기 ──
+  var groups = {}, keys = [];
+  list.forEach(function(c){
+    var g = _classGroup(c.name);
+    if(!groups[g.key]){ groups[g.key] = { label:g.label, items:[] }; keys.push(g.key); }
+    groups[g.key].items.push(c);
+  });
+  keys.sort();
+
+  el.innerHTML = keys.map(function(k){
+    var g = groups[k];
+    var head = g.items.reduce(function(n,c){ return n + c.studentCount; }, 0);
+    return "<div style='margin-bottom:18px'>"
+      + "<div style='display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-left:2px'>"
+      +   "<span style='font-size:13px;font-weight:800;color:#2D3A28'>" + _plEsc(g.label) + "</span>"
+      +   "<span style='height:1px;flex:1;background:#E7EAE3'></span>"
+      +   "<span style='font-size:10.5px;color:#A8B09C'>" + g.items.length + "개 반 · " + head + "명</span>"
+      + "</div>"
+      + "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px'>"
+      +   g.items.map(card).join("")
+      + "</div></div>";
+  }).join("");
 }
-function saveClassTeacher(classId){
-  var sel = document.getElementById("cmT-" + classId);
-  if(!sel) return;
-  var teacherId = sel.value;
-  var before = sel.style.borderColor;
-  sel.style.borderColor = '#C8A93A';
+// ════════════════════════════════════════════════════════════
+//  시간표 만들기
+//
+//  요일과 교시를 고르고 수업명을 적으면 그 칸들이 한 번에 들어갑니다.
+//  2시간 수업은 교시를 두 개 고르되, 수업이 다르면 따로 두 번 넣으세요.
+//    예)  월·수·금  2교시 = Grammar   →  넣기
+//         월·수·금  3교시 = Reading   →  넣기
+// ════════════════════════════════════════════════════════════
+var _schedClassId = null;
+var _schedRows    = [];
+
+// 자주 쓰는 요일 묶음
+var SCHED_PRESETS = [
+  { label:'매일 (월~금)', days:[1,2,3,4,5] },
+  { label:'월·수·금',     days:[1,3,5] },
+  { label:'화·목·금',     days:[2,4,5] },
+  { label:'월·화·목',     days:[1,2,4] },
+  { label:'화·목',        days:[2,4] },
+  { label:'월·수',        days:[1,3] }
+];
+
+function openSchedModal(classId){
+  _schedClassId = classId;
+  var c = (_cmData.classes || []).filter(function(x){ return x.id === classId; })[0];
+  var className = c ? c.name : '';
+
+  var old = document.getElementById("schedOverlay");
+  if(old) old.remove();
+
+  var ov = document.createElement("div");
+  ov.id = "schedOverlay";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9200;"
+    + "display:flex;align-items:center;justify-content:center;padding:16px";
+  ov.onclick = function(e){ if(e.target === ov) closeSchedModal(); };
+
+  var box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:16px;padding:20px;width:min(96%,640px);"
+    + "max-height:90vh;overflow-y:auto;box-shadow:0 10px 36px rgba(0,0,0,0.22)";
+
+  box.innerHTML =
+      "<div style='display:flex;align-items:center;gap:8px;margin-bottom:3px'>"
+    +   "<div style='font-size:15px;font-weight:800;color:#363D2E;flex:1'>🗓 "
+    +     _plEsc(className) + " 시간표</div>"
+    +   "<button onclick='closeSchedModal()' style='background:none;border:none;font-size:20px;"
+    +     "cursor:pointer;color:#A8B09C;line-height:1'>✕</button>"
+    + "</div>"
+    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:14px'>"
+    +   "한 칸은 55분이에요. 2시간 수업이면 교시를 두 개 고르세요.</div>"
+
+    // ── 요일 ──
+    + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:5px'>요일</div>"
+    + "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px'>"
+    +   WG_WEEKDAYS.slice(0,5).map(function(w){
+          return "<button type='button' id='sdD-" + w.d + "' data-on='0' "
+               + "onclick='schedToggle(this)' style='flex:1;min-width:46px;background:#f4f4f4;"
+               + "color:#777;border:1.5px solid #e0e0e0;border-radius:9px;padding:7px 0;"
+               + "font-size:13px;font-weight:700;cursor:pointer'>" + w.ko + "</button>";
+        }).join("")
+    + "</div>"
+    + "<div style='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px'>"
+    +   SCHED_PRESETS.map(function(p,i){
+          return "<button type='button' onclick='schedPreset(" + i + ")' "
+               + "style='background:#F1F3EE;color:#6B7563;border:none;border-radius:12px;"
+               + "padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer'>"
+               + p.label + "</button>";
+        }).join("")
+    + "</div>"
+
+    // ── 교시 ──
+    + "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:5px'>교시</div>"
+    + "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));"
+    +   "gap:5px;margin-bottom:14px'>"
+    +   WG_PERIODS.map(function(p){
+          return "<button type='button' id='sdP-" + p.p + "' data-on='0' "
+               + "onclick='schedToggle(this)' style='background:#f4f4f4;color:#777;"
+               + "border:1.5px solid #e0e0e0;border-radius:9px;padding:6px 4px;cursor:pointer;"
+               + "font-size:12px;font-weight:700;line-height:1.35'>" + p.p + "교시<br>"
+               + "<span style='font-size:10px;font-weight:600;opacity:.8'>"
+               + p.start + "~" + p.end + "</span></button>";
+        }).join("")
+    + "</div>"
+
+    // ── 수업명 ──
+    + "<div style='display:flex;gap:8px;align-items:flex-end;margin-bottom:16px'>"
+    +   "<div style='flex:1'>"
+    +     "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:5px'>"
+    +       "수업명 <span style='font-weight:400;color:#A8B09C'>(비워도 됩니다)</span></div>"
+    +     "<input type='text' id='sdSubject' placeholder='예) Grammar, Reading, Phonics' "
+    +       "style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
+    +       "font-size:13px;box-sizing:border-box'></div>"
+    +   "<button onclick='schedAdd()' id='sdAddBtn' style='background:#2D6A4F;color:#fff;border:none;"
+    +     "border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;"
+    +     "white-space:nowrap'>＋ 넣기</button>"
+    + "</div>"
+
+    // ── 현재 시간표 ──
+    + "<div style='display:flex;align-items:center;gap:8px;margin-bottom:7px'>"
+    +   "<div style='font-size:11.5px;font-weight:700;color:#5B6551;flex:1'>지금 시간표</div>"
+    +   "<button onclick='schedPrintOne()' style='background:#EFF4EA;color:#2D6A4F;border:none;"
+    +     "border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer'>"
+    +     "🖨 인쇄 · PDF</button>"
+    +   "<button onclick='schedClear()' style='background:#FDECEC;color:#C0392B;border:none;"
+    +     "border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer'>"
+    +     "전체 비우기</button>"
+    + "</div>"
+    + "<div id='sdGrid'><div style='color:#bbb;font-size:12px;padding:14px'>불러오는 중…</div></div>";
+
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  schedLoad();
+}
+
+function closeSchedModal(){
+  var ov = document.getElementById("schedOverlay");
+  if(ov) ov.remove();
+  _schedClassId = null;
+  // 카드의 요약 줄도 새로 그립니다
+  initClassMgmtScreen();
+}
+
+function schedToggle(btn){
+  var on = btn.getAttribute('data-on') === '1';
+  btn.setAttribute('data-on', on ? '0' : '1');
+  btn.style.background  = on ? '#f4f4f4' : '#2D6A4F';
+  btn.style.color       = on ? '#777'    : '#fff';
+  btn.style.borderColor = on ? '#e0e0e0' : '#2D6A4F';
+}
+function _schedSet(btn, on){
+  btn.setAttribute('data-on', on ? '1' : '0');
+  btn.style.background  = on ? '#2D6A4F' : '#f4f4f4';
+  btn.style.color       = on ? '#fff'    : '#777';
+  btn.style.borderColor = on ? '#2D6A4F' : '#e0e0e0';
+}
+function schedPreset(i){
+  var p = SCHED_PRESETS[i];
+  if(!p) return;
+  WG_WEEKDAYS.slice(0,5).forEach(function(w){
+    var b = document.getElementById('sdD-' + w.d);
+    if(b) _schedSet(b, p.days.indexOf(w.d) >= 0);
+  });
+}
+function schedPicked(prefix){
+  var out = [];
+  var src = prefix === 'sdD-' ? WG_WEEKDAYS.slice(0,5).map(function(w){ return w.d; })
+                              : WG_PERIODS.map(function(p){ return p.p; });
+  src.forEach(function(n){
+    var b = document.getElementById(prefix + n);
+    if(b && b.getAttribute('data-on') === '1') out.push(n);
+  });
+  return out;
+}
+
+function schedLoad(){
   google.script.run
-  .withSuccessHandler(function(){
-    // 화면 속 자료도 같이 바꿔둡니다 (다시 불러오지 않아도 맞게 보이도록)
-    var c = (_cmData.classes || []).filter(function(x){ return x.id === classId; })[0];
-    if(c){
-      c.teacherId = teacherId;
-      var t = (_cmData.teachers || []).filter(function(x){ return x.id === teacherId; })[0];
-      c.teacherName = t ? t.name : '';
+  .withSuccessHandler(function(rows){ _schedRows = rows || []; schedRender(); })
+  .withFailureHandler(function(e){
+    var g = document.getElementById('sdGrid');
+    if(g) g.innerHTML = "<div style='color:#c62828;font-size:12px;padding:12px'>"
+      + "불러오지 못했어요. RUN_ME_8_시간표.sql 을 돌리셨나요?</div>";
+  })
+  .fetchClassSchedule(_schedClassId);
+}
+
+function schedRender(){
+  var g = document.getElementById('sdGrid');
+  if(!g) return;
+  if(!_schedRows.length){
+    g.innerHTML = "<div style='color:#C7CCC0;font-size:12px;padding:16px;text-align:center;"
+      + "background:#FAFBF8;border-radius:10px'>아직 시간표가 없어요. 위에서 골라 넣어보세요.</div>";
+    return;
+  }
+  var used = {}, minP = 99, maxP = 1;
+  _schedRows.forEach(function(s){
+    used[s.weekday + '-' + s.period] = s;
+    if(s.period < minP) minP = s.period;
+    if(s.period > maxP) maxP = s.period;
+  });
+
+  var h = "<table style='width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;"
+        + "table-layout:fixed'>";
+  h += "<tr><th style='width:66px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
+    +  "font-size:10.5px;color:#8A9178'>교시</th>";
+  WG_WEEKDAYS.slice(0,5).forEach(function(w){
+    h += "<th style='padding:5px 2px;border-bottom:2px solid #E3E6DE;font-size:11.5px;"
+      +  "font-weight:700;color:#5B6551'>" + w.ko + "</th>";
+  });
+  h += "</tr>";
+
+  for(var p = minP; p <= maxP; p++){
+    var info = _periodInfo(p);
+    h += "<tr><td style='padding:4px;border-bottom:1px solid #F1F2EE;text-align:center'>"
+      +    "<div style='font-size:11px;font-weight:700;color:#5B6551'>" + p + "교시</div>"
+      +    "<div style='font-size:9px;color:#A8B09C'>" + (info ? info.start : '') + "</div></td>";
+    WG_WEEKDAYS.slice(0,5).forEach(function(w){
+      var s = used[w.d + '-' + p];
+      h += "<td style='padding:3px 2px;border-bottom:1px solid #F1F2EE;text-align:center'>";
+      if(s){
+        h += "<div style='background:#EFF4EA;border:1px solid #CFE0C6;border-radius:7px;"
+          +    "padding:4px 3px;position:relative'>"
+          +    "<div style='font-size:10.5px;font-weight:700;color:#2D6A4F;line-height:1.3;"
+          +      "word-break:break-word'>" + (_plEsc(s.subject) || "수업") + "</div>"
+          +    "<button onclick='schedDel(\"" + s.id + "\")' style='position:absolute;top:-5px;"
+          +      "right:-5px;background:#fff;border:1px solid #E0E3DC;border-radius:50%;width:16px;"
+          +      "height:16px;font-size:9px;line-height:1;color:#A8B09C;cursor:pointer;padding:0'>"
+          +      "✕</button></div>";
+      } else {
+        h += "<span style='color:#E4E7DE'>·</span>";
+      }
+      h += "</td>";
+    });
+    h += "</tr>";
+  }
+  h += "</table>";
+  g.innerHTML = h;
+}
+
+function schedAdd(){
+  var days    = schedPicked('sdD-');
+  var periods = schedPicked('sdP-');
+  if(!days.length){    showToast("요일을 골라주세요."); return; }
+  if(!periods.length){ showToast("교시를 골라주세요."); return; }
+  var subject = (document.getElementById('sdSubject') || {}).value || '';
+  var btn = document.getElementById('sdAddBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '넣는 중…'; }
+
+  google.script.run
+  .withSuccessHandler(function(r){
+    if(btn){ btn.disabled = false; btn.textContent = '＋ 넣기'; }
+    if(r && r.success){
+      showToast(r.count + "칸 넣었어요.");
+      var si = document.getElementById('sdSubject');
+      if(si) si.value = '';
+      schedLoad();
+    } else {
+      showToast((r && r.error) || "넣지 못했어요.");
     }
-    _classInfoMapCache = null;
-    sel.style.borderColor = '#2D6A4F';
-    showToast("담임 선생님이 바뀌었어요.");
-    setTimeout(function(){ sel.style.borderColor = before || '#E2E8D8'; }, 1200);
   })
   .withFailureHandler(function(e){
-    sel.style.borderColor = '#C0392B';
-    showToast("바꾸지 못했어요: " + (e && e.message ? e.message : ''));
-    setTimeout(function(){ sel.style.borderColor = before || '#E2E8D8'; }, 1600);
+    if(btn){ btn.disabled = false; btn.textContent = '＋ 넣기'; }
+    showToast("넣지 못했어요: " + (e && e.message ? e.message : ''));
   })
-  .setClassTeacher(classId, teacherId);
+  .saveClassSlots(_schedClassId, days, periods, subject, null);
+}
+
+function schedDel(slotId){
+  google.script.run
+  .withSuccessHandler(function(){ schedLoad(); })
+  .withFailureHandler(function(){ showToast("지우지 못했어요."); })
+  .deleteClassSlot(slotId);
+}
+
+function schedClear(){
+  if(!confirm("이 반의 시간표를 전부 비울까요?\n다시 만들 수 있어요.")) return;
+  google.script.run
+  .withSuccessHandler(function(){ showToast("비웠어요."); schedLoad(); })
+  .withFailureHandler(function(){ showToast("비우지 못했어요."); })
+  .clearClassSchedule(_schedClassId);
+}
+
+// ════════════════════════════════════════════════════════════
+//  시간표 인쇄 · PDF
+//
+//  별도 프로그램 없이 브라우저 인쇄창을 씁니다.
+//  인쇄창에서 "대상"을 [PDF로 저장] 으로 고르면 PDF 가 됩니다.
+// ════════════════════════════════════════════════════════════
+
+function _schedPrintCSS(){
+  return "<style>"
+    + "@page{size:A4 landscape;margin:12mm}"
+    + "*{box-sizing:border-box}"
+    + "body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;"
+    +   "margin:0;padding:18px;color:#2D3A28}"
+    + "h1{font-size:19px;margin:0 0 2px}"
+    + ".sub{font-size:11px;color:#8A9178;margin-bottom:14px}"
+    + "table{width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:auto}"
+    + "th,td{border:1px solid #CBD2C2;padding:5px 4px;text-align:center;"
+    +   "font-size:11px;vertical-align:top;word-break:break-word}"
+    + "th{background:#EFF2EB;font-weight:700;font-size:11.5px}"
+    + "td.per{background:#F7F9F4;font-weight:700;width:74px}"
+    + "td.per span{display:block;font-weight:400;font-size:9px;color:#8A9178}"
+    + ".cell{font-weight:700;color:#2D6A4F;line-height:1.35}"
+    + ".cell small{display:block;font-weight:400;color:#6B7563;font-size:9.5px}"
+    + ".empty{color:#D8DCD2}"
+    + "h2{font-size:14px;margin:18px 0 6px;page-break-after:avoid}"
+    + ".blk{page-break-inside:avoid;margin-bottom:16px}"
+    + "@media print{.noprint{display:none}}"
+    + ".noprint{margin-bottom:14px}"
+    + ".noprint button{background:#2D6A4F;color:#fff;border:none;border-radius:8px;"
+    +   "padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;margin-right:6px}"
+    + ".noprint .g{background:#EFEFEF;color:#555}"
+    + "</style>";
+}
+
+// 칸 목록 → 요일 × 교시 표
+function _schedTable(rows, showClassName){
+  if(!rows || !rows.length){
+    return "<div style='color:#999;font-size:12px;padding:10px'>시간표가 없습니다.</div>";
+  }
+  var used = {}, minP = 99, maxP = 1;
+  rows.forEach(function(s){
+    var k = s.weekday + '-' + s.period;
+    (used[k] = used[k] || []).push(s);
+    if(s.period < minP) minP = s.period;
+    if(s.period > maxP) maxP = s.period;
+  });
+
+  var h = "<table><tr><th style='width:74px'>교시</th>";
+  WG_WEEKDAYS.slice(0,5).forEach(function(w){ h += "<th>" + w.ko + "</th>"; });
+  h += "</tr>";
+
+  for(var p = minP; p <= maxP; p++){
+    var info = _periodInfo(p);
+    h += "<tr><td class='per'>" + p + "교시<span>"
+      +  (info ? info.start + "~" + info.end : "") + "</span></td>";
+    WG_WEEKDAYS.slice(0,5).forEach(function(w){
+      var list = used[w.d + '-' + p] || [];
+      if(!list.length){ h += "<td class='empty'>·</td>"; return; }
+      h += "<td>" + list.map(function(s){
+        return "<div class='cell'>"
+          + (showClassName ? _plEsc(s.className || '') : (_plEsc(s.subject) || '수업'))
+          + (showClassName && s.subject ? "<small>" + _plEsc(s.subject) + "</small>" : "")
+          + (!showClassName && s.teacherName ? "<small>" + _plEsc(s.teacherName) + "</small>" : "")
+          + "</div>";
+      }).join("") + "</td>";
+    });
+    h += "</tr>";
+  }
+  return h + "</table>";
+}
+
+function _schedOpenPrint(title, bodyHtml){
+  var w = window.open('', '_blank');
+  if(!w){ showToast("팝업이 막혀 있어요. 브라우저에서 이 사이트의 팝업을 허용해 주세요."); return; }
+  w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>"
+    + title + "</title>" + _schedPrintCSS() + "</head><body>"
+    + "<div class='noprint'>"
+    +   "<button onclick='window.print()'>🖨 인쇄 · PDF로 저장</button>"
+    +   "<button class='g' onclick='window.close()'>닫기</button>"
+    +   "<div style='font-size:11px;color:#8A9178;margin-top:7px'>"
+    +     "인쇄창에서 <b>대상</b>을 [PDF로 저장] 으로 고르시면 PDF 파일이 됩니다.</div>"
+    + "</div>"
+    + bodyHtml + "</body></html>");
+  w.document.close();
+}
+
+// 한 반 시간표
+function schedPrintOne(){
+  var c = (_cmData.classes || []).filter(function(x){ return x.id === _schedClassId; })[0];
+  var name = c ? c.name : '';
+  if(!_schedRows.length){ showToast("시간표가 비어 있어요."); return; }
+  _schedOpenPrint(name + " 시간표",
+      "<h1>" + _plEsc(name) + " 시간표</h1>"
+    + "<div class='sub'>WILLGROW 철산캠퍼스"
+    +   (c && c.teacherName ? " · 담임 " + _plEsc(c.teacherName) : "")
+    +   " · " + getTodayStr() + " 기준</div>"
+    + _schedTable(_schedRows, false));
+}
+
+// 학원 전체 시간표 (요일 × 교시 · 칸 안에 반 이름)
+function schedPrintAll(){
+  showToast("시간표를 모으는 중…");
+  google.script.run
+  .withSuccessHandler(function(rows){
+    rows = rows || [];
+    if(!rows.length){ showToast("아직 만들어진 시간표가 없어요."); return; }
+    var nameOf = {};
+    (_cmData.classes || []).forEach(function(c){ nameOf[c.id] = c.name; });
+    rows.forEach(function(s){ s.className = nameOf[s.classId] || ''; });
+
+    // 학년 묶음별로 한 장씩
+    var groups = {}, keys = [];
+    rows.forEach(function(s){
+      var g = _classGroup(s.className);
+      if(!groups[g.key]){ groups[g.key] = { label:g.label, rows:[] }; keys.push(g.key); }
+      groups[g.key].rows.push(s);
+    });
+    keys.sort();
+
+    _schedOpenPrint("WILLGROW 전체 시간표",
+        "<h1>WILLGROW 철산캠퍼스 전체 시간표</h1>"
+      + "<div class='sub'>" + getTodayStr() + " 기준 · 반 " 
+      + Object.keys(nameOf).length + "개</div>"
+      + keys.map(function(k){
+          return "<div class='blk'><h2>" + _plEsc(groups[k].label) + "</h2>"
+               + _schedTable(groups[k].rows, true) + "</div>";
+        }).join(""));
+  })
+  .withFailureHandler(function(e){
+    showToast("불러오지 못했어요: " + (e && e.message ? e.message : ''));
+  })
+  .fetchAllSchedules2();
+}
+
+// ════════════════════════════════════════════════════════════
+//  담임 변경 — 확인 절차
+//
+//  드롭다운만 건드려서 바뀌면 안 되는 일이라
+//  "회의에서 상의된 내용인지" 를 한 번 더 묻습니다.
+//  확인 전에는 드롭다운을 원래대로 되돌려 둡니다.
+// ════════════════════════════════════════════════════════════
+var _hrPending = null;   // { classId, fromId, toId }
+
+function askChangeHomeroom(classId){
+  var sel = document.getElementById("cmT-" + classId);
+  if(!sel) return;
+  var c = (_cmData.classes || []).filter(function(x){ return x.id === classId; })[0];
+  if(!c) return;
+
+  var toId   = sel.value;
+  var fromId = c.teacherId || '';
+  if(toId === fromId) return;
+
+  function nameOf(id){
+    if(!id) return '담임 없음';
+    var t = (_cmData.teachers || []).filter(function(x){ return x.id === id; })[0];
+    return t ? t.name : '(알 수 없음)';
+  }
+
+  // 아직 확정 아님 — 화면은 원래대로 돌려놓습니다
+  sel.value = fromId;
+  syncCombo && null;
+
+  _hrPending = { classId:classId, fromId:fromId, toId:toId };
+
+  var old = document.getElementById("hrOverlay");
+  if(old) old.remove();
+
+  var ov = document.createElement("div");
+  ov.id = "hrOverlay";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9200;"
+    + "display:flex;align-items:center;justify-content:center;padding:16px";
+  ov.onclick = function(e){ if(e.target === ov) closeHomeroomAsk(); };
+
+  var box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:16px;padding:22px 20px;width:min(94%,420px);"
+    + "max-height:88vh;overflow-y:auto;box-shadow:0 10px 36px rgba(0,0,0,0.22)";
+  box.innerHTML =
+      "<div style='font-size:15px;font-weight:800;color:#363D2E;margin-bottom:4px'>담임 변경 확인</div>"
+    + "<div style='font-size:11.5px;color:#A8B09C;margin-bottom:14px'>"
+    +   "담임은 함부로 바꾸지 않습니다. 아래를 확인해 주세요.</div>"
+
+    + "<div style='background:#FAFBF8;border-radius:10px;padding:12px 14px;margin-bottom:14px'>"
+    +   "<div style='font-size:12px;color:#8A9178;margin-bottom:6px'>" + _plEsc(c.name) + "</div>"
+    +   "<div style='display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700'>"
+    +     "<span style='color:#9AA391'>" + _plEsc(nameOf(fromId)) + "</span>"
+    +     "<span style='color:#C3C9BB'>→</span>"
+    +     "<span style='color:#2D6A4F'>" + _plEsc(nameOf(toId)) + "</span>"
+    +   "</div>"
+    + "</div>"
+
+    + "<label style='display:flex;gap:9px;align-items:flex-start;background:#FFF8E9;"
+    +   "border:1.5px solid #E8D9A8;border-radius:10px;padding:11px 13px;margin-bottom:12px;cursor:pointer'>"
+    +   "<input type='checkbox' id='hrAgreed' onchange='hrValidate()' "
+    +     "style='width:17px;height:17px;margin-top:1px;cursor:pointer;flex-shrink:0'>"
+    +   "<span style='font-size:12.5px;color:#6B5A22;line-height:1.5;font-weight:600'>"
+    +     "회의에서 상의되어 결정된 변경입니다</span></label>"
+
+    + "<div style='margin-bottom:10px'>"
+    +   "<label style='font-size:11.5px;font-weight:700;color:#5B6551;display:block;margin-bottom:4px'>"
+    +     "언제 정해졌나요?</label>"
+    +   "<input type='date' id='hrDate' style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;"
+    +     "border-radius:8px;font-size:13px;box-sizing:border-box'></div>"
+
+    + "<div style='margin-bottom:16px'>"
+    +   "<label style='font-size:11.5px;font-weight:700;color:#5B6551;display:block;margin-bottom:4px'>"
+    +     "사유 <span style='color:#C0392B'>*</span></label>"
+    +   "<textarea id='hrReason' rows='2' oninput='hrValidate()' "
+    +     "placeholder='예) 9/18 정기회의 — Anna 선생님 퇴사로 Bella 선생님이 인계' "
+    +     "style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
+    +     "font-size:12.5px;resize:vertical;box-sizing:border-box'></textarea>"
+    +   "<div style='font-size:10.5px;color:#A8B09C;margin-top:4px'>"
+    +     "메모 보드에 기록으로 남습니다</div></div>"
+
+    + "<div style='display:flex;gap:8px'>"
+    +   "<button onclick='closeHomeroomAsk()' style='flex:1;background:#F1F3EE;color:#5B6551;border:none;"
+    +     "border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer'>취소</button>"
+    +   "<button id='hrOk' onclick='confirmChangeHomeroom()' disabled "
+    +     "style='flex:2;background:#C9CEC2;color:#fff;border:none;border-radius:10px;padding:11px;"
+    +     "font-size:13px;font-weight:700;cursor:not-allowed'>담임 변경</button>"
+    + "</div>";
+
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+
+  var d = document.getElementById("hrDate");
+  if(d) d.value = getTodayStr();
+}
+
+// 체크 + 사유가 다 있어야 버튼이 켜집니다
+function hrValidate(){
+  var ok  = document.getElementById("hrAgreed");
+  var rs  = document.getElementById("hrReason");
+  var btn = document.getElementById("hrOk");
+  if(!ok || !rs || !btn) return;
+  var pass = ok.checked && rs.value.trim().length >= 2;
+  btn.disabled = !pass;
+  btn.style.background = pass ? '#2D6A4F' : '#C9CEC2';
+  btn.style.cursor     = pass ? 'pointer' : 'not-allowed';
+}
+
+function closeHomeroomAsk(){
+  var ov = document.getElementById("hrOverlay");
+  if(ov) ov.remove();
+  // 드롭다운을 원래 담임으로 되돌립니다
+  if(_hrPending){
+    var sel = document.getElementById("cmT-" + _hrPending.classId);
+    if(sel) sel.value = _hrPending.fromId;
+  }
+  _hrPending = null;
+}
+
+function confirmChangeHomeroom(){
+  if(!_hrPending) return;
+  var p = _hrPending;
+  var reason = (document.getElementById("hrReason") || {}).value || '';
+  var when   = (document.getElementById("hrDate")   || {}).value || getTodayStr();
+  var btn = document.getElementById("hrOk");
+  if(btn){ btn.disabled = true; btn.textContent = '바꾸는 중…'; }
+
+  function nameOf(id){
+    if(!id) return '담임 없음';
+    var t = (_cmData.teachers || []).filter(function(x){ return x.id === id; })[0];
+    return t ? t.name : '(알 수 없음)';
+  }
+  var c = (_cmData.classes || []).filter(function(x){ return x.id === p.classId; })[0];
+  var className = c ? c.name : '';
+
+  google.script.run
+  .withSuccessHandler(function(){
+    // 기록을 메모 보드에 남깁니다
+    google.script.run.createMemo({
+      content: "[담임 변경] " + className + " : "
+             + nameOf(p.fromId) + " → " + nameOf(p.toId) + "\n"
+             + "결정일 " + when + "\n사유: " + reason.trim(),
+      type: "기타",
+      author: _userName || ''
+    });
+    if(c){
+      c.teacherId = p.toId;
+      c.teacherName = nameOf(p.toId);
+    }
+    _classInfoMapCache = null;
+    closeHomeroomAsk();
+    _hrPending = null;
+    renderClassMgmt();
+    showToast(className + " 담임이 " + nameOf(p.toId) + " 선생님으로 바뀌었어요.");
+  })
+  .withFailureHandler(function(e){
+    if(btn){ btn.disabled = false; btn.textContent = '담임 변경'; }
+    showToast("바꾸지 못했어요: " + (e && e.message ? e.message : ''));
+  })
+  .setClassTeacher(p.classId, p.toId);
 }
 
 function renderAbsenceList(){
@@ -8199,7 +8913,7 @@ function renderMeetingsList(meetings){
   if(!el) return;
   if(!meetings.length){ el.innerHTML="<div class='empty'>No meetings yet.</div>"; return; }
   var evtColors = _schoolEventTypeColors||{};
-  el.innerHTML = meetings.map(function(m){
+  function meetingCard(m){
     var tc = _meetingTypeColors[m.meetingType]||{bg:'#f5f5f5',text:'#555'};
     var isEvent = m.meetingType==='Schedule/Event';
     var dateStr = isEvent && m.eventStartDate
@@ -8224,7 +8938,11 @@ function renderMeetingsList(meetings){
       + "<span style='font-size:11px;font-weight:700;color:"+(m.status==='확정'?'#2E7D32':'#E65100')+";background:"+(m.status==='확정'?'#E8F5E9':'#FFF3E0')+";border-radius:6px;padding:2px 8px'>"+(m.status==='확정'?'✅ Confirmed':'🤔 Discussing')+"</span>"
       + "</div>"
       + "</div>";
-  }).join("");
+  }
+  // 달력은 위에 있고, 회의록은 월별로 접어 둡니다 (이번 달만 펼침)
+  el.innerHTML = renderMonthGroups(meetings,
+    function(m){ return String(m.eventStartDate || m.meetingDate || '').slice(0,10); },
+    meetingCard, 'mgMeet', 'No meetings yet.');
 }
 function onMtgTypeChange(){
   var type = document.getElementById('mtgType').value;
