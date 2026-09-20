@@ -486,7 +486,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 Class Hub</div><div style="font-size:11px;color:#999;margin-top:2px">담임 · 학생 명단 · 시간표 · 이번주/지난주 진도</div></div><div style="display:flex;gap:6px"><button onclick="schedPrintAll()" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨 전체 시간표</button><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 · 선생님 · 학생 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 Class Hub</div><div style="font-size:11px;color:#999;margin-top:2px">담임 · 학생 명단 · 시간표 · 이번주/지난주 진도</div></div><div style="display:flex;gap:6px"><button onclick="openTextbookMgr()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📚 교재 관리</button><button onclick="schedPrintAll()" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨 전체 시간표</button><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 · 선생님 · 학생 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <div style="font-size:14px;font-weight:700;color:#363D2E">📊 월별 현황</div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -858,7 +858,7 @@ function _periodInfo(p){
 async function fetchClassSchedule(classId) {
   if(!classId) return [];
   var rows = await _sbGetSafe('class_schedules',
-    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id'
+    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id,textbook_id,section'
     + '&class_id=' + _eq(classId) + '&order=weekday.asc,period.asc') || [];
   return rows.map(_mapSchedRow);
 }
@@ -866,7 +866,7 @@ async function fetchClassSchedule(classId) {
 // 학원 전체 시간표 (인쇄용)
 async function fetchAllSchedules2() {
   var rows = await _sbGetSafe('class_schedules',
-    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id'
+    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id,textbook_id,section'
     + '&order=weekday.asc,period.asc') || [];
   return rows.map(_mapSchedRow);
 }
@@ -875,7 +875,8 @@ function _mapSchedRow(r){
   return { id:r.id, classId:r.class_id, weekday:r.weekday, period:r.period,
            start:String(r.start_time||'').slice(0,5),
            end:  String(r.end_time||'').slice(0,5),
-           subject:r.subject||'', teacherId:r.teacher_id||'' };
+           subject:r.subject||'', teacherId:r.teacher_id||'',
+           textbookId:r.textbook_id||'', section:r.section||'' };
 }
 
 // 여러 칸을 한 번에 넣기
@@ -957,6 +958,122 @@ async function clearClassSchedule(classId) {
   return { success:true };
 }
 
+// ════════════════════════════════════════════════════════════
+//  교재 카탈로그
+//
+//    시리즈 (Little Junior Star)
+//      └─ 교재 (1-1, 1-2 …)        ← 표지가 붙는 단위
+//      └─ 영역 (PLAYHOUSE …)        ← 시리즈마다 정해져 있음
+//
+//  외부교재는 영역이 없고 교재 하나가 곧 그 수업입니다.
+// ════════════════════════════════════════════════════════════
+var _catCache = null;
+
+async function fetchTextbookCatalog(force) {
+  if(_catCache && !force) return _catCache;
+
+  var series = await _sbGetSafe('textbook_series',
+    'select=id,code,display_name,sections,sort_order&order=sort_order.asc') || [];
+  var books = await _sbGetSafe('textbooks',
+    'select=id,name,course,cover_url,sort_order,supplements&order=course.asc') || [];
+
+  var byCode = {};
+  series.forEach(function(s){
+    byCode[s.code] = { id:s.id, code:s.code, name:s.display_name || s.code,
+                       sections:s.sections || [], order:s.sort_order, books:[] };
+  });
+
+  books.forEach(function(b){
+    var code = b.course || '기타';
+    if(!byCode[code]){
+      // 시리즈 표에 없는 course 값도 버리지 않고 묶어 둡니다
+      byCode[code] = { id:null, code:code, name:code, sections:[], order:98, books:[] };
+    }
+    byCode[code].books.push({
+      id:b.id, name:b.name || '', course:code,
+      cover:b.cover_url || '', order:(b.sort_order == null ? 99 : b.sort_order)
+    });
+  });
+
+  var list = Object.keys(byCode).map(function(k){ return byCode[k]; });
+  list.sort(function(a,b){ return (a.order - b.order) || (a.name < b.name ? -1 : 1); });
+  list.forEach(function(s){
+    s.books.sort(function(a,b){ return (a.order - b.order) || (a.name < b.name ? -1 : 1); });
+  });
+
+  _catCache = { series:list, count:books.length };
+  return _catCache;
+}
+
+// 교재 하나 찾기 (id → { book, series })
+function findTextbook(catalog, id){
+  if(!catalog || !id) return null;
+  for(var i=0;i<catalog.series.length;i++){
+    var s = catalog.series[i];
+    for(var j=0;j<s.books.length;j++){
+      if(s.books[j].id === id) return { book:s.books[j], series:s };
+    }
+  }
+  return null;
+}
+
+// 화면에 쓰는 이름 — "Little Junior Star 1-1"
+function textbookLabel(catalog, id){
+  var f = findTextbook(catalog, id);
+  if(!f) return '';
+  if(f.series.code === '외부') return f.book.name;       // 외부교재는 이름이 곧 전부
+  return f.series.name + ' ' + f.book.name;
+}
+
+// 표지 올리기 → Willgrow 버킷의 covers/ 폴더
+async function uploadTextbookCover(textbookId, b64, fileName, mimeType) {
+  try {
+    var blob = _b64toBlob(b64, mimeType || 'image/jpeg');
+    var path = _uniquePath('covers', fileName || 'cover.jpg');
+    var url  = await sbUploadFile('Willgrow', path, blob, mimeType || 'image/jpeg');
+    await sbPatch('textbooks', 'id=' + _eq(textbookId), { cover_url: url });
+    _catCache = null;
+    return { success:true, url:url };
+  } catch(e) { return { success:false, error:e.message }; }
+}
+
+async function removeTextbookCover(textbookId) {
+  await sbPatch('textbooks', 'id=' + _eq(textbookId), { cover_url: null });
+  _catCache = null;
+  return { success:true };
+}
+
+// 교재 추가 / 지우기
+async function addTextbook(course, name, sortOrder) {
+  if(!course || !String(name||'').trim()) return { success:false, error:'이름을 적어주세요.' };
+  var dup = await _sbGetSafe('textbooks',
+    'select=id&course=' + _eq(course) + '&name=' + _eq(String(name).trim()) + '&limit=1') || [];
+  if(dup.length) return { success:false, error:'이미 있는 교재예요.' };
+  var r = await sbInsert('textbooks', {
+    course:course, name:String(name).trim(),
+    sort_order:(sortOrder == null ? 99 : sortOrder)
+  });
+  _catCache = null;
+  return r ? { success:true, id:r.id } : { success:false, error:'넣지 못했어요.' };
+}
+
+async function deleteTextbook(textbookId) {
+  await sbDelete('textbooks', 'id=' + _eq(textbookId), { allowZero:true });
+  _catCache = null;
+  return { success:true };
+}
+
+// 시간표 칸에 교재·영역 붙이기
+async function setSlotTextbook(slotId, textbookId, section, label) {
+  await sbPatch('class_schedules', 'id=' + _eq(slotId), {
+    textbook_id: textbookId || null,
+    section:     (section || '').trim() || null,
+    subject:     (label || '').trim() || null,   // 글자로도 남겨둡니다 (인쇄·예전 화면용)
+    updated_at:  new Date().toISOString()
+  });
+  return { success:true };
+}
+
 // ── 주(週) 계산: 월요일 시작 ──────────────────────────────
 function _ymd(d){
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
@@ -1000,7 +1117,7 @@ async function fetchClassManage() {
 
   // 시간표 (반마다 몇 칸이 짜여 있는지)
   var slots = await _sbGetSafe('class_schedules',
-    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id'
+    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id,textbook_id,section'
     + '&class_id=in.' + inList + '&order=weekday.asc,period.asc') || [];
   var slotBy = {};
   slots.forEach(function(s){ (slotBy[s.class_id] = slotBy[s.class_id] || []).push(_mapSchedRow(s)); });
@@ -2585,6 +2702,8 @@ var _serverFunctions = {
   fetchClassManage, setClassTeacher, setTeacherActive,
   fetchClassSchedule, fetchAllSchedules2, saveClassSlots, deleteClassSlot, clearClassSchedule,
   updateSlotSubject, addOneSlot,
+  fetchTextbookCatalog, uploadTextbookCover, removeTextbookCover,
+  addTextbook, deleteTextbook, setSlotTextbook,
   initMemoSchema: async function(){ return; }
 };
 
@@ -7791,6 +7910,7 @@ function renderClassMgmt(){
 // ════════════════════════════════════════════════════════════
 var _schedClassId = null;
 var _schedRows    = [];
+var _catalog      = null;   // 교재 카탈로그 (한 번 불러 캐시)
 
 // 자주 쓰는 요일 묶음
 var SCHED_PRESETS = [
@@ -7883,6 +8003,13 @@ function openSchedModal(classId){
   ov.appendChild(box);
   document.body.appendChild(ov);
   schedLoad();
+  // 교재 목록을 미리 받아 둡니다 (칸을 누를 때 기다리지 않게)
+  if(!_catalog){
+    google.script.run
+      .withSuccessHandler(function(cat){ _catalog = cat; schedRender(); })
+      .withFailureHandler(function(){})
+      .fetchTextbookCatalog(false);
+  }
 }
 
 function closeSchedModal(){
@@ -7946,6 +8073,34 @@ function schedLoad(){
   .fetchClassSchedule(_schedClassId);
 }
 
+// ── 칸에 보일 내용 (표지 + 교재 + 영역) ────────────────────
+function _slotFace(s){
+  var f = _catalog ? findTextbook(_catalog, s.textbookId) : null;
+  if(f){
+    var cover = f.book.cover
+      ? "<img src=\"" + _mgAttr(f.book.cover) + "\" alt='' style='width:100%;height:30px;"
+        + "object-fit:cover;border-radius:4px;display:block;margin-bottom:2px'>"
+      : "";
+    var isExt = f.series.code === '외부';
+    return cover
+      + "<div style='font-size:10px;font-weight:700;color:#2D6A4F;line-height:1.25;"
+      +   "word-break:break-word'>" + _plEsc(f.book.name) + "</div>"
+      + (isExt ? ""
+          : "<div style='font-size:8.5px;color:#8A9178;line-height:1.2'>"
+            + _plEsc(f.series.name) + "</div>")
+      + (s.section
+          ? "<div style='font-size:9px;font-weight:700;color:#4E6E9E;margin-top:1px'>"
+            + _plEsc(s.section) + "</div>"
+          : "");
+  }
+  // 아직 교재를 안 고른 칸
+  if(s.subject){
+    return "<div style='font-size:10px;font-weight:700;color:#2D6A4F;line-height:1.25;"
+      +    "word-break:break-word'>" + _plEsc(s.subject) + "</div>";
+  }
+  return "<div style='font-size:10px;color:#B9BFB1'>교재 고르기</div>";
+}
+
 function schedRender(){
   var g = document.getElementById('sdGrid');
   if(!g) return;
@@ -7957,19 +8112,18 @@ function schedRender(){
   var used = {}, minP = 99, maxP = 1, dayOn = {};
   _schedRows.forEach(function(s){
     used[s.weekday + '-' + s.period] = s;
-    dayOn[s.weekday] = true;                    // 실제로 수업하는 요일만 기억
+    dayOn[s.weekday] = true;
     if(s.period < minP) minP = s.period;
     if(s.period > maxP) maxP = s.period;
   });
-  // 월수금 반이면 화·목 칸은 아예 안 보여줍니다
   var days = WG_WEEKDAYS.slice(0,7).filter(function(w){ return dayOn[w.d]; });
 
   var h = "<div style='font-size:10.5px;color:#A8B09C;margin-bottom:6px'>"
-        + "칸을 눌러 수업명을 고칠 수 있어요. 요일마다 다르게 적어도 됩니다.</div>";
+        + "칸을 누르면 교재를 고를 수 있어요. 요일마다 다르게 골라도 됩니다.</div>";
 
   h += "<table style='width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px;"
     +  "table-layout:fixed'>";
-  h += "<tr><th style='width:66px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
+  h += "<tr><th style='width:60px;padding:5px 4px;border-bottom:2px solid #E3E6DE;"
     +  "font-size:10.5px;color:#8A9178'>시간</th>";
   days.forEach(function(w){
     h += "<th style='padding:5px 2px;border-bottom:2px solid #E3E6DE;font-size:11.5px;"
@@ -7988,26 +8142,22 @@ function schedRender(){
     (function(period){
       days.forEach(function(w){
         var s = used[w.d + '-' + period];
-        h += "<td style='padding:3px 2px;border-bottom:1px solid #F1F2EE'>";
+        h += "<td style='padding:3px 2px;border-bottom:1px solid #F1F2EE;vertical-align:top'>";
         if(s){
-          // ── 바로 고칠 수 있는 칸 ──
-          h += "<div style='display:flex;align-items:center;gap:2px;background:#EFF4EA;"
-            +    "border:1px solid #CFE0C6;border-radius:7px;padding:2px 2px 2px 4px'>"
-            +    "<input id='sdC-" + s.id + "' value=\"" + _mgAttr(s.subject || '') + "\" "
-            +      "placeholder='수업명' "
-            +      "onchange='schedSaveSubject(\"" + s.id + "\")' "
-            +      "onkeydown='if(event.key===\"Enter\"){ this.blur(); }' "
-            +      "style='flex:1;min-width:0;background:transparent;border:none;outline:none;"
-            +      "font-size:10.5px;font-weight:700;color:#2D6A4F;text-align:center;padding:2px 0'>"
+          h += "<div style='position:relative;background:#EFF4EA;border:1px solid #CFE0C6;"
+            +    "border-radius:7px;padding:4px 4px 3px;text-align:center'>"
+            +    "<button onclick='openBookPicker(\"" + s.id + "\")' "
+            +      "style='display:block;width:100%;background:none;border:none;padding:0;"
+            +      "cursor:pointer;text-align:center'>" + _slotFace(s) + "</button>"
             +    "<button onclick='schedDel(\"" + s.id + "\")' title='이 칸 지우기' "
-            +      "style='background:none;border:none;font-size:10px;line-height:1;color:#A8C0A0;"
-            +      "cursor:pointer;padding:0 2px;flex-shrink:0'>✕</button>"
+            +      "style='position:absolute;top:-6px;right:-6px;background:#fff;"
+            +      "border:1px solid #E0E3DC;border-radius:50%;width:16px;height:16px;"
+            +      "font-size:9px;line-height:1;color:#A8B09C;cursor:pointer;padding:0'>✕</button>"
             +  "</div>";
         } else {
-          // ── 빈 칸: 눌러서 만들기 ──
           h += "<button onclick='schedAddOne(" + w.d + "," + period + ")' title='여기에 수업 넣기' "
             +    "style='width:100%;background:none;border:1px dashed #E4E7DE;border-radius:7px;"
-            +    "padding:5px 0;font-size:11px;color:#D2D7CB;cursor:pointer'>＋</button>";
+            +    "padding:8px 0;font-size:11px;color:#D2D7CB;cursor:pointer'>＋</button>";
         }
         h += "</td>";
       });
@@ -8018,31 +8168,183 @@ function schedRender(){
   g.innerHTML = h;
 }
 
-// 칸의 수업명 저장 (표를 다시 그리지 않아 입력 흐름이 끊기지 않습니다)
-function schedSaveSubject(slotId){
-  var inp = document.getElementById('sdC-' + slotId);
-  if(!inp) return;
-  var v = inp.value;
-  var box = inp.parentNode;
+// ════════════════════════════════════════════════════════════
+//  교재 고르기 창
+// ════════════════════════════════════════════════════════════
+var _pickSlotId = null;
+var _pickSeries = null;   // 지금 보고 있는 시리즈 code
+var _pickBookId = null;
+var _pickSection = '';
+
+function openBookPicker(slotId){
+  _pickSlotId = slotId;
+  var s = _schedRows.filter(function(x){ return x.id === slotId; })[0];
+  _pickBookId  = s ? s.textbookId : '';
+  _pickSection = s ? s.section : '';
+  var f = _catalog ? findTextbook(_catalog, _pickBookId) : null;
+  _pickSeries = f ? f.series.code : (_catalog && _catalog.series[0] ? _catalog.series[0].code : null);
+
+  var old = document.getElementById('bpOverlay');
+  if(old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'bpOverlay';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:9400;"
+    + "display:flex;align-items:center;justify-content:center;padding:16px";
+  ov.onclick = function(e){ if(e.target === ov) closeBookPicker(); };
+
+  var box = document.createElement('div');
+  box.id = 'bpBox';
+  box.style.cssText = "background:#fff;border-radius:16px;padding:18px;width:min(96%,620px);"
+    + "max-height:88vh;overflow-y:auto;box-shadow:0 10px 36px rgba(0,0,0,0.24)";
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+
+  if(_catalog){ renderBookPicker(); }
+  else {
+    box.innerHTML = "<div style='color:#bbb;font-size:13px;padding:20px;text-align:center'>"
+      + "교재 목록을 불러오는 중…</div>";
+    google.script.run
+    .withSuccessHandler(function(cat){ _catalog = cat; renderBookPicker(); })
+    .withFailureHandler(function(){
+      box.innerHTML = "<div style='color:#c62828;font-size:12.5px;padding:18px'>"
+        + "교재 목록을 불러오지 못했어요.<br>RUN_ME_9_교재카탈로그.sql 을 돌리셨나요?</div>";
+    })
+    .fetchTextbookCatalog(false);
+  }
+}
+
+function closeBookPicker(){
+  var ov = document.getElementById('bpOverlay');
+  if(ov) ov.remove();
+  _pickSlotId = null;
+}
+
+function renderBookPicker(){
+  var box = document.getElementById('bpBox');
+  if(!box || !_catalog) return;
+  var ser = _catalog.series.filter(function(s){ return s.code === _pickSeries; })[0]
+         || _catalog.series[0];
+  if(ser) _pickSeries = ser.code;
+
+  var h = "<div style='display:flex;align-items:center;gap:8px;margin-bottom:12px'>"
+        + "<div style='font-size:15px;font-weight:800;color:#363D2E;flex:1'>📚 교재 고르기</div>"
+        + "<button onclick='closeBookPicker()' style='background:none;border:none;font-size:20px;"
+        +   "cursor:pointer;color:#A8B09C;line-height:1'>✕</button></div>";
+
+  // ── 시리즈 ──
+  h += "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px'>"
+    + _catalog.series.map(function(s){
+        var on = s.code === _pickSeries;
+        return "<button onclick='bpSeries(\"" + _mgAttr(s.code) + "\")' "
+          + "style='background:" + (on ? '#2D6A4F' : '#f4f4f4') + ";color:" + (on ? '#fff' : '#777')
+          + ";border:1.5px solid " + (on ? '#2D6A4F' : '#e0e0e0') + ";border-radius:14px;"
+          + "padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer'>"
+          + _plEsc(s.name) + "</button>";
+      }).join("")
+    + "</div>";
+
+  // ── 교재 ──
+  if(!ser || !ser.books.length){
+    h += "<div style='color:#C7CCC0;font-size:12.5px;padding:16px;text-align:center;"
+      +  "background:#FAFBF8;border-radius:10px;margin-bottom:12px'>"
+      +  "이 시리즈에 교재가 없어요. [교재 관리] 에서 추가해 주세요.</div>";
+  } else {
+    h += "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));"
+      +  "gap:7px;margin-bottom:14px'>"
+      + ser.books.map(function(b){
+          var on = b.id === _pickBookId;
+          return "<button onclick='bpBook(\"" + b.id + "\")' "
+            + "style='background:" + (on ? '#EFF4EA' : '#fff') + ";border:2px solid "
+            + (on ? '#2D6A4F' : '#EDEFE9') + ";border-radius:10px;padding:6px 5px;cursor:pointer;"
+            + "text-align:center'>"
+            + (b.cover
+                ? "<img src=\"" + _mgAttr(b.cover) + "\" alt='' style='width:100%;height:64px;"
+                  + "object-fit:cover;border-radius:6px;display:block;margin-bottom:4px'>"
+                : "<div style='width:100%;height:64px;background:#F5F6F2;border-radius:6px;"
+                  + "display:flex;align-items:center;justify-content:center;margin-bottom:4px;"
+                  + "font-size:18px;color:#D8DCD2'>📘</div>")
+            + "<div style='font-size:11px;font-weight:700;color:" + (on ? '#2D6A4F' : '#4A5344')
+            + ";line-height:1.25;word-break:break-word'>" + _plEsc(b.name) + "</div>"
+            + "</button>";
+        }).join("")
+      + "</div>";
+  }
+
+  // ── 영역 ──
+  if(ser && ser.sections && ser.sections.length){
+    h += "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:5px'>"
+      +  "이 시간에 할 영역</div>"
+      +  "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px'>"
+      +  ser.sections.map(function(sec){
+           var on = sec === _pickSection;
+           return "<button onclick='bpSection(\"" + _mgAttr(sec) + "\")' "
+             + "style='background:" + (on ? '#4E6E9E' : '#f4f4f4') + ";color:" + (on ? '#fff' : '#777')
+             + ";border:1.5px solid " + (on ? '#4E6E9E' : '#e0e0e0') + ";border-radius:13px;"
+             + "padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer'>"
+             + _plEsc(sec) + "</button>";
+         }).join("")
+      + "</div>";
+  }
+
+  h += "<div style='display:flex;gap:8px'>"
+    + "<button onclick='bpClear()' style='flex:1;background:#F1F3EE;color:#5B6551;border:none;"
+    +   "border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer'>"
+    +   "비우기</button>"
+    + "<button onclick='bpSave()' id='bpSaveBtn' style='flex:2;background:#2D6A4F;color:#fff;"
+    +   "border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;"
+    +   "cursor:pointer'>이 칸에 넣기</button></div>";
+
+  box.innerHTML = h;
+}
+
+function bpSeries(code){
+  _pickSeries = code;
+  // 다른 시리즈로 옮기면 영역은 초기화합니다
+  var f = _catalog ? findTextbook(_catalog, _pickBookId) : null;
+  if(!f || f.series.code !== code){ _pickSection = ''; }
+  renderBookPicker();
+}
+function bpBook(id){
+  _pickBookId = (_pickBookId === id) ? '' : id;
+  renderBookPicker();
+}
+function bpSection(sec){
+  _pickSection = (_pickSection === sec) ? '' : sec;
+  renderBookPicker();
+}
+function bpClear(){
+  _pickBookId = ''; _pickSection = '';
+  bpSave();
+}
+function bpSave(){
+  if(!_pickSlotId) return;
+  var slotId = _pickSlotId;
+  var label = _pickBookId
+    ? (textbookLabel(_catalog, _pickBookId) + (_pickSection ? ' · ' + _pickSection : ''))
+    : '';
+  var btn = document.getElementById('bpSaveBtn');
+  if(btn){ btn.disabled = true; btn.textContent = '넣는 중…'; }
 
   google.script.run
   .withSuccessHandler(function(){
-    // 화면에 들고 있는 자료도 맞춰 둡니다
     for(var i=0;i<_schedRows.length;i++){
-      if(_schedRows[i].id === slotId){ _schedRows[i].subject = v.trim(); break; }
+      if(_schedRows[i].id === slotId){
+        _schedRows[i].textbookId = _pickBookId;
+        _schedRows[i].section    = _pickSection;
+        _schedRows[i].subject    = label;
+        break;
+      }
     }
-    if(box){                         // 저장됐다는 표시로 잠깐 초록 테두리
-      box.style.borderColor = '#2D6A4F';
-      setTimeout(function(){ box.style.borderColor = '#CFE0C6'; }, 700);
-    }
+    closeBookPicker();
+    schedRender();
   })
   .withFailureHandler(function(e){
-    if(box) box.style.borderColor = '#C0392B';
-    showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+    if(btn){ btn.disabled = false; btn.textContent = '이 칸에 넣기'; }
+    showToast("넣지 못했어요: " + (e && e.message ? e.message : ''));
   })
-  .updateSlotSubject(slotId, v);
+  .setSlotTextbook(slotId, _pickBookId, _pickSection, label);
 }
-
 // 빈 칸에 새로 만들고 바로 입력하게
 function schedAddOne(weekday, period){
   google.script.run
@@ -8250,6 +8552,203 @@ function schedPrintAll(){
     showToast("불러오지 못했어요: " + (e && e.message ? e.message : ''));
   })
   .fetchAllSchedules2();
+}
+
+// ════════════════════════════════════════════════════════════
+//  교재 관리 — 표지 올리기 · 교재 추가
+// ════════════════════════════════════════════════════════════
+var _tbSeries = null;
+
+function openTextbookMgr(){
+  var old = document.getElementById('tbOverlay');
+  if(old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'tbOverlay';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.42);z-index:9400;"
+    + "display:flex;align-items:center;justify-content:center;padding:16px";
+  ov.onclick = function(e){ if(e.target === ov) closeTextbookMgr(); };
+
+  var box = document.createElement('div');
+  box.id = 'tbBox';
+  box.style.cssText = "background:#fff;border-radius:16px;padding:18px;width:min(96%,660px);"
+    + "max-height:90vh;overflow-y:auto;box-shadow:0 10px 36px rgba(0,0,0,0.24)";
+  box.innerHTML = "<div style='color:#bbb;font-size:13px;padding:20px;text-align:center'>"
+    + "교재 목록을 불러오는 중…</div>";
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+
+  google.script.run
+  .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
+  .withFailureHandler(function(){
+    box.innerHTML = "<div style='color:#c62828;font-size:12.5px;padding:18px'>"
+      + "불러오지 못했어요.<br>RUN_ME_9_교재카탈로그.sql 을 돌리셨나요?</div>";
+  })
+  .fetchTextbookCatalog(true);
+}
+
+function closeTextbookMgr(){
+  var ov = document.getElementById('tbOverlay');
+  if(ov) ov.remove();
+}
+
+function renderTextbookMgr(){
+  var box = document.getElementById('tbBox');
+  if(!box || !_catalog) return;
+  var ser = _catalog.series.filter(function(s){ return s.code === _tbSeries; })[0]
+         || _catalog.series[0];
+  if(ser) _tbSeries = ser.code;
+
+  var noCover = 0;
+  _catalog.series.forEach(function(s){
+    s.books.forEach(function(b){ if(!b.cover) noCover++; });
+  });
+
+  var h = "<div style='display:flex;align-items:center;gap:8px;margin-bottom:3px'>"
+        + "<div style='font-size:15px;font-weight:800;color:#363D2E;flex:1'>📚 교재 관리</div>"
+        + "<button onclick='closeTextbookMgr()' style='background:none;border:none;font-size:20px;"
+        +   "cursor:pointer;color:#A8B09C;line-height:1'>✕</button></div>"
+        + "<div style='font-size:11px;color:#A8B09C;margin-bottom:12px'>"
+        +   "교재 " + _catalog.count + "권"
+        +   (noCover ? " · 표지 없는 교재 " + noCover + "권" : " · 표지 모두 있음")
+        + "</div>";
+
+  // 시리즈 고르기
+  h += "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px'>"
+    + _catalog.series.map(function(s){
+        var on = s.code === _tbSeries;
+        return "<button onclick='tbPickSeries(\"" + _mgAttr(s.code) + "\")' "
+          + "style='background:" + (on ? '#2D6A4F' : '#f4f4f4') + ";color:" + (on ? '#fff' : '#777')
+          + ";border:1.5px solid " + (on ? '#2D6A4F' : '#e0e0e0') + ";border-radius:14px;"
+          + "padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer'>"
+          + _plEsc(s.name) + " <span style='opacity:.7'>" + s.books.length + "</span></button>";
+      }).join("")
+    + "</div>";
+
+  if(ser && ser.sections && ser.sections.length){
+    h += "<div style='font-size:11px;color:#8A9178;margin-bottom:10px'>영역: "
+      +  ser.sections.map(function(x){ return _plEsc(x); }).join(' · ') + "</div>";
+  }
+
+  // 교재 목록
+  h += "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));"
+    +  "gap:8px;margin-bottom:14px'>";
+  h += (ser ? ser.books : []).map(function(b){
+    return "<div style='border:1.5px solid #EDEFE9;border-radius:10px;padding:7px;text-align:center'>"
+      + (b.cover
+          ? "<img src=\"" + _mgAttr(b.cover) + "\" alt='' style='width:100%;height:84px;"
+            + "object-fit:cover;border-radius:7px;display:block;margin-bottom:5px'>"
+          : "<div style='width:100%;height:84px;background:#F5F6F2;border-radius:7px;"
+            + "display:flex;align-items:center;justify-content:center;margin-bottom:5px;"
+            + "font-size:22px;color:#D8DCD2'>📘</div>")
+      + "<div style='font-size:11.5px;font-weight:700;color:#2D3A28;margin-bottom:5px;"
+      +   "word-break:break-word'>" + _plEsc(b.name) + "</div>"
+      + "<div style='display:flex;gap:3px'>"
+      +   "<label style='flex:1;background:#EFF4EA;color:#2D6A4F;border-radius:6px;padding:3px 0;"
+      +     "font-size:10.5px;font-weight:700;cursor:pointer'>" + (b.cover ? '바꾸기' : '표지')
+      +     "<input type='file' accept='image/*' style='display:none' "
+      +       "onchange='tbUpload(this,\"" + b.id + "\")'></label>"
+      +   (b.cover
+          ? "<button onclick='tbRemoveCover(\"" + b.id + "\")' title='표지 지우기' "
+            + "style='background:#F7F7F5;color:#A8B09C;border:none;border-radius:6px;"
+            + "padding:3px 6px;font-size:10.5px;cursor:pointer'>🖼✕</button>"
+          : "")
+      +   "<button onclick='tbDelete(\"" + b.id + "\",\"" + _mgAttr(b.name) + "\")' title='교재 지우기' "
+      +     "style='background:#FDECEC;color:#C0392B;border:none;border-radius:6px;"
+      +     "padding:3px 6px;font-size:10.5px;cursor:pointer'>✕</button>"
+      + "</div></div>";
+  }).join("") || "<div style='color:#C7CCC0;font-size:12px;padding:12px'>교재가 없어요.</div>";
+  h += "</div>";
+
+  // 교재 추가
+  h += "<div style='display:flex;gap:7px;align-items:center;background:#FAFBF8;"
+    +   "border-radius:10px;padding:10px 12px'>"
+    + "<span style='font-size:11.5px;font-weight:700;color:#5B6551;white-space:nowrap'>교재 추가</span>"
+    + "<input type='text' id='tbNewName' placeholder='예) 3-1, Bricks Reading 4' "
+    +   "onkeydown='if(event.key===\"Enter\"){ tbAdd(); }' "
+    +   "style='flex:1;min-width:0;padding:7px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
+    +   "font-size:12.5px;box-sizing:border-box'>"
+    + "<button onclick='tbAdd()' style='background:#2D6A4F;color:#fff;border:none;"
+    +   "border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;"
+    +   "white-space:nowrap'>＋</button></div>";
+
+  box.innerHTML = h;
+}
+
+function tbPickSeries(code){ _tbSeries = code; renderTextbookMgr(); }
+
+function tbUpload(input, bookId){
+  var f = input.files && input.files[0];
+  if(!f) return;
+  if(f.size > 3*1024*1024){ showToast("3MB 이하 사진만 올려주세요."); input.value=''; return; }
+  showToast("표지를 올리는 중…");
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var b64 = e.target.result.split(',')[1];
+    google.script.run
+    .withSuccessHandler(function(r){
+      if(r && r.success){
+        showToast("표지를 올렸어요.");
+        google.script.run
+          .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
+          .withFailureHandler(function(){})
+          .fetchTextbookCatalog(true);
+      } else {
+        showToast("올리지 못했어요: " + ((r && r.error) || ''));
+      }
+    })
+    .withFailureHandler(function(err){
+      showToast("올리지 못했어요: " + (err && err.message ? err.message : ''));
+    })
+    .uploadTextbookCover(bookId, b64, f.name, f.type);
+  };
+  reader.readAsDataURL(f);
+}
+
+function tbRemoveCover(bookId){
+  if(!confirm("표지를 지울까요?\n사진 파일은 저장소에 남고 연결만 끊어집니다.")) return;
+  google.script.run
+  .withSuccessHandler(function(){
+    google.script.run
+      .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
+      .withFailureHandler(function(){})
+      .fetchTextbookCatalog(true);
+  })
+  .withFailureHandler(function(){ showToast("지우지 못했어요."); })
+  .removeTextbookCover(bookId);
+}
+
+function tbDelete(bookId, name){
+  if(!confirm(name + " 교재를 지울까요?\n\n시간표에서 이 교재를 쓰던 칸은 비게 됩니다.")) return;
+  google.script.run
+  .withSuccessHandler(function(){
+    showToast("지웠어요.");
+    google.script.run
+      .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
+      .withFailureHandler(function(){})
+      .fetchTextbookCatalog(true);
+  })
+  .withFailureHandler(function(e){ showToast("지우지 못했어요: " + (e && e.message ? e.message : '')); })
+  .deleteTextbook(bookId);
+}
+
+function tbAdd(){
+  var inp = document.getElementById('tbNewName');
+  if(!inp || !inp.value.trim()){ showToast("이름을 적어주세요."); return; }
+  google.script.run
+  .withSuccessHandler(function(r){
+    if(r && r.success){
+      inp.value = '';
+      google.script.run
+        .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
+        .withFailureHandler(function(){})
+        .fetchTextbookCatalog(true);
+    } else {
+      showToast((r && r.error) || "넣지 못했어요.");
+    }
+  })
+  .withFailureHandler(function(e){ showToast("넣지 못했어요: " + (e && e.message ? e.message : '')); })
+  .addTextbook(_tbSeries, inp.value, 99);
 }
 
 // ════════════════════════════════════════════════════════════
