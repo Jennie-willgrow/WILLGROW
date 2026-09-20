@@ -540,12 +540,14 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
     <div style="display:flex;flex-direction:column;gap:8px">
       <div style="background:white;border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
         <span style="background:#E65100;color:white;font-size:11px;font-weight:700;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</span>
-        <div><div style="font-size:12px;font-weight:700;color:#BF360C">아래 목록에서 선생님 삭제</div><div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5">해당 선생님 → Edit → <b>Delete</b><br>삭제 즉시 역할 기반 메뉴 접근 차단됨</div></div>
+        <div><div style="font-size:12px;font-weight:700;color:#BF360C">아래 목록에서 <b>퇴사 처리</b> 누르기</div><div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5">그 선생님 줄의 <b>퇴사 처리</b> 버튼 하나면 끝<br>· 로그인이 바로 막힘<br>· 반 담임 · 리포트 담당 · 메모 받는 사람 목록에서 빠짐<br>· <b style="color:#2D6A4F">지난 기록과 이름은 그대로 남음</b> (나중에 <b>복직</b>으로 되돌리기 가능)</div></div>
       </div>
       <div style="background:white;border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
         <span style="background:#E65100;color:white;font-size:11px;font-weight:700;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</span>
-        <div><div style="font-size:12px;font-weight:700;color:#BF360C">Supabase 로그인 계정 삭제</div><div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5">Supabase Dashboard → Authentication → Users<br>해당 선생님 계정 찾아 <b>Delete User</b></div></div>
+        <div><div style="font-size:12px;font-weight:700;color:#BF360C">담임이던 반 넘기기</div><div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5"><b>반 관리</b> 화면에서 그 선생님이 담임인 반을 새 선생님으로<br>안 넘기면 그 반 알림장에 담당이 비어 보입니다</div></div>
       </div>
+      <div style="background:white;border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start"><span style="background:#9AA391;color:white;font-size:11px;font-weight:700;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</span><div><div style="font-size:12px;font-weight:700;color:#5B6551">Supabase 계정 삭제 <span style="font-weight:400;color:#8A9178">(선택)</span></div><div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5">퇴사 처리만 해도 로그인은 이미 막힙니다.<br>완전히 정리하려면 Supabase → Authentication → Users → <b>Delete User</b></div></div></div>
+      <div style="background:#FFEBEE;border-radius:8px;padding:9px 12px"><div style="font-size:11px;color:#B71C1C;line-height:1.6">⚠️ <b>Edit → Delete 는 쓰지 마세요.</b> 선생님을 지우면 그분이 했던 수업·반 담임 기록의 연결이 끊어져, 과거 알림장에서 이름이 사라질 수 있습니다.</div></div>
     </div>
   </div>
 </div>
@@ -627,7 +629,12 @@ function _startTokenAutoRefresh() {
   // 50분마다 자동 갱신 (기본 1시간 만료 전에 갱신)
   _tokenRefreshTimer = setInterval(_refreshAccessToken, 50 * 60 * 1000);
 }
+function _stopTokenAutoRefresh() {
+  if (_tokenRefreshTimer) clearInterval(_tokenRefreshTimer);
+  _tokenRefreshTimer = null;
+}
 var _sbUser  = null; // 로그인된 유저 객체
+var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁니다
 var _userRole = null; // teachers 테이블에서 가져온 역할
 var _userName = null; // 로그인한 선생님 이름
 var _teacherId = null; // 로그인한 선생님 DB id
@@ -723,9 +730,34 @@ async function checkPin(pin) {
   return !!(rows && rows.length > 0);
 }
 
+// ★ 전원을 가져옵니다 (퇴사자 포함).
+//   과거 기록에 적힌 선생님 이름을 계속 보여줘야 하기 때문입니다.
+//   "고르는 목록" 에서만 activeTeachers() 로 걸러 씁니다.
 async function fetchTeachers() {
-  var rows = await sbGet('teachers', 'select=id,name,role&order=name.asc');
-  return rows.map(function(r){ return { id:r.id, name:r.name||'', role:r.role||'' }; });
+  var rows = await sbGet('teachers', 'select=id,name,role,is_active,retired_at&order=name.asc');
+  return rows.map(function(r){
+    return { id:r.id, name:r.name||'', role:r.role||'',
+             active: r.is_active !== false,          // 칸이 없던 시절 자료는 재직으로 봅니다
+             retiredAt: r.retired_at || '' };
+  });
+}
+
+// 재직중인 선생님만 (고르는 목록용)
+//  keepId 를 주면 그 선생님은 퇴사했어도 남겨둡니다.
+//  (이미 그 사람으로 지정돼 있던 칸이 빈칸으로 보이지 않게 하려고요)
+function activeTeachers(list, keepId){
+  return (list || []).filter(function(t){
+    return t.active !== false || (keepId && t.id === keepId);
+  });
+}
+
+// 퇴사 처리 / 복직
+async function setTeacherActive(teacherId, active, retiredAt) {
+  await sbPatch('teachers', 'id=' + _eq(teacherId), {
+    is_active:  !!active,
+    retired_at: active ? null : (retiredAt || new Date().toISOString().slice(0,10))
+  });
+  return { success:true };
 }
 var _sbAdminKey = '';
 async function adminSetPassword(teacherName, newPassword) {
@@ -2409,7 +2441,7 @@ var _serverFunctions = {
   deleteOrder,
   fetchLessonPlans, updateLessonPlanStatus, updateLessonPlanFull, createLessonPlan,
   fetchSchoolEvents, fetchMeetings, saveMeeting, deleteMeeting, toggleMeetingField,
-  fetchClassManage, setClassTeacher,
+  fetchClassManage, setClassTeacher, setTeacherActive,
   initMemoSchema: async function(){ return; }
 };
 
@@ -2556,16 +2588,30 @@ async function _doLogin(){
     _startTokenAutoRefresh();
     try { localStorage.setItem('wg_lastUser', name); } catch(e) {}
     // teachers DB에서 역할 자동 조회
+    var matched = null;
     try {
       var loginName = _sbUser.email.replace('@willgrow.local','');
-      var allTeachers = await fetchTeachers();
-      var matched = allTeachers.find(function(t){
+      _allTeachers = await fetchTeachers();
+      matched = _allTeachers.find(function(t){
         return (t.name||'').toLowerCase().replace(/\s+/g,'') === loginName;
       });
       _userRole  = matched ? matched.role : null;
       _userName  = matched ? matched.name : null;
       _teacherId = matched ? matched.id   : null;
-    } catch(e) { _userRole = null; _userName = null; _teacherId = null; }
+    } catch(e) { _userRole = null; _userName = null; _teacherId = null; _allTeachers = []; }
+
+    // ★ 퇴사한 선생님은 들어올 수 없습니다
+    if(matched && matched.active === false){
+      _sbToken = null; _sbUser = null; _sbRefreshToken = null;
+      _stopTokenAutoRefresh();
+      _userRole = null; _userName = null; _teacherId = null;
+      if(errEl) errEl.textContent =
+          '퇴사 처리된 계정이에요.\n'
+        + '다시 사용하시려면 원장님께 문의해 주세요.';
+      if(btn){ btn.disabled=false; btn.textContent='Log In'; }
+      return;
+    }
+
     applyRoleVisibility();
     startNavBadges();          // 왼쪽 메뉴 빨간 동그라미 켜기
     initSearchableSelects();   // 반 선택칸을 검색형으로
@@ -2743,7 +2789,8 @@ function loadTeachers(){
   s.innerHTML = "<option value=''>-- Select --</option>";
   google.script.run
   .withSuccessHandler(function(d){
-    d.forEach(function(t){
+    _allTeachers = d || [];
+    activeTeachers(d, _teacherId).forEach(function(t){   // 퇴사한 선생님은 제외
       var o = document.createElement("option");
       o.value = t.id; o.textContent = t.name;
       s.appendChild(o);
@@ -3573,7 +3620,7 @@ function loadHwTeachers(){
   s.innerHTML = "<option value=''>-- Select --</option>";
   google.script.run
   .withSuccessHandler(function(d){
-    d.forEach(function(t){
+    activeTeachers(d, _teacherId).forEach(function(t){   // 퇴사한 선생님은 제외
       var o = document.createElement("option");
       o.value = t.id; o.textContent = t.name; s.appendChild(o);
     });
@@ -5743,7 +5790,7 @@ function initMemoScreen(){
   google.script.run.initMemoSchema();
   // 메모폼용 반 목록 미리 로드
   google.script.run.withSuccessHandler(function(classes){ _memoClassList = classes || []; }).fetchClasses();
-  renderMemoRecipBox();
+  ensureTeacherNames(renderMemoRecipBox);
   _weekCalOffset = 0;
   loadWeekCal();
   loadStayBoard();
@@ -6114,10 +6161,39 @@ function renderMemoCard(m){
 }
 // ════════════════════════════════════════════════════════════
 //  선생님 명단 (메모 받는 사람 · 확인 도장 공용)
+//
+//  ★ 예전에는 이름을 코드에 적어뒀지만, 이제 DB(teachers)에서 가져옵니다.
+//    그래서 [선생님 관리] 에서 퇴사 처리하면 메모에서도 바로 사라집니다.
+//
 //  ※ confirmed_by 에는 예전부터 "✅ 이름" 꼴로 저장돼 있어서
 //    확인 도장에는 ✅ 를 붙이고, 받는 사람에는 이름만 넣습니다.
 // ════════════════════════════════════════════════════════════
-var WG_TEACHERS = ["Desk","원장님","Jane","Sue","Nicole","Kelly","Joanne","Sidney"];
+
+// DB 를 못 불러왔을 때만 쓰는 예비 명단
+var WG_TEACHERS_FALLBACK     = ["Desk","원장님","Jane","Sue","Nicole","Kelly","Joanne","Sidney"];
+var NATIVE_TEACHERS_FALLBACK = ["Anna","Bella","Euan","Jaycee","Jane","Sidney","Kelly","Nicole","Joanne","Sue"];
+
+// 한국어 메모 보드 — 재직중인 한국 선생님
+function wgTeacherNames(){
+  var act = activeTeachers(_allTeachers).filter(function(t){ return t.role !== '원어민'; });
+  if(!act.length) return WG_TEACHERS_FALLBACK.slice();
+  return act.map(function(t){ return t.name; });
+}
+// 원어민 Memo Board — 재직중인 선생님 전원 (원어민 + 한국)
+function nativeTeacherNames(){
+  var act = activeTeachers(_allTeachers);
+  if(!act.length) return NATIVE_TEACHERS_FALLBACK.slice();
+  return act.map(function(t){ return t.name; });
+}
+
+// 화면이 열릴 때 명단이 비어 있으면 한 번 채워줍니다
+function ensureTeacherNames(after){
+  if(_allTeachers && _allTeachers.length){ if(after) after(); return; }
+  google.script.run
+    .withSuccessHandler(function(d){ _allTeachers = d || []; if(after) after(); })
+    .withFailureHandler(function(){ if(after) after(); })
+    .fetchTeachers();
+}
 
 // "✅ Sue" → "Sue"
 function _bareName(s){ return String(s||'').replace(/^✅\s*/,'').trim(); }
@@ -6133,7 +6209,7 @@ function _hasMe(list){
 function renderMemoRecipBox(){
   var box = document.getElementById("memoRecipBox");
   if(!box) return;
-  box.innerHTML = WG_TEACHERS.map(function(t){
+  box.innerHTML = wgTeacherNames().map(function(t){
     return "<button type='button' data-recip='" + t + "' data-on='0' onclick='toggleMemoRecip(this)' "
          + "style='background:#f4f4f4;color:#777;border:1.5px solid #e0e0e0;border-radius:14px;"
          + "padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer'>" + t + "</button>";
@@ -6173,7 +6249,7 @@ function openBoConfirmPopup(reportId){
     + "max-height:80vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,0.2)";
   box.innerHTML = "<div style='font-size:14px;font-weight:700;color:#363D2E;margin-bottom:14px'>"
       + "✓ 교재주문 확인</div>"
-    + WG_TEACHERS.map(function(t){
+    + wgTeacherNames().map(function(t){
         return "<button onclick='doBoConfirmToggle(\"" + reportId + "\",\"✅ " + t + "\")' "
              + "style='display:block;width:100%;text-align:left;padding:9px 12px;margin-bottom:6px;"
              + "background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;"
@@ -6424,14 +6500,10 @@ function renderMonthGroups(items, getDate, renderCard, prefix, emptyMsg){
 // ════════════════════════════════════════════════════════════
 //  원어민 Memo Board — 받는 사람 · 열람 범위
 // ════════════════════════════════════════════════════════════
-// 원어민 보드는 원어민 + 한국 선생님이 함께 씁니다
-var NATIVE_BOARD_TEACHERS =
-  ["Anna","Bella","Euan","Jaycee","Jane","Sidney","Kelly","Nicole","Joanne","Sue"];
-
 function renderNativeRecipBox(){
   var box = document.getElementById("nativeRecipBox");
   if(!box) return;
-  box.innerHTML = NATIVE_BOARD_TEACHERS.map(function(t){
+  box.innerHTML = nativeTeacherNames().map(function(t){
     return "<button type='button' data-recip='" + t + "' data-on='0' onclick='toggleMemoRecip(this)' "
          + "style='background:#f4f4f4;color:#777;border:1.5px solid #e0e0e0;border-radius:14px;"
          + "padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer'>" + t + "</button>";
@@ -6545,7 +6617,7 @@ function startNavBadges(){
 function openConfirmPopup(pageId){
   var existing = document.getElementById("confirmOverlay");
   if(existing) existing.remove();
-  var TEACHERS = WG_TEACHERS.map(function(t){ return "✅ " + t; });
+  var TEACHERS = wgTeacherNames().map(function(t){ return "✅ " + t; });
   var overlay = document.createElement("div");
   overlay.id = "confirmOverlay";
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9000;display:flex;align-items:center;justify-content:center";
@@ -6929,7 +7001,7 @@ function initNativeBoardScreen(){
   var nBtn = document.getElementById("nativeWeekCalToggleBtn");
   if(nBtn){ nBtn.textContent = "Collapse"; }
   loadNativeWeekCal();
-  renderNativeRecipBox();
+  ensureTeacherNames(renderNativeRecipBox);
   google.script.run
   .withSuccessHandler(function(data){ renderNativeMemoList(filterVisibleMemos(data || [])); })
   .withFailureHandler(function(e){ var el=document.getElementById("nativeMemoList"); if(el) el.innerHTML="<div style='color:#c62828;padding:20px'>Failed to load: "+(e.message||"")+"</div>"; })
@@ -7022,7 +7094,7 @@ function saveNativeMemoEdit(){
 function openNativeConfirmPopup(pageId){
   var existing = document.getElementById("nativeConfirmOverlay");
   if(existing) existing.remove();
-  var TEACHERS = NATIVE_BOARD_TEACHERS.map(function(t){ return "✅ " + t; });
+  var TEACHERS = nativeTeacherNames().map(function(t){ return "✅ " + t; });
   var overlay = document.createElement("div");
   overlay.id = "nativeConfirmOverlay";
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9000;display:flex;align-items:center;justify-content:center";
@@ -7375,10 +7447,11 @@ function renderClassMgmt(){
 
   el.innerHTML = "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px'>"
     + list.map(function(c){
+    // 퇴사한 선생님은 안 보입니다. 단, 이미 담임으로 돼 있으면 남겨둡니다.
     var opts = "<option value=''>— 담임 없음 —</option>"
-      + teachers.map(function(t){
+      + activeTeachers(teachers, c.teacherId).map(function(t){
           return "<option value='" + t.id + "'" + (t.id === c.teacherId ? " selected" : "") + ">"
-               + _plEsc(t.name) + "</option>";
+               + _plEsc(t.name) + (t.active === false ? " (퇴사)" : "") + "</option>";
         }).join("");
 
     var names = (c.students || []).join(', ');
@@ -7920,6 +7993,7 @@ function initTeacherMgmtScreen(){
   if(el) el.innerHTML = '<div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div>';
   google.script.run.withSuccessHandler(function(teachers){
     _teacherList = teachers;
+    _allTeachers = teachers || [];
     renderTeacherList();
   }).withFailureHandler(function(e){
     if(el) el.innerHTML = '<div style="color:#c62828;padding:16px">Error: '+e.message+'</div>';
@@ -7937,26 +8011,87 @@ function renderTeacherList(){
   var roleLabel = {'마스터':'마스터 (Director)','관리자':'관리자 (Admin)','풀타임':'풀타임 (Full-time)','파트':'파트 (Part-time)','원어민':'원어민 (Native)'};
   var roleColor = {'마스터':'#7B1FA2','관리자':'#1565C0','풀타임':'#2E7D32','파트':'#E65100','원어민':'#00695C'};
   var roleBg    = {'마스터':'#F3E8FF','관리자':'#E3F2FD','풀타임':'#E8F5E9','파트':'#FFF3E0','원어민':'#E0F2F1'};
-  var sorted = _teacherList.slice().sort(function(a,b){
-    return (roleOrder[a.role]||99) - (roleOrder[b.role]||99) || a.name.localeCompare(b.name);
-  });
-  var rows = sorted.map(function(t){
+
+  function row(t){
+    var out = (t.active === false);
     var loginEmail = t.name.toLowerCase().replace(/\s+/g,'') + '@willgrow.local';
-    var rc = roleColor[t.role]||'#555';
-    var rb = roleBg[t.role]||'#f5f5f5';
+    var rc = out ? '#9AA391' : (roleColor[t.role]||'#555');
+    var rb = out ? '#F1F3EE' : (roleBg[t.role]||'#f5f5f5');
     var rl = roleLabel[t.role]||t.role;
-    return '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #f0f0f0;gap:10px">'
+    return '<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #f0f0f0;gap:10px'
+      +   (out ? ';background:#FCFCFA' : '') + '">'
       +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:13px;font-weight:700;color:#363D2E">'+_esc(t.name)+'</div>'
-      +'<div style="font-size:11px;color:#999;margin-top:2px">'+_esc(loginEmail)+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:'+(out?'#9AA391':'#363D2E')+'">'
+      +   _esc(t.name)
+      +   (out ? '<span style="margin-left:6px;font-size:10.5px;font-weight:700;color:#8A9178;'
+              + 'background:#EDEFE9;border-radius:9px;padding:1px 7px">퇴사</span>' : '')
+      +'</div>'
+      +'<div style="font-size:11px;color:#BBB;margin-top:2px">'
+      +   (out ? (t.retiredAt ? _esc(t.retiredAt) + ' 퇴사 · 로그인 차단됨' : '로그인 차단됨')
+             : _esc(loginEmail))
+      +'</div>'
       +'</div>'
       +'<span style="font-size:11px;font-weight:700;color:'+rc+';background:'+rb+';border-radius:6px;padding:3px 8px;white-space:nowrap">'+_esc(rl)+'</span>'
+      + (out
+          ? '<button onclick="toggleTeacherActive(\''+t.id+'\',true)" style="background:#E8F5E9;color:#2D6A4F;border:none;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">복직</button>'
+          : '<button onclick="toggleTeacherActive(\''+t.id+'\',false)" style="background:#FFF4E5;color:#B26B00;border:none;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">퇴사 처리</button>')
       +'<button onclick="openTeacherModal(\''+t.id+'\')" style="background:#f0f0f0;color:#363D2E;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">Edit</button>'
       +'</div>';
-  }).join('');
-  el.innerHTML = '<div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">'+rows+'</div>';
+  }
+
+  function sortFn(a,b){
+    // ※ 마스터는 0 이라서 || 99 를 쓰면 0 이 falsy 로 걸려 맨 뒤로 밀립니다.
+    //   (원장님이 항상 아래에 있던 이유) undefined 만 99 로 봅니다.
+    function ord(role){ return roleOrder[role] === undefined ? 99 : roleOrder[role]; }
+    return ord(a.role) - ord(b.role) || a.name.localeCompare(b.name);
+  }
+  var working = _teacherList.filter(function(t){ return t.active !== false; }).sort(sortFn);
+  var retired = _teacherList.filter(function(t){ return t.active === false; }).sort(sortFn);
+
+  var html = '<div style="background:white;border-radius:12px;overflow:hidden;'
+    + 'box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">'
+    + working.map(row).join('') + '</div>';
+
+  if(retired.length){
+    html += '<div style="margin-top:16px">'
+      + '<div style="font-size:12px;font-weight:700;color:#8A9178;margin-bottom:7px;padding-left:2px">'
+      +   '⚪ 퇴사 (' + retired.length + '명)'
+      +   '<span style="font-weight:400;color:#B9BFB1;margin-left:7px">'
+      +     '지난 기록은 그대로 남아 있어요. 목록·메모·로그인에서만 빠집니다.</span>'
+      + '</div>'
+      + '<div style="background:white;border-radius:12px;overflow:hidden;'
+      +   'box-shadow:0 1px 3px rgba(0,0,0,0.05),0 0 0 1px rgba(0,0,0,0.04)">'
+      +   retired.map(row).join('') + '</div></div>';
+  }
+  el.innerHTML = html;
 }
 
+// 퇴사 처리 / 복직
+function toggleTeacherActive(id, makeActive){
+  var t = (_teacherList||[]).find(function(x){ return x.id === id; });
+  var name = t ? t.name : '이 선생님';
+
+  if(makeActive){
+    if(!confirm(name + ' 선생님을 복직 처리할까요?\n\n다시 로그인할 수 있고, 목록에도 나타납니다.')) return;
+  } else {
+    if(!confirm(name + ' 선생님을 퇴사 처리할까요?\n\n'
+      + '· 로그인이 막힙니다\n'
+      + '· 반 담임 · 리포트 담당 · 메모 받는 사람 목록에서 빠집니다\n'
+      + '· 지금까지의 기록과 이름은 그대로 남습니다\n\n'
+      + '나중에 복직 처리로 되돌릴 수 있어요.')) return;
+  }
+
+  google.script.run
+  .withSuccessHandler(function(){
+    showToast(makeActive ? (name + ' 복직 처리했어요.') : (name + ' 퇴사 처리했어요.'));
+    _allTeachers = [];          // 메모 명단도 다시 불러오게
+    initTeacherMgmtScreen();
+  })
+  .withFailureHandler(function(e){
+    showToast('처리하지 못했어요: ' + (e && e.message ? e.message : ''));
+  })
+  .setTeacherActive(id, makeActive, null);
+}
 function openTeacherModal(id){
   _teacherEditId = id;
   var modal = document.getElementById('teacherModal');
@@ -8021,7 +8156,24 @@ function deleteTeacherItem(){
   if(!_teacherEditId){ return; }
   var t = _teacherList.find(function(x){ return x.id == _teacherEditId; });
   var name = t ? t.name : '선생님';
-  if(!confirm(name + '을(를) 삭제하시겠습니까?')) return;
+
+  // ★ 지우는 건 기록을 끊습니다. 퇴사 처리를 먼저 권합니다.
+  if(!t || t.active !== false){
+    if(confirm('잠깐만요.\n\n'
+      + name + ' 선생님을 삭제하면 그동안의 수업·반 담임 기록과의 연결이 끊어집니다.\n'
+      + '과거 알림장에서 이름이 사라질 수 있어요.\n\n'
+      + '대신 [퇴사 처리] 를 쓰시면\n'
+      + '  · 로그인이 막히고\n'
+      + '  · 목록과 메모에서 빠지고\n'
+      + '  · 지난 기록은 그대로 남습니다\n\n'
+      + '[확인] 퇴사 처리하기   /   [취소] 그래도 삭제')){
+      closeTeacherModal();
+      toggleTeacherActive(_teacherEditId, false);
+      return;
+    }
+  }
+
+  if(!confirm('정말 ' + name + '을(를) 완전히 삭제할까요?\n되돌릴 수 없습니다.')) return;
   google.script.run.withSuccessHandler(function(){
     showToast('삭제되었습니다.');
     closeTeacherModal();
@@ -9882,7 +10034,7 @@ function openFullReportModal(){
     prevTeacherSel.innerHTML = '<option value="">-- 선생님 선택 --</option>';
     google.script.run.withSuccessHandler(function(teachers){
       if(!teachers) return;
-      teachers.forEach(function(t){
+      activeTeachers(teachers, _teacherId).forEach(function(t){   // 퇴사한 선생님은 제외
         prevTeacherSel.innerHTML += '<option value="'+t.id+'">'+t.name+'</option>';
       });
       if(_teacherId) prevTeacherSel.value = _teacherId;
