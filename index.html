@@ -3675,7 +3675,7 @@ function plHwView(text, opts){
   var lblFs  = big ? '22px'      : '12px';
   var valFs  = big ? '24px'      : '12.5px';
   var subFs  = big ? '13px'      : '8.5px';
-  var padV   = big ? '10px'      : '5px';
+  var padV   = big ? '5px'       : '5px';
   var padH   = big ? '18px'      : '10px';
   var gap    = big ? '26px'      : '10px';   // 숙제와 Spelling 사이 최소 틈
   var wrap   = big ? "white-space:nowrap;" : "word-break:break-word;";
@@ -3691,7 +3691,7 @@ function plHwView(text, opts){
   var h = "<div style='display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;"
         +   "align-items:stretch;border:1px solid #E1E6DA;border-radius:10px;"
         +   "overflow:hidden;background:#fff;"
-        +   (big ? "width:max-content;" : "") + "'>"
+        +   (big ? "width:100%;" : "") + "'>"
 
         // 머리줄 — 네 칸을 통째로 씁니다
         + "<div style='grid-column:1/-1;display:flex;align-items:baseline;gap:" + gap + ";"
@@ -4372,16 +4372,18 @@ function openHwEditModal(pageId, title, hw, lesson, book){
 }
 function openHwCardZoom(title, hw, lesson, dateStr){
   var ex = document.getElementById("hwZoomOverlay"); if(ex) ex.remove();
-  var mW = Math.round(window.innerWidth * 0.9);
-  var mH = Math.round(window.innerHeight * 0.9);
+  var mW = window.innerWidth;
+  var mH = window.innerHeight;
   var overlay = document.createElement("div");
   overlay.id = "hwZoomOverlay";
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.68);z-index:9999;display:flex;align-items:center;justify-content:center";
   overlay.addEventListener("click", function(e){ if(e.target===overlay) overlay.remove(); });
   var modal = document.createElement("div");
-  modal.style.cssText = "width:"+mW+"px;height:"+mH+"px;background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 70px rgba(0,0,0,0.45)";
+  modal.style.cssText = "width:100%;height:100%;background:#fff;overflow:hidden;"
+    + "display:flex;flex-direction:column";
   var header = document.createElement("div");
-  header.style.cssText = "background:#363D2E;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px";
+  header.style.cssText = "background:#363D2E;padding:9px 16px;display:flex;align-items:center;"
+    + "justify-content:space-between;flex-shrink:0;gap:8px";
   /* date block */
   var dateBlock = document.createElement("div");
   dateBlock.style.cssText = "display:flex;align-items:center;gap:10px;flex:1;min-width:0";
@@ -4389,7 +4391,7 @@ function openHwCardZoom(title, hw, lesson, dateStr){
     var dObj = new Date(dateStr + "T00:00:00");
     var dayNames = ["일","월","화","수","목","금","토"];
     var dateNum = document.createElement("div");
-    dateNum.style.cssText = "font-size:48px;font-weight:900;color:#fff;line-height:1";
+    dateNum.style.cssText = "font-size:36px;font-weight:900;color:#fff;line-height:1";
     dateNum.textContent = dObj.getDate();
     var dateMeta = document.createElement("div");
     dateMeta.style.cssText = "display:flex;flex-direction:column;gap:1px";
@@ -4397,13 +4399,13 @@ function openHwCardZoom(title, hw, lesson, dateStr){
     monthEl.style.cssText = "font-size:13px;font-weight:700;color:rgba(255,255,255,0.75)";
     monthEl.textContent = (dObj.getMonth()+1) + "월";
     var dayEl = document.createElement("div");
-    dayEl.style.cssText = "font-size:22px;font-weight:800;color:#fff";
+    dayEl.style.cssText = "font-size:18px;font-weight:800;color:#fff";
     dayEl.textContent = dayNames[dObj.getDay()] + "요일";
     dateMeta.appendChild(monthEl); dateMeta.appendChild(dayEl);
     dateBlock.appendChild(dateNum); dateBlock.appendChild(dateMeta);
     /* divider */
     var divider = document.createElement("div");
-    divider.style.cssText = "width:2px;height:48px;background:rgba(255,255,255,0.3);border-radius:2px;flex-shrink:0";
+    divider.style.cssText = "width:2px;height:36px;background:rgba(255,255,255,0.3);border-radius:2px;flex-shrink:0";
     dateBlock.appendChild(divider);
   }
   var ttl = document.createElement("div");
@@ -4417,7 +4419,7 @@ function openHwCardZoom(title, hw, lesson, dateStr){
   header.appendChild(dateBlock); header.appendChild(cb);
   var body = document.createElement("div");
   body.style.cssText = "flex:1;overflow:hidden;display:flex;align-items:center;"
-    + "justify-content:center;padding:20px;box-sizing:border-box";
+    + "justify-content:center;padding:12px;box-sizing:border-box";
   var content = document.createElement("div");
   content.style.cssText = "width:340px;flex-shrink:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif";
   var hwForm = plHwView(hw, { big:true });
@@ -4432,8 +4434,8 @@ function openHwCardZoom(title, hw, lesson, dateStr){
     content.style.width      = 'max-content';
     content.style.flexShrink = '0';   // 눌려서 글자가 겹치지 않게
   }
-  content.innerHTML = "<div style='font-size:11px;font-weight:600;color:#888;"
-    + "text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>📚 Homework</div>"
+  content.innerHTML = "<div style='font-size:10px;font-weight:600;color:#A8B09C;"
+    + "text-transform:uppercase;letter-spacing:1px;margin-bottom:3px'>📚 Homework</div>"
     + hwHtml;
   body.appendChild(content);
   modal.appendChild(header); modal.appendChild(body);
@@ -4443,14 +4445,34 @@ function openHwCardZoom(title, hw, lesson, dateStr){
   //   내용의 진짜 크기를 잰 다음, 가로·세로 중 먼저 꽉 차는 쪽에 맞춥니다.
   //   그래서 스크롤 없이 아래까지 한 번에 보입니다.
   function fitZoom(){
-    var availH = mH - header.offsetHeight - 40;
-    var availW = mW - 40;
+    mW = window.innerWidth;
+    mH = window.innerHeight;
+
+    // 잰 값이 틀어지지 않게 먼저 원래대로 돌려놓습니다
+    content.style.transform = 'none';
+    content.style.width = hwForm ? 'max-content' : '340px';
+
+    var availH = mH - header.offsetHeight - 24;
+    var availW = mW - 24;
     var natW = content.offsetWidth  || 340;
     var natH = content.offsetHeight || 1;
     if(natW < 1 || natH < 1) return;
+
     var Z = Math.min(availW / natW, availH / natH);
+
+    if(hwForm){
+      // 세로가 먼저 찼다면 가로가 남습니다.
+      // 표를 그만큼 넓혀 두면 배율은 그대로인 채 가로가 꽉 찹니다.
+      var wantW = availW / Z;
+      if(wantW > natW + 1){
+        content.style.width = wantW + 'px';
+        natH = content.offsetHeight || natH;      // 넓혀도 줄 수는 그대로입니다
+        Z = Math.min(availW / wantW, availH / natH);
+      }
+    }
+
     if(!isFinite(Z) || Z <= 0) Z = 1;
-    Z = Math.min(Z, 8);          // 너무 짧은 숙제가 우스꽝스럽게 커지지 않게
+    Z = Math.min(Z, 8);
     content.style.transformOrigin = 'center center';
     content.style.transform = 'scale(' + Z + ')';
   }
