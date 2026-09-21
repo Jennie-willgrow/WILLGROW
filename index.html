@@ -642,6 +642,11 @@ var _userRole = null; // teachers 테이블에서 가져온 역할
 //   다만 마스터·관리자는 빠뜨린 기록을 채워 넣어야 할 때가 있어서
 //   지난 날짜도 열어 둡니다.
 function canEditPastReports(){
+  return isAdminUser();
+}
+
+// 마스터·관리자만 할 수 있는 일 (교재 표지 바꾸기 등)
+function isAdminUser(){
   return _userRole === '마스터' || _userRole === '관리자';
 }
 function isDateLocked(dateStr){
@@ -1136,6 +1141,7 @@ function textbookLabel(catalog, id){
 
 // 표지 올리기 → Willgrow 버킷의 covers/ 폴더
 async function uploadTextbookCover(textbookId, b64, fileName, mimeType) {
+  if(!isAdminUser()) return { success:false, error:'표지는 관리자만 바꿀 수 있어요.' };
   try {
     var blob = _b64toBlob(b64, mimeType || 'image/jpeg');
     var path = _uniquePath('covers', fileName || 'cover.jpg');
@@ -1147,6 +1153,7 @@ async function uploadTextbookCover(textbookId, b64, fileName, mimeType) {
 }
 
 async function removeTextbookCover(textbookId) {
+  if(!isAdminUser()) return { success:false, error:'표지는 관리자만 바꿀 수 있어요.' };
   await sbPatch('textbooks', 'id=' + _eq(textbookId), { cover_url: null });
   _catCache = null;
   return { success:true };
@@ -1154,6 +1161,7 @@ async function removeTextbookCover(textbookId) {
 
 // 교재 추가 / 지우기
 async function addTextbook(course, name, sortOrder) {
+  if(!isAdminUser()) return { success:false, error:'교재는 관리자만 더할 수 있어요.' };
   if(!course || !String(name||'').trim()) return { success:false, error:'이름을 적어주세요.' };
   var dup = await _sbGetSafe('textbooks',
     'select=id&course=' + _eq(course) + '&name=' + _eq(String(name).trim()) + '&limit=1') || [];
@@ -1167,6 +1175,7 @@ async function addTextbook(course, name, sortOrder) {
 }
 
 async function deleteTextbook(textbookId) {
+  if(!isAdminUser()) return { success:false, error:'교재는 관리자만 지울 수 있어요.' };
   await sbDelete('textbooks', 'id=' + _eq(textbookId), { allowZero:true });
   _catCache = null;
   return { success:true };
@@ -3661,14 +3670,16 @@ function plHwView(text, opts){
   var any = f.items.some(function(it){ return String(p.items[it.key] || '').trim(); });
   if(!any) return null;
 
-  var headFs = big ? '19px'   : '13px';
-  var metaFs = big ? '11px'   : '9px';
-  var lblFs  = big ? '16px'   : '12px';
-  var valFs  = big ? '17px'   : '12.5px';
-  var subFs  = big ? '10.5px' : '8.5px';
-  var pad    = big ? '9px 13px' : '5px 10px';
-  var lblW   = big ? '128px'  : '90px';
-  var markW  = big ? '18px'   : '14px';
+  var headFs = big ? '26px'    : '13px';
+  var metaFs = big ? '14px'    : '9px';
+  var lblFs  = big ? '22px'    : '12px';
+  var valFs  = big ? '24px'    : '12.5px';
+  var subFs  = big ? '13px'    : '8.5px';
+  var pad    = big ? '10px 18px' : '5px 10px';
+  var lblW   = big ? '210px'   : '90px';
+  var markW  = big ? '28px'    : '14px';
+  // 확대 화면에서는 숙제가 아랫줄로 넘어가지 않게 한 줄로 둡니다
+  var nowrap = big ? "white-space:nowrap;" : "word-break:break-word;";
 
   var h = "<div style='border:1px solid #E1E6DA;border-radius:10px;overflow:hidden;"
         +   "background:#fff'>"
@@ -3698,16 +3709,17 @@ function plHwView(text, opts){
     if(it.free){
       //  이름 없이 내용만 적는 줄
       h += "<span style='flex:1;min-width:0;font-size:" + valFs + ";font-weight:700;"
-        +    "color:#1F2A1B;word-break:break-word'>" + _plEsc(val) + "</span>";
+        +    "color:#1F2A1B;" + nowrap + "'>" + _plEsc(val) + "</span>";
     } else {
       //  교재 이름 — 자리를 고정해서 숙제가 늘 같은 자리에서 시작하게 합니다
       h += "<span style='font-size:" + lblFs + ";font-weight:700;flex-shrink:0;"
-        +    "width:" + lblW + ";color:" + (on ? '#3A4634' : '#C3C9BB') + "'>"
+        +    "width:" + lblW + ";" + (big ? "white-space:nowrap;" : "")
+        +    "color:" + (on ? '#3A4634' : '#C3C9BB') + "'>"
         +    _plEsc(it.label) + "</span>"
 
       //  숙제 — 그 기준선에서 왼쪽에 붙여 씁니다
         +  "<span style='flex:1;min-width:0;text-align:left;font-size:" + valFs + ";"
-        +    "font-weight:700;color:#1F2A1B;word-break:break-word'>"
+        +    "font-weight:700;color:#1F2A1B;" + nowrap + "'>"
         +    _plEsc(val) + "</span>";
 
       //  Spelling / Meaning 은 오른쪽 끝으로
@@ -4394,7 +4406,7 @@ function openHwCardZoom(title, hw, lesson, dateStr){
   cb.addEventListener("click", function(){ overlay.remove(); });
   header.appendChild(dateBlock); header.appendChild(cb);
   var body = document.createElement("div");
-  body.style.cssText = "flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box";
+  body.style.cssText = "flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box";
   var content = document.createElement("div");
   content.style.cssText = "width:340px;flex-shrink:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif";
   var hwForm = plHwView(hw, { big:true });
@@ -4404,7 +4416,8 @@ function openHwCardZoom(title, hw, lesson, dateStr){
       + "white-space:pre-wrap'>"
       + (hw ? hw.replace(/\n/g,"<br>") : "<span style='color:#bbb'>No homework</span>")
       + "</div>";
-  if(hwForm) content.style.width = '420px';
+  // 알림장 표는 가로로 넓게 잡아 한 줄에 들어가게 하고, 그 뒤에 확대합니다
+  if(hwForm) content.style.width = '620px';
   content.innerHTML = "<div style='font-size:11px;font-weight:600;color:#888;"
     + "text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>📚 Homework</div>"
     + hwHtml;
@@ -4415,9 +4428,11 @@ function openHwCardZoom(title, hw, lesson, dateStr){
   setTimeout(function(){
     var availH = mH - header.offsetHeight - 48;
     var availW = mW - 48;
+    var baseW  = parseFloat(content.style.width) || 340;
     var zH = availH / (content.scrollHeight || 1);
-    var zW = availW / (parseFloat(content.style.width) || 340);
-    var Z = Math.min(zH, zW, 4.0);
+    var zW = availW / baseW;
+    // 가로를 꽉 채우되 세로로 넘치지 않는 선에서 가장 크게
+    var Z = Math.min(zH, zW, 5.0);
     Z = Math.max(Z, 1.2);
     content.style.zoom = Z;
   }, 0);
@@ -10094,6 +10109,8 @@ function renderTextbookMgr(){
     s.books.forEach(function(b){ if(!b.cover) noCover++; });
   });
 
+  var canEdit = isAdminUser();
+
   var h = "<div style='display:flex;align-items:center;gap:8px;margin-bottom:3px'>"
         + "<div style='font-size:15px;font-weight:800;color:#363D2E;flex:1'>📚 교재 관리</div>"
         + "<button onclick='closeTextbookMgr()' style='background:none;border:none;font-size:20px;"
@@ -10102,6 +10119,13 @@ function renderTextbookMgr(){
         +   "교재 " + _catalog.count + "권"
         +   (noCover ? " · 표지 없는 교재 " + noCover + "권" : " · 표지 모두 있음")
         + "</div>";
+
+  if(!canEdit){
+    h += "<div style='background:#F4F6F1;border:1px solid #E4E8DC;border-radius:9px;"
+      +    "padding:9px 12px;font-size:11.5px;color:#6B7563;margin-bottom:12px'>"
+      +    "🔒 표지와 교재 목록은 <b>관리자</b>만 바꿀 수 있어요. 보기만 가능합니다."
+      +  "</div>";
+  }
 
   // 시리즈 고르기
   h += "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px'>"
@@ -10133,24 +10157,28 @@ function renderTextbookMgr(){
             + "font-size:22px;color:#D8DCD2'>📘</div>")
       + "<div style='font-size:11.5px;font-weight:700;color:#2D3A28;margin-bottom:5px;"
       +   "word-break:break-word'>" + _plEsc(b.name) + "</div>"
-      + "<div style='display:flex;gap:3px'>"
-      +   "<label style='flex:1;background:#EFF4EA;color:#2D6A4F;border-radius:6px;padding:3px 0;"
-      +     "font-size:10.5px;font-weight:700;cursor:pointer'>" + (b.cover ? '바꾸기' : '표지')
-      +     "<input type='file' accept='image/*' style='display:none' "
-      +       "onchange='tbUpload(this,\"" + b.id + "\")'></label>"
-      +   (b.cover
-          ? "<button onclick='tbRemoveCover(\"" + b.id + "\")' title='표지 지우기' "
-            + "style='background:#F7F7F5;color:#A8B09C;border:none;border-radius:6px;"
-            + "padding:3px 6px;font-size:10.5px;cursor:pointer'>🖼✕</button>"
-          : "")
-      +   "<button onclick='tbDelete(\"" + b.id + "\",\"" + _mgAttr(b.name) + "\")' title='교재 지우기' "
-      +     "style='background:#FDECEC;color:#C0392B;border:none;border-radius:6px;"
-      +     "padding:3px 6px;font-size:10.5px;cursor:pointer'>✕</button>"
-      + "</div></div>";
+      + (canEdit
+        ? "<div style='display:flex;gap:3px'>"
+          + "<label style='flex:1;background:#EFF4EA;color:#2D6A4F;border-radius:6px;padding:3px 0;"
+          +   "font-size:10.5px;font-weight:700;cursor:pointer'>" + (b.cover ? '바꾸기' : '표지')
+          +   "<input type='file' accept='image/*' style='display:none' "
+          +     "onchange='tbUpload(this,\"" + b.id + "\")'></label>"
+          + (b.cover
+              ? "<button onclick='tbRemoveCover(\"" + b.id + "\")' title='표지 지우기' "
+                + "style='background:#F7F7F5;color:#A8B09C;border:none;border-radius:6px;"
+                + "padding:3px 6px;font-size:10.5px;cursor:pointer'>🖼✕</button>"
+              : "")
+          + "<button onclick='tbDelete(\"" + b.id + "\",\"" + _mgAttr(b.name) + "\")' title='교재 지우기' "
+          +   "style='background:#FDECEC;color:#C0392B;border:none;border-radius:6px;"
+          +   "padding:3px 6px;font-size:10.5px;cursor:pointer'>✕</button>"
+          + "</div>"
+        : "")
+      + "</div>";
   }).join("") || "<div style='color:#C7CCC0;font-size:12px;padding:12px'>교재가 없어요.</div>";
   h += "</div>";
 
-  // 교재 추가
+  // 교재 추가 (관리자만)
+  if(canEdit)
   h += "<div style='display:flex;gap:7px;align-items:center;background:#FAFBF8;"
     +   "border-radius:10px;padding:10px 12px'>"
     + "<span style='font-size:11.5px;font-weight:700;color:#5B6551;white-space:nowrap'>교재 추가</span>"
