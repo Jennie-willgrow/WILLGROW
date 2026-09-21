@@ -3657,11 +3657,9 @@ function plHwView(text, opts){
   var big = !!opts.big;
   var ac  = f.accent || '#CC2B2B';
 
-  // 숙제가 적힌 줄만 (순서는 종이 알림장과 같습니다)
-  var rows = f.items.filter(function(it){
-    return String(p.items[it.key] || '').trim();
-  });
-  if(!rows.length) return null;
+  // 숙제가 하나도 없으면 표를 그리지 않습니다
+  var any = f.items.some(function(it){ return String(p.items[it.key] || '').trim(); });
+  if(!any) return null;
 
   var headFs = big ? '19px'   : '13px';
   var metaFs = big ? '11px'   : '9px';
@@ -3669,7 +3667,8 @@ function plHwView(text, opts){
   var valFs  = big ? '17px'   : '12.5px';
   var subFs  = big ? '10.5px' : '8.5px';
   var pad    = big ? '9px 13px' : '5px 10px';
-  var lblW   = big ? '108px'  : '78px';
+  var lblW   = big ? '128px'  : '90px';
+  var markW  = big ? '18px'   : '14px';
 
   var h = "<div style='border:1px solid #E1E6DA;border-radius:10px;overflow:hidden;"
         +   "background:#fff'>"
@@ -3681,34 +3680,46 @@ function plHwView(text, opts){
         +     "white-space:nowrap'>" + _plEsc(f.course) + "</span>"
         + "</div>";
 
-  rows.forEach(function(it, i){
+  // 종이 알림장과 똑같이 — 숙제가 없는 줄도 빈칸으로 그대로 둡니다
+  f.items.forEach(function(it, i){
     var val  = String(p.items[it.key] || '').trim();
     var subs = p.items[it.key + '_subs'] || [];
-    var last = (i === rows.length - 1);
+    var on   = !!val;
+    var last = (i === f.items.length - 1);
 
     h += "<div style='display:flex;align-items:baseline;gap:7px;padding:" + pad + ";"
-      +    (last ? "" : "border-bottom:1px solid #F1F4ED;") + "flex-wrap:wrap'>"
-      +    "<span style='color:#2D6A4F;font-weight:800;flex-shrink:0;font-size:" + lblFs
-      +      "'>&#10003;</span>";
+      +    (last ? "" : "border-bottom:1px solid #F1F4ED;") + "'>"
+
+      //  체크 표시 — 숙제가 있으면 초록 체크, 없으면 옅은 빈 네모
+      +    "<span style='flex-shrink:0;width:" + markW + ";font-size:" + lblFs + ";"
+      +      "font-weight:800;color:" + (on ? '#2D6A4F' : '#DCE0D6') + "'>"
+      +      (on ? "&#10003;" : "&#9744;") + "</span>";
 
     if(it.free){
-      // 이름 없이 내용만 적는 줄
+      //  이름 없이 내용만 적는 줄
       h += "<span style='flex:1;min-width:0;font-size:" + valFs + ";font-weight:700;"
         +    "color:#1F2A1B;word-break:break-word'>" + _plEsc(val) + "</span>";
     } else {
-      h += "<span style='font-size:" + lblFs + ";font-weight:700;color:#3A4634;"
-        +    "min-width:" + lblW + ";flex-shrink:0'>" + _plEsc(it.label) + "</span>";
+      //  교재 이름 — 자리를 고정해서 숙제가 늘 같은 자리에서 시작하게 합니다
+      h += "<span style='font-size:" + lblFs + ";font-weight:700;flex-shrink:0;"
+        +    "width:" + lblW + ";color:" + (on ? '#3A4634' : '#C3C9BB') + "'>"
+        +    _plEsc(it.label) + "</span>"
+
+      //  숙제 — 그 기준선에서 왼쪽에 붙여 씁니다
+        +  "<span style='flex:1;min-width:0;text-align:left;font-size:" + valFs + ";"
+        +    "font-weight:700;color:#1F2A1B;word-break:break-word'>"
+        +    _plEsc(val) + "</span>";
+
+      //  Spelling / Meaning 은 오른쪽 끝으로
       if(subs.length){
-        h += "<span style='display:flex;gap:3px;flex-shrink:0'>";
+        h += "<span style='display:flex;gap:3px;flex-shrink:0;margin-left:auto'>";
         subs.forEach(function(s){
-          h += "<span style='font-size:" + subFs + ";font-weight:700;padding:0 5px;"
+          h += "<span style='font-size:" + subFs + ";font-weight:700;padding:0 6px;"
             +    "border-radius:20px;background:#EFF4EA;color:#5F7A55;white-space:nowrap'>"
             +    _plEsc(s) + "</span>";
         });
         h += "</span>";
       }
-      h += "<span style='margin-left:auto;text-align:right;font-size:" + valFs + ";"
-        +    "font-weight:700;color:#1F2A1B;word-break:break-word'>" + _plEsc(val) + "</span>";
     }
     h += "</div>";
   });
