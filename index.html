@@ -825,8 +825,19 @@ async function fetchClasses() {
 function fetchClassList() { return fetchClasses(); }
 function fetchClassesForLP() { return fetchClasses(); }
 
+// ── 보충수업 반 ───────────────────────────────────────────
+//   보충수업은 정규 반과 섞이면 숙제·진도가 두 번 쌓이기 때문에
+//   "Make-up Class" 라는 반 하나를 따로 두고 거기에 적습니다.
+var WG_MAKEUP = 'Make-up Class';
+
+function isMakeupClass(name){
+  return /^\s*make\s*-?\s*up\b/i.test(String(name || ''));
+}
+
 function _classSort(arr) {
-  function pfx(n){ var c=(n||'')[0]||''; return c==='M'||c==='m'?2:c==='H'||c==='h'?3:1; }
+  function pfx(n){
+    if(isMakeupClass(n)) return 9;            // 보충수업은 늘 맨 아래
+    var c=(n||'')[0]||''; return c==='M'||c==='m'?2:c==='H'||c==='h'?3:1; }
   return arr.sort(function(a,b){
     var pa=pfx(a.name),pb=pfx(b.name);
     if(pa!==pb) return pa-pb;
@@ -866,9 +877,13 @@ var WG_PERIODS = [
   { p:8, start:'21:30', end:'22:25' }
 ];
 var WG_WEEKDAYS = [
-  { d:1, ko:'월', en:'Mon' }, { d:2, ko:'화', en:'Tue' }, { d:3, ko:'수', en:'Wed' },
-  { d:4, ko:'목', en:'Thu' }, { d:5, ko:'금', en:'Fri' },
-  { d:6, ko:'토', en:'Sat' }, { d:7, ko:'일', en:'Sun' }
+  { d:1, ko:'월', en:'Mon', full:'Monday'    },
+  { d:2, ko:'화', en:'Tue', full:'Tuesday'   },
+  { d:3, ko:'수', en:'Wed', full:'Wednesday' },
+  { d:4, ko:'목', en:'Thu', full:'Thursday'  },
+  { d:5, ko:'금', en:'Fri', full:'Friday'    },
+  { d:6, ko:'토', en:'Sat', full:'Saturday'  },
+  { d:7, ko:'일', en:'Sun', full:'Sunday'    }
 ];
 // 14:30 → 2:30  (12시 기준으로 보여줍니다. 오전·오후 표시는 없어도 헷갈리지 않아요)
 function _h12(t){
@@ -8006,6 +8021,7 @@ function initClassMgmtScreen(){
 //   "Galaxy 1"     → Galaxy     (글자로 시작하면 그 낱말로 묶습니다)
 function _classGroup(name){
   var n = String(name || '').trim();
+  if(isMakeupClass(n)) return { key:'z-makeup', label:'Make-up (보충수업)' };
   var m = n.match(/^([MmHh])?\s*(\d+)/);
   if(m){
     var p = (m[1] || '').toUpperCase();
@@ -8254,10 +8270,10 @@ function openSchedModal(classId){
     +   "<div style='font-size:11.5px;font-weight:700;color:#5B6551;flex:1'>지금 시간표</div>"
     +   "<button onclick='saveParentNotice(this)' style='background:#2D6A4F;color:#fff;border:none;"
     +     "border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer'>"
-    +     "📄 학부모 안내문</button>"
+    +     "📄 학부모 안내문 보기</button>"
     +   "<button onclick='saveSlipSheet(this)' style='background:#EFF4EA;color:#2D6A4F;border:none;"
     +     "border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer'>"
-    +     "🗒 알림장 5매</button>"
+    +     "🗒 알림장 5매 보기</button>"
     +   "<button onclick='schedClear()' style='background:#FDECEC;color:#C0392B;border:none;"
     +     "border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer'>"
     +     "전체 비우기</button>"
@@ -9009,15 +9025,16 @@ function _prTable(rows, days, big, forceRowPx){
         + "<th style='width:" + timeW + ";font-size:" + thFs + ";padding:" + thPad + "'>시간</th>";
   days.forEach(function(w){
     h += "<th style='font-size:" + thFs + ";padding:" + thPad + "'>"
-      +  (big ? (w.en.toUpperCase() + " " + w.ko) : (w.ko + "요일")) + "</th>";
+      +  w.full + " <span style='font-weight:600;opacity:.8'>[" + w.ko + "]</span></th>";
   });
   h += "</tr>";
 
   for(var p = minP; p <= maxP; p++){
     var info = _periodInfo(p);
     h += "<tr style='height:" + rowPx + "px'>"
-      +  "<td class='tm' style='font-size:" + timeFs + "'>"
-      +    (info ? _h12(info.start) + "~" + _h12(info.end) : "") + "</td>";
+      +  "<td class='tm' style='font-size:" + timeFs + ";line-height:1.35'>"
+      +    (info ? _h12(info.start) + "<br><span style='font-weight:600;opacity:.85'>~"
+                  + _h12(info.end) + "</span>" : "") + "</td>";
     days.forEach(function(w){
       var cell = _schedCell(used[w.d + '-' + p]);
       if(!cell || !cell.name){
@@ -9043,57 +9060,8 @@ function _prTable(rows, days, big, forceRowPx){
 }
 
 function _prOpen(title, css, body, fileName){
-  var w = window.open('', '_blank');
-  if(!w){ showToast("팝업이 막혀 있어요. 이 사이트의 팝업을 허용해 주세요."); return; }
-
-  // 파일 이름에 못 쓰는 글자를 걸러냅니다
-  var fn = String(fileName || title || 'willgrow').replace(/[\\\/:*?"<>|]/g, '');
-
-  w.document.write(
-      "<!doctype html><html><head><meta charset='utf-8'><title>" + title + "</title>"
-    + css
-    + "<scr" + "ipt src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/"
-    + "html2canvas.min.js'></scr" + "ipt>"
-    + "</head><body>"
-    + "<div class='noprint'>"
-    +   "<button onclick='saveImg()' id='imgBtn'>🖼 이미지로 저장 (PNG)</button>"
-    +   "<button class='g' onclick='window.close()'>닫기</button>"
-    +   "<div style='font-size:11px;color:#8A9178;margin-top:7px'>"
-    +     "저장한 사진을 카카오톡·문자로 바로 보내거나, 인쇄해서 나눠주시면 됩니다.</div>"
-    + "</div>"
-    + body
-    + "<scr" + "ipt>"
-    + "var WG_FN = " + JSON.stringify(fn) + ";"
-    + "function saveImg(){"
-    +   "var btn = document.getElementById('imgBtn');"
-    +   "if(typeof html2canvas !== 'function'){"
-    +     "alert('이미지 만들기 도구를 불러오지 못했어요.\\n인터넷 연결을 확인하고 새로고침해 주세요.');"
-    +     "return; }"
-    +   "btn.disabled = true; btn.textContent = '만드는 중…';"
-    +   "var sheets = document.querySelectorAll('.sheet');"
-    +   "var i = 0;"
-    +   "function done(){ btn.disabled = false; btn.textContent = '🖼 이미지로 저장 (PNG)'; }"
-    +   "function next(){"
-    +     "if(i >= sheets.length){ done(); return; }"
-    +     "html2canvas(sheets[i], { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false })"
-    +     ".then(function(cv){"
-    +       "var a = document.createElement('a');"
-    +       "a.download = WG_FN + (sheets.length > 1 ? ('_' + (i+1)) : '') + '.png';"
-    +       "a.href = cv.toDataURL('image/png');"
-    +       "document.body.appendChild(a); a.click(); a.remove();"
-    +       "i++; setTimeout(next, 500);"
-    +     "})"
-    +     ".catch(function(e){"
-    +       "done();"
-    +       "alert('이미지를 만들지 못했어요.\\n' + (e && e.message ? e.message : '') +"
-    +       "'\\n\\n교재 표지 사진 때문일 수 있어요. 잠시 뒤 다시 눌러보세요.');"
-    +     "});"
-    +   "}"
-    +   "next();"
-    + "}"
-    + "</scr" + "ipt>"
-    + "</body></html>");
-  w.document.close();
+  // 창을 새로 띄우지 않고, 앱 안에서 사진을 미리 보여드립니다.
+  _prPreview(title, css, body, fileName, null);
 }
 
 // ── 실제 인쇄 ──────────────────────────────────────────────
@@ -9137,38 +9105,54 @@ function _loadH2C(cb, onErr){
   document.head.appendChild(s);
 }
 
-// html 을 화면 밖에 그려서 PNG 로 내려받습니다
-function _saveAsImage(css, bodyHtml, fileName, btn){
+// ════════════════════════════════════════════════════════════
+//  사진 미리보기
+//
+//  버튼을 누르면 바로 내려받지 않고,
+//  "이렇게 저장됩니다" 하고 사진을 먼저 보여드립니다.
+//  확인하신 뒤 [다운로드] 를 누르시면 파일로 저장됩니다.
+// ════════════════════════════════════════════════════════════
+var _prPvUrls = [];
+var _prPvName = 'willgrow';
+
+var _PV_BTN  = "border:none;border-radius:8px;padding:8px 14px;font-size:13px;"
+             + "font-weight:700;cursor:pointer;background:#2D6A4F;color:#fff";
+var _PV_BTN2 = "border:1px solid #CFD6C7;border-radius:8px;padding:8px 14px;font-size:13px;"
+             + "font-weight:700;cursor:pointer;background:#fff;color:#4A5545";
+
+// html 을 화면 밖에 그려 사진으로 만든 뒤, 미리보기 창을 엽니다
+function _prPreview(title, css, bodyHtml, fileName, btn){
   var label = btn ? btn.textContent : '';
   function busy(on){
     if(!btn) return;
     btn.disabled = on;
-    btn.textContent = on ? '사진 만드는 중…' : label;
+    btn.textContent = on ? '미리보기 만드는 중…' : label;
   }
   busy(true);
 
   _loadH2C(function(){
     var holder = document.createElement('div');
     holder.style.cssText = 'position:fixed;left:-99999px;top:0;z-index:-1';
-    // 인쇄용 CSS 를 이 덩어리 안에만 적용합니다
-    holder.innerHTML = css.replace(/@page[^}]*}/g, '') + bodyHtml;
+    holder.innerHTML = String(css).replace(/@page[^}]*}/g, '') + bodyHtml;
     document.body.appendChild(holder);
 
     var sheets = holder.querySelectorAll('.sheet');
-    var i = 0;
-    function done(){ holder.remove(); busy(false); }
+    var urls = [], i = 0;
+
     function next(){
-      if(i >= sheets.length){ done(); showToast("사진으로 저장했어요."); return; }
+      if(i >= sheets.length){
+        holder.remove(); busy(false);
+        if(!urls.length){ showToast("보여드릴 내용이 없어요."); return; }
+        _prShowPreview(title, urls, fileName);
+        return;
+      }
       html2canvas(sheets[i], { scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false })
       .then(function(cv){
-        var a = document.createElement('a');
-        a.download = fileName + (sheets.length > 1 ? ('_' + (i+1)) : '') + '.png';
-        a.href = cv.toDataURL('image/png');
-        document.body.appendChild(a); a.click(); a.remove();
-        i++; setTimeout(next, 400);
+        urls.push(cv.toDataURL('image/png'));
+        i++; setTimeout(next, 60);
       })
       .catch(function(e){
-        done();
+        holder.remove(); busy(false);
         showToast("사진을 만들지 못했어요: " + (e && e.message ? e.message : ''));
       });
     }
@@ -9177,6 +9161,77 @@ function _saveAsImage(css, bodyHtml, fileName, btn){
     busy(false);
     showToast("사진 만들기 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.");
   });
+}
+
+// 미리보기 창 그리기
+function _prShowPreview(title, urls, fileName){
+  _prPvClose();
+  _prPvUrls = urls;
+  _prPvName = String(fileName || 'willgrow').replace(/[\\\/:*?"<>|]/g, '');
+
+  var many = urls.length > 1;
+  var h =
+      "<div style='background:#fff;border-radius:14px;max-width:1000px;width:100%;"
+    +   "box-shadow:0 18px 48px rgba(0,0,0,.35);overflow:hidden'>"
+    + "<div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap;"
+    +   "padding:14px 18px;border-bottom:1px solid #E6E8E0'>"
+    +   "<b style='flex:1;font-size:15px;color:#2D302E'>" + _plEsc(title) + "</b>"
+    +   (many ? "<button onclick='_prPvDownloadAll()' style='" + _PV_BTN + "'>"
+                + "⬇ 전체 다운로드 (" + urls.length + "장)</button>" : "")
+    +   "<button onclick='_prPvClose()' style='" + _PV_BTN2 + "'>닫기</button>"
+    + "</div>"
+    + "<div style='padding:16px 18px 20px;background:#F6F7F3;max-height:78vh;overflow:auto'>"
+    +   "<div style='font-size:12px;color:#77786E;margin-bottom:10px'>"
+    +     "아래 모습 그대로 사진으로 저장됩니다. 확인하신 뒤 다운로드를 눌러주세요.</div>";
+
+  urls.forEach(function(u, i){
+    h += "<div style='margin-bottom:18px'>"
+      +    "<img src='" + u + "' alt='' style='width:100%;display:block;"
+      +      "border:1px solid #DDE0D6;border-radius:8px;background:#fff'>"
+      +    "<div style='text-align:right;margin-top:8px'>"
+      +      "<button onclick='_prPvDownload(" + i + ")' style='" + _PV_BTN + "'>⬇ "
+      +        (many ? (i + 1) + "번째 사진 저장" : "이미지 다운로드") + "</button>"
+      +    "</div>"
+      +  "</div>";
+  });
+  h += "</div></div>";
+
+  var wrap = document.createElement('div');
+  wrap.id = 'prPvWrap';
+  wrap.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;z-index:9999;'
+    + 'background:rgba(24,28,22,.72);display:flex;align-items:flex-start;'
+    + 'justify-content:center;overflow:auto;padding:24px 16px';
+  wrap.innerHTML = h;
+  wrap.addEventListener('click', function(e){ if(e.target === wrap) _prPvClose(); });
+  document.body.appendChild(wrap);
+}
+
+function _prPvDownload(i){
+  var u = _prPvUrls[i];
+  if(!u) return;
+  var a = document.createElement('a');
+  a.download = _prPvName + (_prPvUrls.length > 1 ? ('_' + (i + 1)) : '') + '.png';
+  a.href = u;
+  document.body.appendChild(a); a.click(); a.remove();
+  showToast("사진을 저장했어요.");
+}
+
+function _prPvDownloadAll(){
+  var n = _prPvUrls.length, i = 0;
+  (function next(){
+    if(i >= n){ showToast("사진 " + n + "장을 저장했어요."); return; }
+    var a = document.createElement('a');
+    a.download = _prPvName + '_' + (i + 1) + '.png';
+    a.href = _prPvUrls[i];
+    document.body.appendChild(a); a.click(); a.remove();
+    i++; setTimeout(next, 450);
+  })();
+}
+
+function _prPvClose(){
+  var m = document.getElementById('prPvWrap');
+  if(m) m.remove();
+  _prPvUrls = [];
 }
 
 // 시간표 창에서 바로 누르는 버튼 둘
@@ -9204,7 +9259,8 @@ function _prBuild(kind, btn){
 
   var fn = String(cls + (kind === 'slip' ? '_알림장_시간표' : '_시간표_안내문'))
              .replace(/[\\\/:*?"<>|]/g, '');
-  _saveAsImage(_prCSS(kind !== 'slip'), built, fn, btn);
+  _prPreview(cls + (kind === 'slip' ? ' 알림장 붙임용 시간표' : ' 시간표 안내문'),
+             _prCSS(kind !== 'slip'), built, fn, btn);
 }
 
 // ── ① 학부모 안내문 (A4 가로) ──────────────────────────────
