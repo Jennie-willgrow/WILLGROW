@@ -897,6 +897,32 @@ var WG_WEEKDAYS = [
   { d:6, ko:'토', en:'Sat', full:'Saturday'  },
   { d:7, ko:'일', en:'Sun', full:'Sunday'    }
 ];
+// "16:30:00" → "16:30"  (Supabase 의 TIME 은 초까지 옵니다)
+function _hhmm(t){
+  var m = String(t || '').match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return '';
+  return (m[1].length === 1 ? '0' + m[1] : m[1]) + ':' + m[2];
+}
+
+// 30분 단위 보충 시간 — 12:00 부터 22:00 까지
+function _scTimeList(){
+  var out = [];
+  for(var h = 12; h <= 22; h++){
+    out.push((h < 10 ? '0' : '') + h + ':00');
+    if(h < 22) out.push((h < 10 ? '0' : '') + h + ':30');
+  }
+  return out;
+}
+
+// "16:30" 에 90분을 더하면 "18:00"
+function _scAddMin(hhmm, min){
+  var m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})/);
+  if(!m) return '';
+  var t = Number(m[1]) * 60 + Number(m[2]) + Number(min || 0);
+  var h = Math.floor(t / 60) % 24, r = t % 60;
+  return (h < 10 ? '0' : '') + h + ':' + (r < 10 ? '0' : '') + r;
+}
+
 // 14:30 → 2:30  (12시 기준으로 보여줍니다. 오전·오후 표시는 없어도 헷갈리지 않아요)
 function _h12(t){
   var s = String(t || '');
@@ -1206,11 +1232,15 @@ async function fetchClassManage() {
   slots.forEach(function(s){ (slotBy[s.class_id] = slotBy[s.class_id] || []).push(_mapSchedRow(s)); });
 
   // 학생 개별 시간 조정 (SQL 을 아직 안 돌리셨어도 그냥 빈 목록이 됩니다)
-  var changes = await _sbGetSafe('student_schedule_changes',
+  var changes = await sbGetSoft('student_schedule_changes',
+    'select=id,student_id,class_id,from_weekday,from_period,to_weekday,to_period,'
+    + 'to_start_time,to_end_time,to_class_id,reason,note,starts_on,ends_on'
+    + '&class_id=in.' + inList
+    + '&order=from_weekday.asc,from_period.asc',
     'select=id,student_id,class_id,from_weekday,from_period,to_weekday,to_period,'
     + 'to_class_id,reason,starts_on,ends_on'
     + '&class_id=in.' + inList
-    + '&order=from_weekday.asc,from_period.asc') || [];
+    + '&order=from_weekday.asc,from_period.asc').catch(function(){ return []; }) || [];
   var chBy = {};
   changes.forEach(function(x){ (chBy[x.class_id] = chBy[x.class_id] || []).push(x); });
 
@@ -1258,8 +1288,9 @@ async function fetchClassManage() {
         return { id:x.id, studentId:x.student_id,
                  fromWeekday:x.from_weekday, fromPeriod:x.from_period,
                  toWeekday:x.to_weekday,     toPeriod:x.to_period,
+                 toStart:_hhmm(x.to_start_time), toEnd:_hhmm(x.to_end_time),
                  toClassId:x.to_class_id || '',
-                 reason:x.reason || '',
+                 reason:x.reason || '', note:x.note || '',
                  startsOn:x.starts_on || '', endsOn:x.ends_on || '' };
       }),
       thisWeek: lessons(rows.filter(function(r){ return String(r.date||'') >= thisFrom; })),
@@ -1288,9 +1319,9 @@ async function saveStudentScheduleChange(p) {
   if(!p.classId)   return { success:false, error:'반을 알 수 없어요.' };
 
   var hasFrom = p.fromWeekday && p.fromPeriod;
-  var hasTo   = p.toWeekday   && p.toPeriod;
+  var hasTo   = p.toWeekday   && (p.toStart || p.toPeriod);
   if(!hasFrom && !hasTo){
-    return { success:false, error:'원래 시간이나 바뀐 시간 중 하나는 골라주세요.' };
+    return { success:false, error:'원래 시간이나 보충 시간 중 하나는 골라주세요.' };
   }
 
   var row = {
@@ -1298,10 +1329,13 @@ async function saveStudentScheduleChange(p) {
     class_id:     p.classId,
     from_weekday: hasFrom ? Number(p.fromWeekday) : null,
     from_period:  hasFrom ? Number(p.fromPeriod)  : null,
-    to_weekday:   hasTo   ? Number(p.toWeekday)   : null,
-    to_period:    hasTo   ? Number(p.toPeriod)    : null,
+    to_weekday:    hasTo ? Number(p.toWeekday) : null,
+    to_start_time: hasTo && p.toStart ? p.toStart : null,
+    to_end_time:   hasTo && p.toEnd   ? p.toEnd   : null,
+    to_period:     hasTo && p.toPeriod ? Number(p.toPeriod) : null,
     to_class_id:  p.toClassId || null,
     reason:       String(p.reason || '').trim() || null,
+    note:         String(p.note   || '').trim() || null,
     starts_on:    p.startsOn || null,
     ends_on:      p.endsOn   || null
   };
@@ -1311,9 +1345,26 @@ async function saveStudentScheduleChange(p) {
     else     await sbInsert('student_schedule_changes', row);
   } catch(e) {
     var msg = String(e && e.message || '');
-    if(/42P01|does not exist|relation/i.test(msg)){
+    if(/42P01|42703|does not exist|relation|column/i.test(msg)){
       return { success:false,
                error:'시간 조정 서랍이 아직 없어요. RUN_ME_12_학생시간조정.sql 을 먼저 돌려주세요.' };
+    }
+    return { success:false, error: msg || '저장하지 못했어요.' };
+  }
+  return { success:true };
+}
+
+// 특이사항만 고쳐 적기
+async function setStudentScheduleNote(id, note) {
+  if(!id) return { success:false, error:'무엇에 적을지 알 수 없어요.' };
+  try {
+    await sbPatch('student_schedule_changes', 'id=' + _eq(id),
+                  { note: String(note || '').trim() || null });
+  } catch(e) {
+    var msg = String(e && e.message || '');
+    if(/42703|column|does not exist/i.test(msg)){
+      return { success:false,
+               error:'특이사항 칸이 아직 없어요. RUN_ME_12_학생시간조정.sql 을 다시 돌려주세요.' };
     }
     return { success:false, error: msg || '저장하지 못했어요.' };
   }
@@ -2880,7 +2931,7 @@ var _serverFunctions = {
   fetchLessonPlans, updateLessonPlanStatus, updateLessonPlanFull, createLessonPlan,
   fetchSchoolEvents, fetchMeetings, saveMeeting, deleteMeeting, toggleMeetingField,
   fetchClassManage, setClassTeacher, setTeacherActive, moveStudentClass,
-  saveStudentScheduleChange, deleteStudentScheduleChange,
+  saveStudentScheduleChange, deleteStudentScheduleChange, setStudentScheduleNote,
   fetchClassSchedule, fetchAllSchedules2, saveClassSlots, deleteClassSlot, clearClassSchedule,
   updateSlotSubject, addOneSlot,
   fetchTextbookCatalog, uploadTextbookCover, removeTextbookCover,
@@ -8101,6 +8152,7 @@ function initClassMgmtScreen(){
 //  반 시간표와 다르게 다니는 학생을 적어 둡니다.
 // ════════════════════════════════════════════════════════════
 var _scCid = '';
+var _scNoteId = '';   // 지금 특이사항을 적고 있는 줄
 
 function _scClass(){
   return (_cmData.classes || []).filter(function(x){ return x.id === _scCid; })[0] || null;
@@ -8131,16 +8183,60 @@ function _scSlotPicker(idPrefix, label, hint){
        + "</div>";
 }
 
+// 보충 시간 — 정규 교시(55분)가 아니라 30분 단위 시각으로 고릅니다
+function _scMakeupPicker(){
+  var wd = "<select id='scToW' style='flex:1.1;min-width:0;padding:7px 8px;"
+         + "border:1.5px solid #E2E8D8;border-radius:8px;font-size:12.5px;background:#fff'>"
+         + "<option value=''>— 없음 —</option>"
+         + WG_WEEKDAYS.slice(0, 6).map(function(w){
+             return "<option value='" + w.d + "'>" + w.full + " [" + w.ko + "]</option>";
+           }).join("") + "</select>";
+
+  var st = "<select id='scToT' style='flex:1;min-width:0;padding:7px 8px;"
+         + "border:1.5px solid #E2E8D8;border-radius:8px;font-size:12.5px;background:#fff'>"
+         + "<option value=''>— 시작 —</option>"
+         + _scTimeList().map(function(t){
+             return "<option value='" + t + "'>" + _h12(t) + "</option>";
+           }).join("") + "</select>";
+
+  var dur = "<select id='scToD' style='flex:.9;min-width:0;padding:7px 8px;"
+          + "border:1.5px solid #E2E8D8;border-radius:8px;font-size:12.5px;background:#fff'>"
+          + [30, 60, 90, 120].map(function(m){
+              var lbl = m < 60 ? (m + '분')
+                      : (Math.floor(m / 60) + '시간' + (m % 60 ? ' ' + (m % 60) + '분' : ''));
+              return "<option value='" + m + "'" + (m === 60 ? " selected" : "") + ">"
+                   + lbl + "</option>";
+            }).join("") + "</select>";
+
+  return "<div style='flex:1;min-width:230px'>"
+       +   "<div style='font-size:11px;font-weight:700;color:#8A9178;margin-bottom:4px'>"
+       +     "보충 시간 <span style='font-weight:600;color:#C0C6B8'>(30분 단위)</span></div>"
+       +   "<div style='display:flex;gap:5px'>" + wd + st + dur + "</div>"
+       + "</div>";
+}
+
 // 한 줄을 사람 말로 — "수 3:30 → 목 4:30"
 function _scPhrase(x){
-  function one(w, p){
+  function dayKo(w){
     var d = WG_WEEKDAYS.filter(function(k){ return k.d === Number(w); })[0];
-    var i = _periodInfo(Number(p));
+    return d ? d.ko : '';
+  }
+  function one(w, p){
+    var d = dayKo(w), i = _periodInfo(Number(p));
     if(!d || !i) return '';
-    return d.ko + " " + _h12(i.start);
+    return d + " " + _h12(i.start);
+  }
+  // 보충은 시각을 그대로 (4:30~5:30)
+  function toTxt(x){
+    var d = dayKo(x.toWeekday);
+    if(!d) return '';
+    if(x.toStart){
+      return d + " " + _h12(x.toStart) + (x.toEnd ? "~" + _h12(x.toEnd) : "");
+    }
+    return one(x.toWeekday, x.toPeriod);
   }
   var a = one(x.fromWeekday, x.fromPeriod);
-  var b = one(x.toWeekday,   x.toPeriod);
+  var b = toTxt(x);
   if(a && b) return a + " <span style='color:#B4BCA8'>→</span> " + b;
   if(a)      return a + " <span style='color:#C0705F'>빠짐</span>";
   if(b)      return "<span style='color:#2D6A4F'>추가</span> " + b;
@@ -8166,7 +8262,7 @@ function openStuChange(classId){
 function closeStuChange(){
   var box = document.getElementById('stuChangeOverlay');
   if(box) box.style.display = 'none';
-  _scCid = '';
+  _scCid = ''; _scNoteId = '';
 }
 
 function renderStuChange(){
@@ -8198,11 +8294,41 @@ function renderStuChange(){
       +     "</div>"
       +     "<div style='font-size:10.5px;color:#A29CB0;margin-top:2px'>" + _plEsc(period)
       +       (x.reason ? " · " + _plEsc(x.reason) : "") + "</div>"
+
+      // ── 선생님 특이사항 ──
+      +     (_scNoteId === x.id
+        ? "<div style='margin-top:7px'>"
+          + "<textarea id='scNoteBox' rows='3' placeholder='특이사항을 적어주세요"
+          + " (예: 9/24 보충 — 숙제 안 해옴, 단어 재시험 통과)' "
+          + "style='width:100%;padding:7px 9px;border:1.5px solid #D9CFE8;border-radius:8px;"
+          + "font-size:12px;box-sizing:border-box;resize:vertical;font-family:inherit'>"
+          + _plEsc(x.note) + "</textarea>"
+          + "<div style='display:flex;gap:6px;margin-top:5px'>"
+          +   "<button onclick='saveStuChangeNote(\"" + x.id + "\",this)' "
+          +     "style='background:#7B57A3;color:#fff;border:none;border-radius:7px;"
+          +     "padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer'>저장</button>"
+          +   "<button onclick='cancelStuChangeNote()' "
+          +     "style='background:#F0F0F0;color:#666;border:none;border-radius:7px;"
+          +     "padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer'>취소</button>"
+          + "</div></div>"
+        : (x.note
+            ? "<div style='margin-top:6px;background:#fff;border:1px solid #EDE7F4;"
+              + "border-radius:7px;padding:6px 8px;font-size:11.5px;color:#4A4356;"
+              + "line-height:1.5;white-space:pre-wrap'>📝 " + _plEsc(x.note) + "</div>"
+            : ""))
+
       +   "</div>"
-      +   "<button onclick='removeStuChange(\"" + x.id + "\")' "
-      +     "style='background:#FDECEC;color:#C0392B;border:none;border-radius:7px;"
-      +     "padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0'>"
-      +     "지우기</button>"
+      +   "<div style='display:flex;flex-direction:column;gap:5px;flex-shrink:0'>"
+      +     (_scNoteId === x.id ? "" :
+            "<button onclick='editStuChangeNote(\"" + x.id + "\")' "
+          +   "style='background:#F4EFFA;color:#7B57A3;border:none;border-radius:7px;"
+          +   "padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;"
+          +   "white-space:nowrap'>" + (x.note ? "✎ 고치기" : "✎ 특이사항") + "</button>")
+      +     "<button onclick='removeStuChange(\"" + x.id + "\")' "
+      +       "style='background:#FDECEC;color:#C0392B;border:none;border-radius:7px;"
+      +       "padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer'>"
+      +       "지우기</button>"
+      +   "</div>"
       + "</div>";
   }).join("");
 
@@ -8252,14 +8378,15 @@ function renderStuChange(){
     +       "margin-bottom:9px'>" + stuOpts + "</select>"
 
     +     "<div style='display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px'>"
-    +       _scSlotPicker('scFrom', '원래 시간', '(못 듣는 수업)')
-    +       _scSlotPicker('scTo',   '바뀐 시간', '(대신 듣는 수업)')
+    +       _scSlotPicker('scFrom', '원래 시간', '(못 듣는 정규 수업)')
+    +       _scMakeupPicker()
     +     "</div>"
 
     +     "<div style='font-size:10.5px;color:#A8B09C;margin:-3px 0 9px;line-height:1.5'>"
-    +       "· 두 칸을 다 고르면 <b>옮김</b>이에요 (수 3:30 → 목 4:30)<br>"
+    +       "· 두 칸을 다 고르면 <b>옮김</b>이에요 (수 3:30 → 목 4:30~5:30)<br>"
     +       "· 원래 시간만 고르면 <b>그 수업을 빠짐</b><br>"
-    +       "· 바뀐 시간만 고르면 <b>수업을 더 들음</b></div>"
+    +       "· 보충 시간만 고르면 <b>수업을 더 들음</b><br>"
+    +       "· 보충은 정규 수업(55분)과 달리 <b>30분 단위</b>로 고릅니다</div>"
 
     +     "<select id='scToCls' style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;"
     +       "border-radius:8px;font-size:12.5px;background:#fff;box-sizing:border-box;"
@@ -8268,6 +8395,11 @@ function renderStuChange(){
     +     "<input id='scReason' type='text' placeholder='사유 (예: 수요일 피아노 학원)' "
     +       "style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
     +       "font-size:12.5px;box-sizing:border-box;margin-bottom:9px'>"
+
+    +     "<textarea id='scNote' rows='2' placeholder='특이사항 (선생님 메모 — 나중에 고칠 수 있어요)' "
+    +       "style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
+    +       "font-size:12.5px;box-sizing:border-box;margin-bottom:9px;resize:vertical;"
+    +       "font-family:inherit'></textarea>"
 
     +     "<div style='display:flex;gap:9px;align-items:center;flex-wrap:wrap'>"
     +       "<div style='flex:1;min-width:130px'>"
@@ -8294,25 +8426,29 @@ function renderStuChange(){
 
 function addStuChange(btn){
   var v = function(id){ var e = document.getElementById(id); return e ? e.value : ''; };
+  var toStart = v('scToT');
   var p = {
     classId:     _scCid,
     studentId:   v('scStu'),
     fromWeekday: v('scFromW'), fromPeriod: v('scFromP'),
-    toWeekday:   v('scToW'),   toPeriod:   v('scToP'),
+    toWeekday:   v('scToW'),
+    toStart:     toStart,
+    toEnd:       toStart ? _scAddMin(toStart, v('scToD') || 60) : '',
     toClassId:   v('scToCls'),
     reason:      v('scReason'),
+    note:        v('scNote'),
     startsOn:    v('scFromDate'), endsOn: v('scToDate')
   };
   if(!p.studentId){ showToast("학생을 골라주세요."); return; }
 
   var fromOk = p.fromWeekday && p.fromPeriod;
-  var toOk   = p.toWeekday   && p.toPeriod;
+  var toOk   = p.toWeekday   && p.toStart;
   if(!fromOk && !toOk){ showToast("시간을 하나는 골라주세요."); return; }
   if((p.fromWeekday && !p.fromPeriod) || (!p.fromWeekday && p.fromPeriod)){
     showToast("원래 시간은 요일과 시각을 함께 골라주세요."); return;
   }
-  if((p.toWeekday && !p.toPeriod) || (!p.toWeekday && p.toPeriod)){
-    showToast("바뀐 시간은 요일과 시각을 함께 골라주세요."); return;
+  if((p.toWeekday && !p.toStart) || (!p.toWeekday && p.toStart)){
+    showToast("보충 시간은 요일과 시작 시각을 함께 골라주세요."); return;
   }
 
   if(btn){ btn.disabled = true; btn.textContent = '저장하는 중…'; }
@@ -8328,6 +8464,29 @@ function addStuChange(btn){
       showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
     })
     .saveStudentScheduleChange(p);
+}
+
+// ── 특이사항 적기 ──
+function editStuChangeNote(id){ _scNoteId = id; renderStuChange(); }
+function cancelStuChangeNote(){ _scNoteId = ''; renderStuChange(); }
+
+function saveStuChangeNote(id, btn){
+  var box = document.getElementById('scNoteBox');
+  var txt = box ? box.value : '';
+  if(btn){ btn.disabled = true; btn.textContent = '저장하는 중…'; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(btn){ btn.disabled = false; btn.textContent = '저장'; }
+      if(!res || !res.success){ showToast((res && res.error) || "저장하지 못했어요."); return; }
+      _scNoteId = '';
+      showToast("특이사항을 적었어요.");
+      _scReload();
+    })
+    .withFailureHandler(function(e){
+      if(btn){ btn.disabled = false; btn.textContent = '저장'; }
+      showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .setStudentScheduleNote(id, txt);
 }
 
 function removeStuChange(id){
