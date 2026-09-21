@@ -1205,6 +1205,15 @@ async function fetchClassManage() {
   var slotBy = {};
   slots.forEach(function(s){ (slotBy[s.class_id] = slotBy[s.class_id] || []).push(_mapSchedRow(s)); });
 
+  // 학생 개별 시간 조정 (SQL 을 아직 안 돌리셨어도 그냥 빈 목록이 됩니다)
+  var changes = await _sbGetSafe('student_schedule_changes',
+    'select=id,student_id,class_id,from_weekday,from_period,to_weekday,to_period,'
+    + 'to_class_id,reason,starts_on,ends_on'
+    + '&class_id=in.' + inList
+    + '&order=from_weekday.asc,from_period.asc') || [];
+  var chBy = {};
+  changes.forEach(function(x){ (chBy[x.class_id] = chBy[x.class_id] || []).push(x); });
+
   var tName = {};
   teachers.forEach(function(t){ tName[t.id] = t.name; });
 
@@ -1245,6 +1254,14 @@ async function fetchClassManage() {
       students: stus,
       studentCount: stus.length,
       slots: slotBy[cls.id] || [],
+      changes: (chBy[cls.id] || []).map(function(x){
+        return { id:x.id, studentId:x.student_id,
+                 fromWeekday:x.from_weekday, fromPeriod:x.from_period,
+                 toWeekday:x.to_weekday,     toPeriod:x.to_period,
+                 toClassId:x.to_class_id || '',
+                 reason:x.reason || '',
+                 startsOn:x.starts_on || '', endsOn:x.ends_on || '' };
+      }),
       thisWeek: lessons(rows.filter(function(r){ return String(r.date||'') >= thisFrom; })),
       lastWeek: lessons(rows.filter(function(r){ return String(r.date||'') <  thisFrom; }))
     };
@@ -1260,6 +1277,52 @@ async function moveStudentClass(studentId, toClassId) {
   if(!studentId || !toClassId) return { success:false, error:'반을 골라주세요.' };
   await sbPatch('students', 'id=' + _eq(studentId), { class_id: toClassId });
   _classInfoMapCache = null;
+  return { success:true };
+}
+
+// ── 학생 개별 시간 조정 ────────────────────────────────────
+//   "이 학생만 수요일 3:30 대신 목요일 4:30 에 듣는다" 를 적어 둡니다.
+async function saveStudentScheduleChange(p) {
+  p = p || {};
+  if(!p.studentId) return { success:false, error:'학생을 골라주세요.' };
+  if(!p.classId)   return { success:false, error:'반을 알 수 없어요.' };
+
+  var hasFrom = p.fromWeekday && p.fromPeriod;
+  var hasTo   = p.toWeekday   && p.toPeriod;
+  if(!hasFrom && !hasTo){
+    return { success:false, error:'원래 시간이나 바뀐 시간 중 하나는 골라주세요.' };
+  }
+
+  var row = {
+    student_id:   p.studentId,
+    class_id:     p.classId,
+    from_weekday: hasFrom ? Number(p.fromWeekday) : null,
+    from_period:  hasFrom ? Number(p.fromPeriod)  : null,
+    to_weekday:   hasTo   ? Number(p.toWeekday)   : null,
+    to_period:    hasTo   ? Number(p.toPeriod)    : null,
+    to_class_id:  p.toClassId || null,
+    reason:       String(p.reason || '').trim() || null,
+    starts_on:    p.startsOn || null,
+    ends_on:      p.endsOn   || null
+  };
+
+  try {
+    if(p.id) await sbPatch('student_schedule_changes', 'id=' + _eq(p.id), row);
+    else     await sbInsert('student_schedule_changes', row);
+  } catch(e) {
+    var msg = String(e && e.message || '');
+    if(/42P01|does not exist|relation/i.test(msg)){
+      return { success:false,
+               error:'시간 조정 서랍이 아직 없어요. RUN_ME_12_학생시간조정.sql 을 먼저 돌려주세요.' };
+    }
+    return { success:false, error: msg || '저장하지 못했어요.' };
+  }
+  return { success:true };
+}
+
+async function deleteStudentScheduleChange(id) {
+  if(!id) return { success:false, error:'무엇을 지울지 알 수 없어요.' };
+  await sbDelete('student_schedule_changes', 'id=' + _eq(id), { allowZero:true });
   return { success:true };
 }
 
@@ -2817,6 +2880,7 @@ var _serverFunctions = {
   fetchLessonPlans, updateLessonPlanStatus, updateLessonPlanFull, createLessonPlan,
   fetchSchoolEvents, fetchMeetings, saveMeeting, deleteMeeting, toggleMeetingField,
   fetchClassManage, setClassTeacher, setTeacherActive, moveStudentClass,
+  saveStudentScheduleChange, deleteStudentScheduleChange,
   fetchClassSchedule, fetchAllSchedules2, saveClassSlots, deleteClassSlot, clearClassSchedule,
   updateSlotSubject, addOneSlot,
   fetchTextbookCatalog, uploadTextbookCover, removeTextbookCover,
@@ -8030,6 +8094,267 @@ function initClassMgmtScreen(){
   .fetchClassManage();
 }
 
+// ════════════════════════════════════════════════════════════
+//  학생 개별 시간 조정
+//
+//  "수요일 3:30 을 못 들어서 목요일 4:30 에 듣는다" 처럼
+//  반 시간표와 다르게 다니는 학생을 적어 둡니다.
+// ════════════════════════════════════════════════════════════
+var _scCid = '';
+
+function _scClass(){
+  return (_cmData.classes || []).filter(function(x){ return x.id === _scCid; })[0] || null;
+}
+
+// 요일·교시 고르는 칸 한 쌍
+function _scSlotPicker(idPrefix, label, hint){
+  var wd = "<select id='" + idPrefix + "W' style='flex:1;min-width:0;padding:7px 8px;"
+         + "border:1.5px solid #E2E8D8;border-radius:8px;font-size:12.5px;background:#fff'>"
+         + "<option value=''>— 없음 —</option>"
+         + WG_WEEKDAYS.slice(0, 6).map(function(w){
+             return "<option value='" + w.d + "'>" + w.full + " [" + w.ko + "]</option>";
+           }).join("") + "</select>";
+
+  var pd = "<select id='" + idPrefix + "P' style='flex:1;min-width:0;padding:7px 8px;"
+         + "border:1.5px solid #E2E8D8;border-radius:8px;font-size:12.5px;background:#fff'>"
+         + "<option value=''>— 없음 —</option>"
+         + WG_PERIODS.map(function(p){
+             return "<option value='" + p.p + "'>" + _h12(p.start) + " ~ " + _h12(p.end)
+                  + "</option>";
+           }).join("") + "</select>";
+
+  return "<div style='flex:1;min-width:190px'>"
+       +   "<div style='font-size:11px;font-weight:700;color:#8A9178;margin-bottom:4px'>"
+       +     label + (hint ? " <span style='font-weight:600;color:#C0C6B8'>" + hint
+                             + "</span>" : "") + "</div>"
+       +   "<div style='display:flex;gap:5px'>" + wd + pd + "</div>"
+       + "</div>";
+}
+
+// 한 줄을 사람 말로 — "수 3:30 → 목 4:30"
+function _scPhrase(x){
+  function one(w, p){
+    var d = WG_WEEKDAYS.filter(function(k){ return k.d === Number(w); })[0];
+    var i = _periodInfo(Number(p));
+    if(!d || !i) return '';
+    return d.ko + " " + _h12(i.start);
+  }
+  var a = one(x.fromWeekday, x.fromPeriod);
+  var b = one(x.toWeekday,   x.toPeriod);
+  if(a && b) return a + " <span style='color:#B4BCA8'>→</span> " + b;
+  if(a)      return a + " <span style='color:#C0705F'>빠짐</span>";
+  if(b)      return "<span style='color:#2D6A4F'>추가</span> " + b;
+  return '';
+}
+
+function openStuChange(classId){
+  _scCid = classId;
+  var box = document.getElementById('stuChangeOverlay');
+  if(!box){
+    box = document.createElement('div');
+    box.id = 'stuChangeOverlay';
+    box.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;z-index:4000;'
+      + 'background:rgba(24,28,22,.55);display:flex;align-items:flex-start;'
+      + 'justify-content:center;overflow:auto;padding:26px 14px';
+    box.addEventListener('click', function(e){ if(e.target === box) closeStuChange(); });
+    document.body.appendChild(box);
+  }
+  box.style.display = 'flex';
+  renderStuChange();
+}
+
+function closeStuChange(){
+  var box = document.getElementById('stuChangeOverlay');
+  if(box) box.style.display = 'none';
+  _scCid = '';
+}
+
+function renderStuChange(){
+  var box = document.getElementById('stuChangeOverlay');
+  var c   = _scClass();
+  if(!box || !c) return;
+
+  var stuName = {};
+  (c.students || []).forEach(function(s){
+    stuName[s.id] = s.name + (s.eng ? ' (' + s.eng + ')' : '');
+  });
+  var clsName = {};
+  (_cmData.allClasses || []).forEach(function(x){ clsName[x.id] = x.name; });
+
+  // ── 이미 걸려 있는 조정 ──
+  var rows = (c.changes || []).map(function(x){
+    var period = (x.startsOn || x.endsOn)
+      ? ((x.startsOn || '처음') + " ~ " + (x.endsOn || '계속'))
+      : "계속";
+    return "<div style='display:flex;align-items:center;gap:9px;padding:9px 11px;"
+      +   "background:#FAF8FD;border:1px solid #EEE8F6;border-radius:9px;margin-bottom:6px'>"
+      +   "<div style='flex:1;min-width:0'>"
+      +     "<div style='font-size:12.5px;font-weight:700;color:#3A3050'>"
+      +       _plEsc(stuName[x.studentId] || '(퇴원 학생)') + "</div>"
+      +     "<div style='font-size:12px;color:#5B5470;margin-top:2px'>" + _scPhrase(x)
+      +       (x.toClassId && x.toClassId !== c.id
+                 ? " <span style='color:#7B57A3;font-weight:700'>· "
+                   + _plEsc(clsName[x.toClassId] || '다른 반') + "</span>" : "")
+      +     "</div>"
+      +     "<div style='font-size:10.5px;color:#A29CB0;margin-top:2px'>" + _plEsc(period)
+      +       (x.reason ? " · " + _plEsc(x.reason) : "") + "</div>"
+      +   "</div>"
+      +   "<button onclick='removeStuChange(\"" + x.id + "\")' "
+      +     "style='background:#FDECEC;color:#C0392B;border:none;border-radius:7px;"
+      +     "padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0'>"
+      +     "지우기</button>"
+      + "</div>";
+  }).join("");
+
+  var stuOpts = "<option value=''>— 학생 고르기 —</option>"
+    + (c.students || []).map(function(s){
+        return "<option value='" + s.id + "'>" + _plEsc(stuName[s.id]) + "</option>";
+      }).join("");
+
+  var clsOpts = "<option value=''>— 같은 반에서 —</option>"
+    + (_cmData.allClasses || []).filter(function(x){ return x.id !== c.id; })
+        .map(function(x){
+          return "<option value='" + x.id + "'>" + _plEsc(x.name) + "</option>";
+        }).join("");
+
+  box.innerHTML =
+      "<div style='background:#fff;border-radius:14px;max-width:620px;width:100%;"
+    +   "box-shadow:0 18px 48px rgba(0,0,0,.3);overflow:hidden'>"
+
+    + "<div style='display:flex;align-items:center;gap:8px;padding:14px 18px;"
+    +   "border-bottom:1px solid #EEF0EA'>"
+    +   "<div style='flex:1'>"
+    +     "<div style='font-size:15px;font-weight:800;color:#2D3A28'>"
+    +       _plEsc(c.name) + " · 시간 조정</div>"
+    +     "<div style='font-size:11px;color:#A8B09C;margin-top:1px'>"
+    +       "반 시간표와 다르게 다니는 학생만 적어 두세요.</div>"
+    +   "</div>"
+    +   "<button onclick='closeStuChange()' style='background:none;border:none;font-size:20px;"
+    +     "color:#999;cursor:pointer;line-height:1'>✕</button>"
+    + "</div>"
+
+    + "<div style='padding:14px 18px 18px;max-height:74vh;overflow:auto'>"
+
+    // 지금 걸려 있는 것
+    +   "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:7px'>"
+    +     "지금 걸려 있는 조정</div>"
+    +   (rows || "<div style='font-size:12px;color:#C3C9BB;padding:12px 2px;"
+                 + "margin-bottom:6px'>아직 없어요. 모두 반 시간표대로 다닙니다.</div>")
+
+    // 새로 넣기
+    +   "<div style='background:#FAFBF8;border:1px solid #EEF0EA;border-radius:11px;"
+    +     "padding:13px 13px 14px;margin-top:12px'>"
+    +     "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:9px'>"
+    +       "＋ 새로 넣기</div>"
+
+    +     "<select id='scStu' style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;"
+    +       "border-radius:8px;font-size:12.5px;background:#fff;box-sizing:border-box;"
+    +       "margin-bottom:9px'>" + stuOpts + "</select>"
+
+    +     "<div style='display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px'>"
+    +       _scSlotPicker('scFrom', '원래 시간', '(못 듣는 수업)')
+    +       _scSlotPicker('scTo',   '바뀐 시간', '(대신 듣는 수업)')
+    +     "</div>"
+
+    +     "<div style='font-size:10.5px;color:#A8B09C;margin:-3px 0 9px;line-height:1.5'>"
+    +       "· 두 칸을 다 고르면 <b>옮김</b>이에요 (수 3:30 → 목 4:30)<br>"
+    +       "· 원래 시간만 고르면 <b>그 수업을 빠짐</b><br>"
+    +       "· 바뀐 시간만 고르면 <b>수업을 더 들음</b></div>"
+
+    +     "<select id='scToCls' style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;"
+    +       "border-radius:8px;font-size:12.5px;background:#fff;box-sizing:border-box;"
+    +       "margin-bottom:9px'>" + clsOpts + "</select>"
+
+    +     "<input id='scReason' type='text' placeholder='사유 (예: 수요일 피아노 학원)' "
+    +       "style='width:100%;padding:8px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
+    +       "font-size:12.5px;box-sizing:border-box;margin-bottom:9px'>"
+
+    +     "<div style='display:flex;gap:9px;align-items:center;flex-wrap:wrap'>"
+    +       "<div style='flex:1;min-width:130px'>"
+    +         "<div style='font-size:11px;font-weight:700;color:#8A9178;margin-bottom:4px'>"
+    +           "언제부터 <span style='font-weight:600;color:#C0C6B8'>(비우면 계속)</span></div>"
+    +         "<input id='scFromDate' type='date' style='width:100%;padding:7px 8px;"
+    +           "border:1.5px solid #E2E8D8;border-radius:8px;font-size:12.5px;"
+    +           "box-sizing:border-box'></div>"
+    +       "<div style='flex:1;min-width:130px'>"
+    +         "<div style='font-size:11px;font-weight:700;color:#8A9178;margin-bottom:4px'>"
+    +           "언제까지</div>"
+    +         "<input id='scToDate' type='date' style='width:100%;padding:7px 8px;"
+    +           "border:1.5px solid #E2E8D8;border-radius:8px;font-size:12.5px;"
+    +           "box-sizing:border-box'></div>"
+    +     "</div>"
+
+    +     "<button onclick='addStuChange(this)' style='width:100%;background:#7B57A3;color:#fff;"
+    +       "border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;"
+    +       "cursor:pointer;margin-top:11px'>저장</button>"
+    +   "</div>"
+
+    + "</div></div>";
+}
+
+function addStuChange(btn){
+  var v = function(id){ var e = document.getElementById(id); return e ? e.value : ''; };
+  var p = {
+    classId:     _scCid,
+    studentId:   v('scStu'),
+    fromWeekday: v('scFromW'), fromPeriod: v('scFromP'),
+    toWeekday:   v('scToW'),   toPeriod:   v('scToP'),
+    toClassId:   v('scToCls'),
+    reason:      v('scReason'),
+    startsOn:    v('scFromDate'), endsOn: v('scToDate')
+  };
+  if(!p.studentId){ showToast("학생을 골라주세요."); return; }
+
+  var fromOk = p.fromWeekday && p.fromPeriod;
+  var toOk   = p.toWeekday   && p.toPeriod;
+  if(!fromOk && !toOk){ showToast("시간을 하나는 골라주세요."); return; }
+  if((p.fromWeekday && !p.fromPeriod) || (!p.fromWeekday && p.fromPeriod)){
+    showToast("원래 시간은 요일과 시각을 함께 골라주세요."); return;
+  }
+  if((p.toWeekday && !p.toPeriod) || (!p.toWeekday && p.toPeriod)){
+    showToast("바뀐 시간은 요일과 시각을 함께 골라주세요."); return;
+  }
+
+  if(btn){ btn.disabled = true; btn.textContent = '저장하는 중…'; }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(btn){ btn.disabled = false; btn.textContent = '저장'; }
+      if(!res || !res.success){ showToast((res && res.error) || "저장하지 못했어요."); return; }
+      showToast("시간 조정을 넣었어요.");
+      _scReload();
+    })
+    .withFailureHandler(function(e){
+      if(btn){ btn.disabled = false; btn.textContent = '저장'; }
+      showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .saveStudentScheduleChange(p);
+}
+
+function removeStuChange(id){
+  if(!confirm("이 시간 조정을 지울까요?")) return;
+  google.script.run
+    .withSuccessHandler(function(){ showToast("지웠어요."); _scReload(); })
+    .withFailureHandler(function(e){
+      showToast("지우지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .deleteStudentScheduleChange(id);
+}
+
+// 저장 뒤 Class Hub 를 다시 불러와 화면을 맞춥니다
+function _scReload(){
+  var keep = _scCid;
+  google.script.run
+    .withSuccessHandler(function(d){
+      _cmData = d || { classes:[], teachers:[] };
+      renderClassMgmt();
+      _scCid = keep;
+      if(_scClass()) renderStuChange();
+      else closeStuChange();
+    })
+    .withFailureHandler(function(){ showToast("목록을 새로 불러오지 못했어요."); })
+    .fetchClassManage();
+}
+
 // ── 반 이름에서 학년 묶음 알아내기 ─────────────────────────
 //   "2A" "2B"      → 2학년
 //   "M1A"          → 중1        "H2B" → 고2
@@ -8113,17 +8438,25 @@ function renderClassMgmt(){
                + _plEsc(t.name) + (t.active === false ? " (퇴사)" : "") + "</option>";
         }).join("");
 
-    // 학생 명단 — 한 명씩 칸(칩)으로 나눠 두 줄씩 보여줍니다
+    // 시간 조정이 걸린 학생 표시용
+    var chMap = {};
+    (c.changes || []).forEach(function(x){
+      chMap[x.studentId] = (chMap[x.studentId] || 0) + 1;
+    });
+
+    // 학생 명단 — 작은 칸으로, 3열 3행(9명)까지 보이고 그 뒤는 스크롤
     var names = (c.students || []).map(function(s){
-      return "<div style='background:#F7F9F4;border:1px solid #EAEEE4;border-radius:7px;"
-           + "padding:4px 7px;overflow:hidden'>"
-           +   "<div style='font-size:11.5px;font-weight:700;color:#3A4634;"
+      var flag = chMap[s.id] ? " <span style='color:#8E6BB8' title='시간 조정 있음'>🔁</span>" : "";
+      return "<div style='background:" + (chMap[s.id] ? "#F7F3FB" : "#F7F9F4") + ";"
+           + "border:1px solid " + (chMap[s.id] ? "#E6DCF2" : "#EAEEE4") + ";border-radius:6px;"
+           + "padding:3px 5px;overflow:hidden;line-height:1.25'>"
+           +   "<div style='font-size:10.5px;font-weight:700;color:#3A4634;"
            +     "white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"
-           +     _plEsc(s.name)
-           +     (s.grade ? " <span style='font-weight:600;color:#A8B09C'>"
+           +     _plEsc(s.name) + flag
+           +     (s.grade ? " <span style='font-weight:600;color:#B4BCA8'>"
                             + _plEsc(s.grade) + "</span>" : "")
            +   "</div>"
-           + (s.eng ? "<div style='font-size:10px;color:#A8B09C;white-space:nowrap;"
+           + (s.eng ? "<div style='font-size:9px;color:#B4BCA8;white-space:nowrap;"
                       + "overflow:hidden;text-overflow:ellipsis'>" + _plEsc(s.eng) + "</div>" : "")
            + "</div>";
     }).join("");
@@ -8138,10 +8471,10 @@ function renderClassMgmt(){
       +   "<span style='background:#F1F3EE;color:#6B7563;border-radius:9px;padding:1px 8px;"
       +     "font-size:10.5px;font-weight:700;flex-shrink:0'>👥 " + c.studentCount + "명</span>"
       + "</div>"
-      // 학생 명단 — 2열 격자, 길면 그 칸 안에서만 스크롤
+      // 학생 명단 — 3열 격자, 3행(9명)까지 보이고 그 뒤는 그 칸 안에서 스크롤
       + (names
-          ? "<div style='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;"
-            + "max-height:112px;overflow-y:auto;margin-bottom:9px;padding-right:2px'>"
+          ? "<div style='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;"
+            + "max-height:105px;overflow-y:auto;margin-bottom:9px;padding-right:2px'>"
             + names + "</div>"
           : "<div style='font-size:10.5px;color:#C3C9BB;margin-bottom:9px'>재원생 없음</div>")
       // 담임
@@ -8160,6 +8493,21 @@ function renderClassMgmt(){
       +   "<button onclick='openSchedModal(\"" + c.id + "\")' style='background:#EFF4EA;color:#2D6A4F;"
       +     "border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;"
       +     "cursor:pointer;flex-shrink:0'>" + (sum ? "수정" : "＋ 만들기") + "</button>"
+      + "</div>"
+      // 개별 시간 조정
+      + "<div style='display:flex;align-items:center;gap:7px;margin-bottom:9px'>"
+      +   "<span style='font-size:10.5px;font-weight:700;color:#8A9178;white-space:nowrap'>"
+      +     "시간 조정</span>"
+      +   "<span style='flex:1;font-size:11.5px;color:"
+      +     ((c.changes && c.changes.length) ? "#7B57A3" : "#C7CCC0") + ";"
+      +     "overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"
+      +     ((c.changes && c.changes.length)
+          ? ("🔁 " + c.changes.length + "명 다르게 들어요")
+          : "모두 같은 시간") + "</span>"
+      +   "<button onclick='openStuChange(\"" + c.id + "\")' style='background:#F4EFFA;color:#7B57A3;"
+      +     "border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;"
+      +     "cursor:pointer;flex-shrink:0'>"
+      +     ((c.changes && c.changes.length) ? "보기" : "＋ 넣기") + "</button>"
       + "</div>"
       // 진도
       + "<div style='background:#FAFBF8;border-radius:9px;padding:8px 10px'>"
