@@ -3675,7 +3675,7 @@ function plHwView(text, opts){
   var lblFs  = big ? '22px'      : '12px';
   var valFs  = big ? '24px'      : '12.5px';
   var subFs  = big ? '13px'      : '8.5px';
-  var padV   = big ? '5px'       : '5px';
+  var padV   = big ? '4px'       : '5px';
   var padH   = big ? '18px'      : '10px';
   var gap    = big ? '26px'      : '10px';   // 숙제와 Spelling 사이 최소 틈
   var wrap   = big ? "white-space:nowrap;" : "word-break:break-word;";
@@ -4372,56 +4372,26 @@ function openHwEditModal(pageId, title, hw, lesson, book){
 }
 function openHwCardZoom(title, hw, lesson, dateStr){
   var ex = document.getElementById("hwZoomOverlay"); if(ex) ex.remove();
-  var mW = window.innerWidth;
-  var mH = window.innerHeight;
+
   var overlay = document.createElement("div");
   overlay.id = "hwZoomOverlay";
-  overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.68);z-index:9999;display:flex;align-items:center;justify-content:center";
+  overlay.style.cssText = "position:fixed;inset:0;background:#fff;z-index:9999;"
+    + "display:flex;align-items:center;justify-content:center";
   overlay.addEventListener("click", function(e){ if(e.target===overlay) overlay.remove(); });
+
   var modal = document.createElement("div");
   modal.style.cssText = "width:100%;height:100%;background:#fff;overflow:hidden;"
-    + "display:flex;flex-direction:column";
-  var header = document.createElement("div");
-  header.style.cssText = "background:#363D2E;padding:9px 16px;display:flex;align-items:center;"
-    + "justify-content:space-between;flex-shrink:0;gap:8px";
-  /* date block */
-  var dateBlock = document.createElement("div");
-  dateBlock.style.cssText = "display:flex;align-items:center;gap:10px;flex:1;min-width:0";
-  if(dateStr){
-    var dObj = new Date(dateStr + "T00:00:00");
-    var dayNames = ["일","월","화","수","목","금","토"];
-    var dateNum = document.createElement("div");
-    dateNum.style.cssText = "font-size:36px;font-weight:900;color:#fff;line-height:1";
-    dateNum.textContent = dObj.getDate();
-    var dateMeta = document.createElement("div");
-    dateMeta.style.cssText = "display:flex;flex-direction:column;gap:1px";
-    var monthEl = document.createElement("div");
-    monthEl.style.cssText = "font-size:13px;font-weight:700;color:rgba(255,255,255,0.75)";
-    monthEl.textContent = (dObj.getMonth()+1) + "월";
-    var dayEl = document.createElement("div");
-    dayEl.style.cssText = "font-size:18px;font-weight:800;color:#fff";
-    dayEl.textContent = dayNames[dObj.getDay()] + "요일";
-    dateMeta.appendChild(monthEl); dateMeta.appendChild(dayEl);
-    dateBlock.appendChild(dateNum); dateBlock.appendChild(dateMeta);
-    /* divider */
-    var divider = document.createElement("div");
-    divider.style.cssText = "width:2px;height:36px;background:rgba(255,255,255,0.3);border-radius:2px;flex-shrink:0";
-    dateBlock.appendChild(divider);
-  }
-  var ttl = document.createElement("div");
-  ttl.style.cssText = "font-size:16px;font-weight:800;color:#fff;line-height:1.3";
-  ttl.textContent = title;
-  dateBlock.appendChild(ttl);
-  var cb = document.createElement("button");
-  cb.style.cssText = "background:rgba(255,255,255,0.22);border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#fff;flex-shrink:0";
-  cb.textContent = "✕ 닫기";
-  cb.addEventListener("click", function(){ overlay.remove(); });
-  header.appendChild(dateBlock); header.appendChild(cb);
+    + "display:flex;flex-direction:row";
+
+  // ── 알림장 (왼쪽 — 화면을 거의 다 씁니다) ──
   var body = document.createElement("div");
-  body.style.cssText = "flex:1;overflow:hidden;display:flex;align-items:center;"
-    + "justify-content:center;padding:12px;box-sizing:border-box";
+  body.style.cssText = "flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;"
+    + "justify-content:center;padding:10px;box-sizing:border-box";
+
   var content = document.createElement("div");
-  content.style.cssText = "width:340px;flex-shrink:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif";
+  content.style.cssText = "width:340px;flex-shrink:0;"
+    + "font-family:-apple-system,BlinkMacSystemFont,sans-serif";
+
   var hwForm = plHwView(hw, { big:true });
   var hwHtml = hwForm
     ? hwForm
@@ -4429,31 +4399,78 @@ function openHwCardZoom(title, hw, lesson, dateStr){
       + "white-space:pre-wrap'>"
       + (hw ? hw.replace(/\n/g,"<br>") : "<span style='color:#bbb'>No homework</span>")
       + "</div>";
-  // 알림장 표는 내용에 맞는 자연스러운 크기로 두고, 그 뒤에 화면에 맞춰 키웁니다
   if(hwForm){
     content.style.width      = 'max-content';
     content.style.flexShrink = '0';   // 눌려서 글자가 겹치지 않게
   }
-  content.innerHTML = "<div style='font-size:10px;font-weight:600;color:#A8B09C;"
-    + "text-transform:uppercase;letter-spacing:1px;margin-bottom:3px'>📚 Homework</div>"
-    + hwHtml;
+  content.innerHTML = hwHtml;
   body.appendChild(content);
-  modal.appendChild(header); modal.appendChild(body);
+
+  // ── 날짜 바 (오른쪽 세로) ──
+  //    위쪽 띠를 없애고 옆으로 옮겨서, 알림장이 화면 높이를 다 쓰게 했습니다.
+  var side = document.createElement("div");
+  side.style.cssText = "width:148px;flex-shrink:0;background:#363D2E;color:#fff;"
+    + "display:flex;flex-direction:column;align-items:center;"
+    + "padding:14px 10px;box-sizing:border-box";
+
+  var cb = document.createElement("button");
+  cb.style.cssText = "background:rgba(255,255,255,0.22);border:none;border-radius:9px;"
+    + "padding:8px 0;width:100%;font-size:14px;font-weight:700;cursor:pointer;color:#fff;"
+    + "flex-shrink:0";
+  cb.textContent = "✕ 닫기";
+  cb.addEventListener("click", function(){ overlay.remove(); });
+  side.appendChild(cb);
+
+  // 날짜 — 학생들이 보고 그대로 적습니다
+  if(dateStr){
+    var dObj = new Date(dateStr + "T00:00:00");
+    var dayNames = ["일","월","화","수","목","금","토"];
+
+    var dWrap = document.createElement("div");
+    dWrap.style.cssText = "margin-top:26px;text-align:center;line-height:1";
+
+    var monthEl = document.createElement("div");
+    monthEl.style.cssText = "font-size:20px;font-weight:700;color:rgba(255,255,255,0.7);"
+      + "margin-bottom:2px";
+    monthEl.textContent = (dObj.getMonth()+1) + "월";
+
+    var dateNum = document.createElement("div");
+    dateNum.style.cssText = "font-size:76px;font-weight:900;color:#fff;line-height:.95;"
+      + "letter-spacing:-2px";
+    dateNum.textContent = dObj.getDate();
+
+    var dayEl = document.createElement("div");
+    dayEl.style.cssText = "font-size:30px;font-weight:800;color:#fff;margin-top:4px";
+    dayEl.textContent = dayNames[dObj.getDay()] + "요일";
+
+    dWrap.appendChild(monthEl); dWrap.appendChild(dateNum); dWrap.appendChild(dayEl);
+    side.appendChild(dWrap);
+  }
+
+  // 수업 이름 — 확인만 되면 되니 작게, 맨 아래에
+  var ttl = document.createElement("div");
+  ttl.style.cssText = "margin-top:auto;font-size:12px;font-weight:700;line-height:1.45;"
+    + "color:rgba(255,255,255,0.55);text-align:center;word-break:break-word";
+  ttl.textContent = title;
+  side.appendChild(ttl);
+
+  modal.appendChild(body); modal.appendChild(side);
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
+
   // ── 화면에 꽉 차게 키우기 ────────────────────────────────
   //   내용의 진짜 크기를 잰 다음, 가로·세로 중 먼저 꽉 차는 쪽에 맞춥니다.
   //   그래서 스크롤 없이 아래까지 한 번에 보입니다.
   function fitZoom(){
-    mW = window.innerWidth;
-    mH = window.innerHeight;
-
     // 잰 값이 틀어지지 않게 먼저 원래대로 돌려놓습니다
     content.style.transform = 'none';
     content.style.width = hwForm ? 'max-content' : '340px';
 
-    var availH = mH - header.offsetHeight - 24;
-    var availW = mW - 24;
+    // 알림장이 쓸 수 있는 진짜 공간 (오른쪽 날짜 바를 뺀 나머지)
+    var availH = body.clientHeight - 20;
+    var availW = body.clientWidth  - 20;
+    if(availH < 40 || availW < 40) return;
+
     var natW = content.offsetWidth  || 340;
     var natH = content.offsetHeight || 1;
     if(natW < 1 || natH < 1) return;
