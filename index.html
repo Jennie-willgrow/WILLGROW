@@ -1039,12 +1039,36 @@ function findTextbook(catalog, id){
   return null;
 }
 
-// 화면에 쓰는 이름 — "Little Junior Star 1-1"
-function textbookLabel(catalog, id){
-  var f = findTextbook(catalog, id);
+// 시리즈 이름이 책 이름에 이미 들어 있나?
+//   "Sounds Great" + "Sounds Great 5" → "Sounds Great Sounds Great 5" 가 되지 않게
+//   시리즈 이름 · 시리즈 코드 · 이름의 마지막 낱말 중 하나로 시작하면 겹친 것으로 봅니다
+//     "Sounds Great 5"  (시리즈 이름)
+//     "STAR 1-4"        (시리즈 코드)
+//     "Reading Tutor 1" (이름의 마지막 낱말)
+function _seriesRedundant(seriesName, bookName, seriesCode){
+  var b = String(bookName || '').toLowerCase().replace(/\s+/g, '');
+  if(!b) return true;
+  var words = String(seriesName || '').trim().split(/\s+/);
+  var cands = [ seriesName, seriesCode, words[words.length - 1] ];
+  for(var i = 0; i < cands.length; i++){
+    var a = String(cands[i] || '').toLowerCase().replace(/\s+/g, '');
+    if(a && b.indexOf(a) === 0) return true;
+  }
+  return false;
+}
+
+// 교재 전체 이름 — "Little Junior Star 1-1" / "Sounds Great 5"
+function _bookFullName(f){
   if(!f) return '';
-  if(f.series.code === '외부') return f.book.name;       // 기타교재는 이름이 곧 전부
-  return f.series.name + ' ' + f.book.name;
+  var bn = f.book.name || '';
+  if(f.series.code === '외부') return bn;                 // 기타교재는 이름이 곧 전부
+  if(_seriesRedundant(f.series.name, bn, f.series.code)) return bn;
+  return f.series.name + ' ' + bn;
+}
+
+// 화면에 쓰는 이름
+function textbookLabel(catalog, id){
+  return _bookFullName(findTextbook(catalog, id));
 }
 
 // 표지 올리기 → Willgrow 버킷의 covers/ 폴더
@@ -8172,11 +8196,13 @@ function _slotFace(s){
       ? "<img src=\"" + _mgAttr(f.book.cover) + "\" alt='' style='width:100%;height:30px;"
         + "object-fit:cover;border-radius:4px;display:block;margin-bottom:2px'>"
       : "";
-    var isExt = f.series.code === '외부';
+    // 시리즈 이름은 겹치지 않을 때만 작게 덧붙입니다
+    var hideSeries = (f.series.code === '외부')
+                  || _seriesRedundant(f.series.name, f.book.name, f.series.code);
     return cover
       + "<div style='font-size:10px;font-weight:700;color:#2D6A4F;line-height:1.25;"
       +   "word-break:break-word'>" + _plEsc(f.book.name) + "</div>"
-      + (isExt ? ""
+      + (hideSeries ? ""
           : "<div style='font-size:8.5px;color:#8A9178;line-height:1.2'>"
             + _plEsc(f.series.name) + "</div>")
       + (s.section
@@ -8666,9 +8692,8 @@ function _schedCell(s){
   if(!s) return null;
   var f = _catalog ? findTextbook(_catalog, s.textbookId) : null;
   if(f){
-    var isExt = f.series.code === '외부';
     return { cover:f.book.cover || '',
-             name: isExt ? f.book.name : (f.series.name + ' ' + f.book.name),
+             name: _bookFullName(f),
              sub:  s.section || '' };
   }
   return { cover:'', name:s.subject || '', sub:'' };
@@ -8751,7 +8776,7 @@ function openSchedPrintDialog(){
 
     + "<button onclick='schedPrintOne()' style='width:100%;background:#F1F3EE;color:#5B6551;"
     +   "border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:600;"
-    +   "cursor:pointer;margin-top:4px'>내부용 간단 표로 인쇄</button>";
+    +   "cursor:pointer;margin-top:4px'>내부용 간단 표 (이미지)</button>";
 
   ov.appendChild(box);
   document.body.appendChild(ov);
@@ -8814,19 +8839,20 @@ function _prTable(rows, days, big, forceRowPx){
   //   안내문: 표에 쓸 수 있는 높이 ≈ 397px / 알림장 카드 안: ≈ 96px
   var nRows  = Math.max(1, maxP - minP + 1);
   // 안내문은 남는 공간을 꽉 채웁니다 (표에 쓸 수 있는 높이 ≈ 470px)
-  // 머리글 줄(안내문 ≈36px · 알림장 ≈16px)을 뺀 나머지를 줄 수로 나눕니다
+  // PPT 와 같은 줄 높이 (안내문 1.10in ≈ 105px). 줄이 많으면 알아서 줄어듭니다.
   var rowPx  = forceRowPx
-             || Math.min(big ? 86 : 46, Math.floor((big ? 434 : 102) / nRows));
+             || Math.min(big ? 105 : 70, Math.floor((big ? 434 : 128) / nRows));
   if(rowPx < (big ? 30 : 16)) rowPx = big ? 30 : 16;
   var tight  = rowPx < (big ? 52 : 30);
 
   var timeW  = big ? '104px' : '56px';
-  var cvH    = Math.max(big ? 30 : 17, rowPx - (big ? 12 : 7));
+  // 표지는 줄 높이를 따라가되 너무 커지지 않게 막습니다
+  var cvH    = Math.min(big ? 78 : 51, Math.max(big ? 30 : 17, rowPx - (big ? 14 : 8)));
   var cvW    = Math.round(cvH * 0.74);
-  var nameFs = big ? (tight ? '13px'   : '16px')  : (tight ? '8.5px' : '10px');
-  var subFs  = big ? (tight ? '10.5px' : '11.5px'): (tight ? '7.5px' : '8.5px');
-  var thFs   = big ? '12px' : '8.5px';
-  var timeFs = big ? (tight ? '11.5px' : '13px') : '8.5px';
+  var nameFs = big ? (tight ? '13px'   : '16px')  : (tight ? '9px'   : '11px');
+  var subFs  = big ? (tight ? '10.5px' : '11.5px'): (tight ? '7.5px' : '9px');
+  var thFs   = big ? '12px' : '9.5px';
+  var timeFs = big ? (tight ? '11.5px' : '13px') : '9.5px';
   var thPad  = big ? '8px 6px' : '3px 4px';
 
   var h = "<table><tr>"
@@ -8881,11 +8907,9 @@ function _prOpen(title, css, body, fileName){
     + "</head><body>"
     + "<div class='noprint'>"
     +   "<button onclick='saveImg()' id='imgBtn'>🖼 이미지로 저장 (PNG)</button>"
-    +   "<button class='g' onclick='window.print()'>🖨 인쇄 · PDF</button>"
     +   "<button class='g' onclick='window.close()'>닫기</button>"
     +   "<div style='font-size:11px;color:#8A9178;margin-top:7px'>"
-    +     "이미지로 저장하면 카카오톡·문자로 바로 보내실 수 있어요. "
-    +     "인쇄할 때는 <b>배경 그래픽</b> 을 켜주세요.</div>"
+    +     "저장한 사진을 카카오톡·문자로 바로 보내거나, 인쇄해서 나눠주시면 됩니다.</div>"
     + "</div>"
     + body
     + "<scr" + "ipt>"
@@ -8912,7 +8936,7 @@ function _prOpen(title, css, body, fileName){
     +     ".catch(function(e){"
     +       "done();"
     +       "alert('이미지를 만들지 못했어요.\\n' + (e && e.message ? e.message : '') +"
-    +       "'\\n\\n교재 표지 사진 때문일 수 있어요. 인쇄 · PDF 로 저장해 보세요.');"
+    +       "'\\n\\n교재 표지 사진 때문일 수 있어요. 잠시 뒤 다시 눌러보세요.');"
     +     "});"
     +   "}"
     +   "next();"
@@ -8947,7 +8971,7 @@ function _prParent(cls, mon, stu, rows, days, dayTxt){
               + "변경 시 별도로 안내드립니다.";
 
   var body =
-      "<div class='sheet' style='width:297mm;height:210mm;padding:9mm 11mm 8mm;"
+      "<div class='sheet' style='width:297mm;padding:9mm 11mm 8mm;"
     +   "display:flex;flex-direction:column'>"
 
     // 머리 — 로고 / 오른쪽 작은 글씨
@@ -8968,9 +8992,8 @@ function _prParent(cls, mon, stu, rows, days, dayTxt){
 
     + "<div style='height:1px;background:" + PR.rule + ";margin:4mm 0 3.5mm'></div>"
 
-    // 표 — 남는 공간을 꽉 채웁니다
-    + "<div style='flex:1;min-height:0;display:flex'>"
-    +   "<div style='flex:1;min-height:0'>" + _prTable(rows, days, true) + "</div></div>"
+    // 표
+    + "<div>" + _prTable(rows, days, true) + "</div>"
 
     // 꼬리
     + "<div style='height:1px;background:" + PR.rul2 + ";margin:3.5mm 0 2.5mm'></div>"
@@ -8988,13 +9011,12 @@ function _prParent(cls, mon, stu, rows, days, dayTxt){
 function _prSlip(cls, mon, rows, days){
   var nP = 0, seen = {};
   rows.forEach(function(s){ if(!seen[s.period]){ seen[s.period]=1; nP++; } });
-  var rowPx  = Math.max(16, Math.min(46, Math.floor(102 / Math.max(1,nP))));
-  var needMm = 8 + 5 + 2 + (rowPx * nP + 15) * 0.2646;
-  var cardMm = Math.max(52, Math.ceil(needMm));
+  var rowPx  = Math.max(16, Math.min(70, Math.floor(128 / Math.max(1,nP))));
 
   function one(i){
+    // 높이를 못 박지 않고 내용에 맞춥니다 (아래가 비지 않게)
     return "<div style='border:1px solid " + PR.rule + ";padding:3mm 4mm;"
-      +      "height:" + cardMm + "mm;margin-bottom:2.5mm;page-break-inside:avoid'>"
+      +      "margin-bottom:2.5mm;page-break-inside:avoid'>"
       +    "<div style='display:flex;justify-content:space-between;align-items:center;"
       +      "margin-bottom:2mm'>"
       +      "<div style='display:flex;align-items:center;gap:2.5mm'>"
@@ -9016,7 +9038,7 @@ function _prSlip(cls, mon, rows, days){
   var cards = '';
   for(var i=0;i<5;i++) cards += one(i);
 
-  var body = "<div class='sheet' style='width:210mm;min-height:297mm;padding:7mm 7mm'>"
+  var body = "<div class='sheet' style='width:210mm;padding:7mm 7mm'>"
            + cards + "</div>";
   _prOpen(cls + " 알림장용 시간표", _prCSS(false), body, cls + "_알림장_시간표");
 }
