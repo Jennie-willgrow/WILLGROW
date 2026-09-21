@@ -3637,6 +3637,85 @@ function plItemsToText(formKey, lessonName, items){
   return '[' + lessonName + ']\n' + lines.join('\n');
 }
 
+// ════════════════════════════════════════════════════════════
+//  읽기 전용 알림장 표
+//
+//  Homework Check 화면에서 씁니다.
+//  학생들이 이 화면을 보고 종이 알림장에 옮겨 적기 때문에
+//  Daily Report 에서 쓴 것과 같은 모양·같은 순서로 보여줍니다.
+//
+//  알림장 양식으로 쓴 글이 아니면 null 을 돌려주고,
+//  그때는 예전처럼 글자 그대로 보여줍니다.
+// ════════════════════════════════════════════════════════════
+function plHwView(text, opts){
+  var p = plTextToItems(text);
+  if(!p) return null;
+  var f = PLANNER_FORMS[p.formKey];
+  if(!f) return null;
+
+  opts = opts || {};
+  var big = !!opts.big;
+  var ac  = f.accent || '#CC2B2B';
+
+  // 숙제가 적힌 줄만 (순서는 종이 알림장과 같습니다)
+  var rows = f.items.filter(function(it){
+    return String(p.items[it.key] || '').trim();
+  });
+  if(!rows.length) return null;
+
+  var headFs = big ? '19px'   : '13px';
+  var metaFs = big ? '11px'   : '9px';
+  var lblFs  = big ? '16px'   : '12px';
+  var valFs  = big ? '17px'   : '12.5px';
+  var subFs  = big ? '10.5px' : '8.5px';
+  var pad    = big ? '9px 13px' : '5px 10px';
+  var lblW   = big ? '108px'  : '78px';
+
+  var h = "<div style='border:1px solid #E1E6DA;border-radius:10px;overflow:hidden;"
+        +   "background:#fff'>"
+        + "<div style='display:flex;align-items:baseline;gap:8px;padding:" + pad + ";"
+        +   "border-bottom:2px solid " + ac + "'>"
+        +   "<span style='font-size:" + headFs + ";font-weight:800;color:#2D3A28'>"
+        +     _plEsc(p.lessonName) + "</span>"
+        +   "<span style='margin-left:auto;font-size:" + metaFs + ";color:#A8B09C;"
+        +     "white-space:nowrap'>" + _plEsc(f.course) + "</span>"
+        + "</div>";
+
+  rows.forEach(function(it, i){
+    var val  = String(p.items[it.key] || '').trim();
+    var subs = p.items[it.key + '_subs'] || [];
+    var last = (i === rows.length - 1);
+
+    h += "<div style='display:flex;align-items:baseline;gap:7px;padding:" + pad + ";"
+      +    (last ? "" : "border-bottom:1px solid #F1F4ED;") + "flex-wrap:wrap'>"
+      +    "<span style='color:#2D6A4F;font-weight:800;flex-shrink:0;font-size:" + lblFs
+      +      "'>&#10003;</span>";
+
+    if(it.free){
+      // 이름 없이 내용만 적는 줄
+      h += "<span style='flex:1;min-width:0;font-size:" + valFs + ";font-weight:700;"
+        +    "color:#1F2A1B;word-break:break-word'>" + _plEsc(val) + "</span>";
+    } else {
+      h += "<span style='font-size:" + lblFs + ";font-weight:700;color:#3A4634;"
+        +    "min-width:" + lblW + ";flex-shrink:0'>" + _plEsc(it.label) + "</span>";
+      if(subs.length){
+        h += "<span style='display:flex;gap:3px;flex-shrink:0'>";
+        subs.forEach(function(s){
+          h += "<span style='font-size:" + subFs + ";font-weight:700;padding:0 5px;"
+            +    "border-radius:20px;background:#EFF4EA;color:#5F7A55;white-space:nowrap'>"
+            +    _plEsc(s) + "</span>";
+        });
+        h += "</span>";
+      }
+      h += "<span style='margin-left:auto;text-align:right;font-size:" + valFs + ";"
+        +    "font-weight:700;color:#1F2A1B;word-break:break-word'>" + _plEsc(val) + "</span>";
+    }
+    h += "</div>";
+  });
+
+  return h + "</div>";
+}
+
 // 저장된 글을 다시 표로 — 못 읽으면 null 을 돌려줍니다 (자유 입력으로 봅니다)
 function plTextToItems(text){
   if(!text) return null;
@@ -4197,7 +4276,10 @@ function loadHw(){
                + "</div></div>"
                + "<div class='hw-body'>";
       html += "<div class='hw-lbl'>📚 Homework</div>";
-      html += hw ? "<div class='hw-text'>" + hw + "</div>" : "<div class='no-hw'>No homework</div>";
+      var hwForm = plHwView(r.homework);
+      html += hwForm ? hwForm
+                     : (hw ? "<div class='hw-text'>" + hw + "</div>"
+                           : "<div class='no-hw'>No homework</div>");
       if(lesson) html += "<div class='hw-lesson'><div class='hw-lbl'>📖 Today's Lesson</div><div class='hw-lesson-text'>" + lesson + "</div></div>";
       html += "</div>";
       div.innerHTML = html;
@@ -4304,9 +4386,17 @@ function openHwCardZoom(title, hw, lesson, dateStr){
   body.style.cssText = "flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box";
   var content = document.createElement("div");
   content.style.cssText = "width:340px;flex-shrink:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif";
-  var hwHtml = hw ? hw.replace(/\n/g,"<br>") : "<span style='color:#bbb'>No homework</span>";
-  content.innerHTML = "<div style='font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>📚 Homework</div>"
-    + "<div style='font-size:16px;color:#363D2E;font-weight:600;line-height:1.5;white-space:pre-wrap'>" + hwHtml + "</div>";
+  var hwForm = plHwView(hw, { big:true });
+  var hwHtml = hwForm
+    ? hwForm
+    : "<div style='font-size:16px;color:#363D2E;font-weight:600;line-height:1.5;"
+      + "white-space:pre-wrap'>"
+      + (hw ? hw.replace(/\n/g,"<br>") : "<span style='color:#bbb'>No homework</span>")
+      + "</div>";
+  if(hwForm) content.style.width = '420px';
+  content.innerHTML = "<div style='font-size:11px;font-weight:600;color:#888;"
+    + "text-transform:uppercase;letter-spacing:1px;margin-bottom:6px'>📚 Homework</div>"
+    + hwHtml;
   body.appendChild(content);
   modal.appendChild(header); modal.appendChild(body);
   overlay.appendChild(modal);
@@ -4315,7 +4405,7 @@ function openHwCardZoom(title, hw, lesson, dateStr){
     var availH = mH - header.offsetHeight - 48;
     var availW = mW - 48;
     var zH = availH / (content.scrollHeight || 1);
-    var zW = availW / 340;
+    var zW = availW / (parseFloat(content.style.width) || 340);
     var Z = Math.min(zH, zW, 4.0);
     Z = Math.max(Z, 1.2);
     content.style.zoom = Z;
