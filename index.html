@@ -29,8 +29,9 @@ body {font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 .main-content {flex:1;min-width:0;display:flex;flex-direction:column;position:relative;z-index:1}
 .header {background:#363D2E;padding:10px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.06)}
 .container {max-width:600px;margin:0 auto;padding:18px 16px}
-/* 메모 보드는 선생님 메모 + 관리자 메모를 나란히 두느라 넓게 씁니다 */
-#memoBoardScreen .container {max-width:1080px}
+/* 메모 보드는 기본은 예전처럼 좁게.
+   원장님(마스터)만 오른쪽에 관리자 메모가 붙어서 넓게 씁니다. */
+body.wg-master #memoBoardScreen .container {max-width:1080px}
 
 /* ── CARDS ── */
 .top-box {background:white;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)}
@@ -649,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-22 15:01';
+var APP_VERSION = '2026-09-22 15:14';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -3227,6 +3228,12 @@ window.google = {
 function applyRoleVisibility(){
   var role = _userRole || '';
   var isDirector = role === '마스터' || role === '관리자';
+
+  // 원장님일 때만 메모 보드를 넓게 씁니다 (관리자 메모가 오른쪽에 붙어서)
+  if(document.body){
+    if(role === '마스터') document.body.classList.add('wg-master');
+    else                  document.body.classList.remove('wg-master');
+  }
   var isDamim    = role === '풀타임' || role === '파트';
   var isNative   = role === '원어민';
 
