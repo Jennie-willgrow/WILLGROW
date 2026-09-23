@@ -493,7 +493,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 Class Hub</div><div style="font-size:11px;color:#999;margin-top:2px">담임 · 학생 명단 · 시간표 · 이번주/지난주 진도</div></div><div style="display:flex;gap:6px"><button onclick="openTextbookMgr()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📚 교재 관리</button><button onclick="schedPrintAll()" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨 전체 시간표</button><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 · 선생님 · 학생 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 Class Hub</div><div style="font-size:11px;color:#999;margin-top:2px">담임 · 학생 명단 · 시간표 · 이번주/지난주 진도</div></div><div style="display:flex;gap:6px"><button onclick="openTextbookMgr()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📚 교재 관리</button><button onclick="openMasterTimetable()" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📊 전체 시간표</button><button onclick="schedPrintAll()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨 반별 인쇄</button><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 · 선생님 · 학생 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <div style="font-size:14px;font-weight:700;color:#363D2E">📊 월별 현황</div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -504,7 +504,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:#8A9178;margin-bottom:10px">
     <span><b style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#FDECEC;border:1px solid #E8A9A9;color:#C0392B;text-align:center;line-height:13px;font-size:9px">결</b> 결석</span>
-    <span><b style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#FDF6E7;border:1px solid #E0C78A;color:#A87B18;text-align:center;line-height:13px;font-size:9px">숙</b> 숙제 미제출</span>
+    <span><b style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#FFF4E5;border:1px solid #F0C27A;color:#B4651A;text-align:center;line-height:13px;font-size:9px">지</b> 지각</span> <span><b style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#FDF6E7;border:1px solid #E0C78A;color:#A87B18;text-align:center;line-height:13px;font-size:9px">숙</b> 숙제 미제출</span>
     <span><b style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#EAF2FB;border:1px solid #A9C7E8;color:#2E6FB7;text-align:center;line-height:13px;font-size:9px">재</b> 재시험</span>
     <span><b style="display:inline-block;width:14px;height:14px;border-radius:4px;background:#F3EAFB;border:1px solid #C9A9E8;color:#6B3FA0;text-align:center;line-height:13px;font-size:9px">태</b> 태도 메모</span>
   </div>
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-22 16:16';
+var APP_VERSION = '2026-09-24 08:32';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1223,6 +1223,33 @@ async function addTextbook(course, name, sortOrder) {
   return r ? { success:true, id:r.id } : { success:false, error:'넣지 못했어요.' };
 }
 
+// 시리즈의 영역(카테고리) 바꾸기 — 예: Grammar / Reading / Speaking
+async function setSeriesSections(seriesCode, sections) {
+  if(!isAdminUser()) return { success:false, error:'교재 영역은 관리자만 바꿀 수 있어요.' };
+  if(!seriesCode)    return { success:false, error:'어느 시리즈인지 알 수 없어요.' };
+  var list = (sections || []).map(function(s){ return String(s || '').trim(); })
+                             .filter(function(s){ return s; });
+  // 같은 이름이 두 번 들어가지 않게
+  var seen = {}, out = [];
+  list.forEach(function(s){
+    var k = s.toLowerCase();
+    if(seen[k]) return;
+    seen[k] = true; out.push(s);
+  });
+  try {
+    await sbPatch('textbook_series', 'code=' + _eq(seriesCode), { sections: out });
+    _catCache = null;
+    return { success:true, sections:out };
+  } catch(e) {
+    var m = String(e && e.message || '');
+    if(/42P01|does not exist|relation/i.test(m)){
+      return { success:false,
+               error:'교재 카탈로그가 아직 없어요. RUN_ME_9_교재카탈로그.sql 을 먼저 돌려주세요.' };
+    }
+    return { success:false, error: m || '저장하지 못했어요.' };
+  }
+}
+
 async function deleteTextbook(textbookId) {
   if(!isAdminUser()) return { success:false, error:'교재는 관리자만 지울 수 있어요.' };
   await sbDelete('textbooks', 'id=' + _eq(textbookId), { allowZero:true });
@@ -1361,6 +1388,97 @@ async function fetchClassManage() {
              return { id:x.id, name:x.name || '' }; })),
            thisWeekFrom: thisFrom, lastWeekFrom: rangeFrom };
 }
+// ════════════════════════════════════════════════════════════
+//  전체 시간표
+//
+//  요일마다 한 장씩, 가로는 선생님 · 세로는 시간입니다.
+//  칸에 들어가는 반 이름은 Class Hub 에 짜 둔 반 시간표에서 옵니다.
+//
+//  "이 반은 누가 가르치나" 는 Daily Report 기록에서 가져옵니다.
+//  최근에 그 반 리포트를 가장 많이 쓴 선생님이 그 반의 담당입니다.
+//  (리포트가 없으면 시간표 칸의 담당 → 반 담임 순으로 찾습니다)
+// ════════════════════════════════════════════════════════════
+async function fetchMasterTimetable() {
+  var classes = await _sbGetSafe('classes', 'select=id,name,teacher_id') || [];
+  if(!classes.length) return { teachers:[], rows:[], byDay:{}, from:'' };
+
+  var teachers = await fetchTeachers();
+  var tName = {}, tActive = {};
+  teachers.forEach(function(t){
+    tName[t.id] = t.name || '';
+    tActive[t.id] = (t.active !== false);
+  });
+
+  var slots = await _sbGetSafe('class_schedules',
+    'select=class_id,weekday,period,teacher_id&order=weekday.asc,period.asc') || [];
+
+  // ── Daily Report 로 반마다 담당 선생님 정하기 (최근 10주) ──
+  var d = new Date(Date.now() + 9*60*60*1000);
+  d.setUTCDate(d.getUTCDate() - 70);
+  var from = d.toISOString().slice(0,10);
+
+  var reps = await _sbGetSafe('daily_reports',
+    'select=class_id,teacher_id&date=gte.' + from) || [];
+
+  var tally = {};
+  reps.forEach(function(r){
+    if(!r.class_id || !r.teacher_id) return;
+    if(!tally[r.class_id]) tally[r.class_id] = {};
+    tally[r.class_id][r.teacher_id] = (tally[r.class_id][r.teacher_id] || 0) + 1;
+  });
+
+  var mainT = {};                       // class_id → teacher_id
+  Object.keys(tally).forEach(function(cid){
+    var best = null, n = -1;
+    Object.keys(tally[cid]).forEach(function(tid){
+      if(tally[cid][tid] > n){ n = tally[cid][tid]; best = tid; }
+    });
+    if(best) mainT[cid] = best;
+  });
+
+  var clsById = {};
+  classes.forEach(function(x){ clsById[x.id] = x; });
+
+  // ── 칸 채우기 ──
+  var byDay = {};                       // weekday → { teacherId → { period → [반 이름] } }
+  var usedT = {}, usedP = {};
+
+  slots.forEach(function(s){
+    var cls = clsById[s.class_id];
+    if(!cls) return;
+    if(isMakeupClass(cls.name)) return;          // 보충반은 전체 시간표에서 빼요
+
+    var tid = s.teacher_id || mainT[s.class_id] || cls.teacher_id || '';
+    if(!tid) tid = '_none';
+
+    var wd = Number(s.weekday), p = Number(s.period);
+    if(!wd || !p) return;
+
+    if(!byDay[wd]) byDay[wd] = {};
+    if(!byDay[wd][tid]) byDay[wd][tid] = {};
+    if(!byDay[wd][tid][p]) byDay[wd][tid][p] = [];
+    if(byDay[wd][tid][p].indexOf(cls.name) < 0) byDay[wd][tid][p].push(cls.name);
+
+    usedT[tid] = true;
+    usedP[p] = true;
+  });
+
+  // 선생님 줄 순서 — 재직 중인 분 먼저, 이름 순
+  var cols = Object.keys(usedT)
+    .filter(function(id){ return id !== '_none'; })
+    .map(function(id){ return { id:id, name:tName[id] || '(이름 없음)',
+                                active:tActive[id] !== false }; })
+    .sort(function(a,b){
+      if(a.active !== b.active) return a.active ? -1 : 1;
+      return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+    });
+  if(usedT['_none']) cols.push({ id:'_none', name:'담당 미정', active:true });
+
+  var periods = Object.keys(usedP).map(Number).sort(function(a,b){ return a-b; });
+
+  return { teachers:cols, periods:periods, byDay:byDay, from:from };
+}
+
 // 학생을 다른 반으로 옮기기
 async function moveStudentClass(studentId, toClassId) {
   if(!studentId || !toClassId) return { success:false, error:'반을 골라주세요.' };
@@ -1936,11 +2054,17 @@ async function fetchMonthGrid(classId, monthStart) {
     marks[sid][day].push({ k:kind, t:text||'' });
   }
 
-  var abs = await _sbGetSafe('absences',
+  var abs = await sbGetSoft('absences',
+    'select=student_id,date,reason,periods&student_id=in.'+inList
+    + '&date=gte.'+monthStart+'&date=lte.'+monthEnd,
     'select=student_id,date,reason&student_id=in.'+inList
-    + '&date=gte.'+monthStart+'&date=lte.'+monthEnd) || [];
+    + '&date=gte.'+monthStart+'&date=lte.'+monthEnd)
+    .catch(function(){ return []; }) || [];
   abs.forEach(function(a){
-    put(a.student_id, Number(String(a.date).slice(8,10)), 'a', a.reason||'');
+    var day  = Number(String(a.date).slice(8,10));
+    var part = a.periods && a.periods.length;     // 일부 교시만 빠졌으면 지각
+    put(a.student_id, day, part ? 'l' : 'a',
+        (a.reason || '') + (part ? ' · ' + a.periods.length + '교시만 빠짐' : ''));
   });
 
   var recs = await _sbGetSafe('student_daily_records',
@@ -1956,8 +2080,23 @@ async function fetchMonthGrid(classId, monthStart) {
   return { students:students, marks:marks, monthEnd:monthEnd };
 }
 
+// 그 반이 그날 실제로 하는 교시들 (지각 판단에 씁니다)
+async function _classPeriodsOn(classId, dateStr) {
+  if(!classId || !dateStr) return [];
+  var d  = new Date(dateStr + 'T00:00:00');
+  var wd = d.getDay(); wd = (wd === 0) ? 7 : wd;
+  var rows = await _sbGetSafe('class_schedules',
+    'select=period&class_id=' + _eq(classId) + '&weekday=eq.' + wd + '&order=period.asc') || [];
+  var out = [];
+  rows.forEach(function(r){
+    var p = Number(r.period);
+    if(p && out.indexOf(p) < 0) out.push(p);
+  });
+  return out.sort(function(a,b){ return a-b; });
+}
+
 async function fetchClassRoster(classId, dateStr, reportId) {
-  if(!classId) return { students:[], absent:{}, missed:{} };
+  if(!classId) return { students:[], absent:{}, missed:{}, periods:[] };
 
   var students = await _sbGetSafe('students',
     'select=id,name&class_id='+_eq(classId)+'&status=eq.재원&order=name.asc') || [];
@@ -1966,9 +2105,14 @@ async function fetchClassRoster(classId, dateStr, reportId) {
   var absent = {}, missed = {};
   if(ids.length){
     var inList = '(' + ids.join(',') + ')';
-    var abs = await _sbGetSafe('absences',
-      'select=id,student_id,reason&date='+_eq(dateStr)+'&student_id=in.'+inList) || [];
-    abs.forEach(function(a){ absent[a.student_id] = { id:a.id, reason:a.reason||'' }; });
+    var abs = await sbGetSoft('absences',
+      'select=id,student_id,reason,periods&date='+_eq(dateStr)+'&student_id=in.'+inList,
+      'select=id,student_id,reason&date='+_eq(dateStr)+'&student_id=in.'+inList)
+      .catch(function(){ return []; }) || [];
+    abs.forEach(function(a){
+      absent[a.student_id] = { id:a.id, reason:a.reason||'',
+                               periods:(a.periods || []) };
+    });
 
     // 학생 기록은 수업(리포트) 단위입니다.
     // 하루에 수업이 둘이면 오전·오후를 따로 적을 수 있어야 하기 때문입니다.
@@ -1998,11 +2142,16 @@ async function fetchClassRoster(classId, dateStr, reportId) {
     cnt.forEach(function(m){ monthly[m.student_id] = (monthly[m.student_id]||0) + 1; });
   }
 
-  return { students:students, absent:absent, missed:missed, monthly:monthly };
+  // 그날 이 반의 교시 (두 칸 이상이면 "한 시간만 빠짐" 을 고를 수 있습니다)
+  var periods = [];
+  try { periods = await _classPeriodsOn(classId, dateStr); } catch(e){ periods = []; }
+
+  return { students:students, absent:absent, missed:missed,
+           monthly:monthly, periods:periods };
 }
 
 // 결석 켜기/끄기
-async function setAbsent(studentId, dateStr, on, reason, classId, teacherName) {
+async function setAbsent(studentId, dateStr, on, reason, classId, teacherName, periods) {
   var rows = await _sbGetSafe('absences',
     'select=id&student_id='+_eq(studentId)+'&date='+_eq(dateStr)+'&limit=1') || [];
 
@@ -2022,13 +2171,37 @@ async function setAbsent(studentId, dateStr, on, reason, classId, teacherName) {
 
   // ── 결석 등록 ──
   var absId;
+  var perList = (periods && periods.length)
+    ? periods.map(Number).filter(function(x){ return x; }) : null;
+
+  async function _save(patch, isNew){
+    try {
+      if(isNew) return await sbInsert('absences', patch);
+      await sbPatch('absences','id='+_eq(rows[0].id), patch);
+      return true;
+    } catch(e){
+      // periods 칸이 아직 없으면 그것만 빼고 저장합니다
+      var m = String(e && e.message || '');
+      if(/42703|periods|column/i.test(m) && patch.periods !== undefined){
+        delete patch.periods;
+        if(isNew) return await sbInsert('absences', patch);
+        await sbPatch('absences','id='+_eq(rows[0].id), patch);
+        return true;
+      }
+      throw e;
+    }
+  }
+
   if(rows.length){
     absId = rows[0].id;
-    if(reason) await sbPatch('absences','id='+_eq(absId), { reason:reason });
+    var up = {};
+    if(reason) up.reason = reason;
+    up.periods = perList;                 // 비우면 하루 전체 결석
+    await _save(up, false);
   } else {
-    var ins = await sbInsert('absences', {
-      student_id:studentId, date:dateStr, reason:reason||'결석'
-    });
+    var ins = await _save({
+      student_id:studentId, date:dateStr, reason:reason||'결석', periods:perList
+    }, true);
     if(!ins) return { success:false };
     absId = ins.id;
   }
@@ -3145,7 +3318,9 @@ function _plEsc(s){
 
 var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
+  fetchMasterTimetable,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
+  setSeriesSections,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
   fetchStudentsByClass,
@@ -4093,6 +4268,8 @@ function _absEn(v){
 }
 
 // 그 반 재원생 명단 + 그날의 출결 / 숙제 / 재시험 / 태도
+var _stuCache = {};   // pageId → 마지막으로 불러온 학생 자료
+
 function loadReportStudents(pageId, classId){
   var box  = document.getElementById('stubox-'+pageId);
   var list = document.getElementById('stulist-'+pageId);
@@ -4108,6 +4285,7 @@ function loadReportStudents(pageId, classId){
 
   google.script.run
     .withSuccessHandler(function(data){
+      _stuCache[pageId] = data || {};
       var rows = (data && data.students) || [];
       var absent = (data && data.absent) || {};
       var rec    = (data && data.missed) || {};
@@ -4197,6 +4375,33 @@ function loadReportStudents(pageId, classId){
                +     "border:1px solid " + bd + ";border-radius:6px;font-size:11.5px;"
                +     "font-family:inherit;background:" + bg + "'>";
         }
+        //  ── 어느 수업을 빠졌는지 (하루 2칸 이상인 반만) ──
+        var perList = data.periods || [];
+        if(ab && perList.length > 1){
+          var miss = (ab.periods && ab.periods.length) ? ab.periods.map(Number) : perList.slice();
+          var partial = miss.length > 0 && miss.length < perList.length;
+          h += "<div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap;"
+            +    "margin-top:5px;padding:5px 8px;background:"
+            +    (partial ? '#FFF4E5' : '#FDECEC') + ";border-radius:7px'>"
+            +  "<span style='font-size:9.5px;font-weight:700;color:"
+            +    (partial ? '#B4651A' : '#C0392B') + ";white-space:nowrap'>"
+            +    (partial ? '⚠ Late' : 'Missed') + "</span>";
+          perList.forEach(function(p){
+            var info = _periodInfo(p);
+            var on   = miss.indexOf(p) >= 0;
+            h += "<button onclick='toggleStuPeriod(\"" + pageId + "\",\"" + s.id + "\"," + p + ")'"
+              +   (locked ? " disabled" : "")
+              +   " style='background:" + (on ? '#C0392B' : '#fff') + ";"
+              +     "color:" + (on ? '#fff' : '#A8B09C') + ";"
+              +     "border:1px solid " + (on ? '#C0392B' : '#DDE1D6') + ";border-radius:20px;"
+              +     "padding:1px 8px;font-size:9.5px;font-weight:700;"
+              +     "cursor:" + (locked ? 'default' : 'pointer') + ";font-family:inherit'>"
+              +   (info ? _h12(info.start) : (p + '교시')) + "</button>";
+          });
+          h += "<span style='font-size:9px;color:#A8B09C'>"
+            +    "빠진 수업만 켜 주세요</span></div>";
+        }
+
         h += inp('hw', r.note,       'What was not done?',     '#E8DFC4', '#FFFDF6', !!r.note);
         h += inp('rt', r.retestNote, 'Which test? (optional)', '#C9DCEF', '#F7FBFF', !!r.retest);
         h += inp('bh', r.behavior,   'Behavior note',          '#DCC9EF', '#FBF7FF', !!r.behavior);
@@ -4272,6 +4477,41 @@ function onStuAttendance(pageId, studentId, sel){
       loadReportStudents(pageId, cls);
     })
     .setAbsent(studentId, selectedDate, !!reason, reason, cls, _userName || '');
+}
+
+// ── 어느 수업을 빠졌는지 켜고 끄기 ──────────────────────────
+//   하나라도 켜져 있고 전부는 아니면 "지각(부분결석)" 이 됩니다.
+//   전부 끄면 결석이 풀리는 게 아니라, 하루 전체 결석으로 봅니다.
+function toggleStuPeriod(pageId, studentId, period){
+  var data = _stuCache[pageId];
+  if(!data) return;
+  var rec = (data.absent || {})[studentId];
+  if(!rec) return;
+
+  var all  = data.periods || [];
+  var cur  = (rec.periods && rec.periods.length) ? rec.periods.map(Number) : all.slice();
+  var i    = cur.indexOf(Number(period));
+  if(i >= 0) cur.splice(i, 1);
+  else       cur.push(Number(period));
+  cur.sort(function(a,b){ return a-b; });
+
+  if(!cur.length){
+    showToast("한 수업은 남겨주세요. 출석으로 바꾸려면 위 칸을 Present 로 고르세요.");
+    return;
+  }
+
+  // 전부 빠졌으면 "하루 전체 결석" 으로 (칸을 비워 둡니다)
+  var save = (cur.length >= all.length) ? [] : cur;
+
+  var cls = (document.getElementById('class-'+pageId)||{}).value || '';
+  google.script.run
+    .withSuccessHandler(function(){ loadReportStudents(pageId, cls); })
+    .withFailureHandler(function(e){
+      showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+      loadReportStudents(pageId, cls);
+    })
+    .setAbsent(studentId, selectedDate, true, rec.reason || '결석', cls,
+               _userName || '', save);
 }
 
 // No HW / Retest / Note 켜고 끄기 — 켜면 입력칸이 열립니다
@@ -4742,15 +4982,17 @@ function openHwCardZoom(title, hw, lesson, dateStr){
   // 날짜 — 학생들이 보고 그대로 적습니다
   if(dateStr){
     var dObj = new Date(dateStr + "T00:00:00");
-    var dayNames = ["일","월","화","수","목","금","토"];
+    var dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    var monNames = ["January","February","March","April","May","June",
+                    "July","August","September","October","November","December"];
 
     var dWrap = document.createElement("div");
     dWrap.style.cssText = "margin-top:26px;text-align:center;line-height:1";
 
     var monthEl = document.createElement("div");
-    monthEl.style.cssText = "font-size:22px;font-weight:700;color:rgba(255,255,255,0.7);"
-      + "margin-bottom:2px";
-    monthEl.textContent = (dObj.getMonth()+1) + "월";
+    monthEl.style.cssText = "font-size:17px;font-weight:700;color:rgba(255,255,255,0.7);"
+      + "margin-bottom:3px;letter-spacing:.3px";
+    monthEl.textContent = monNames[dObj.getMonth()];
 
     var dateNum = document.createElement("div");
     dateNum.style.cssText = "font-size:104px;font-weight:900;color:#fff;line-height:.92;"
@@ -4758,8 +5000,9 @@ function openHwCardZoom(title, hw, lesson, dateStr){
     dateNum.textContent = dObj.getDate();
 
     var dayEl = document.createElement("div");
-    dayEl.style.cssText = "font-size:36px;font-weight:800;color:#fff;margin-top:6px";
-    dayEl.textContent = dayNames[dObj.getDay()] + "요일";
+    dayEl.style.cssText = "font-size:28px;font-weight:800;color:#fff;margin-top:6px;"
+      + "letter-spacing:-.5px";
+    dayEl.textContent = dayNames[dObj.getDay()];
 
     dWrap.appendChild(monthEl); dWrap.appendChild(dateNum); dWrap.appendChild(dayEl);
     side.appendChild(dWrap);
@@ -8792,9 +9035,10 @@ function renderMonthGrid(data, monthStart){
   var days = new Date(d0.getFullYear(), d0.getMonth()+1, 0).getDate();
   var mgMD = d0.getMonth() + 1;
   var DAY = ['일','월','화','수','목','금','토'];
-  var MGLABEL = { a:'결석', h:'숙제 미제출', r:'단어 재시험', b:'수업태도' };
+  var MGLABEL = { a:'결석', l:'지각 (일부 수업만 빠짐)', h:'숙제 미제출', r:'단어 재시험', b:'수업태도' };
   var STY = {
     a:{ bg:'#FDECEC', bd:'#E8A9A9', fg:'#C0392B', ch:'결' },
+    l:{ bg:'#FFF4E5', bd:'#F0C27A', fg:'#B4651A', ch:'지' },
     h:{ bg:'#FDF6E7', bd:'#E0C78A', fg:'#A87B18', ch:'숙' },
     r:{ bg:'#EAF2FB', bd:'#A9C7E8', fg:'#2E6FB7', ch:'재' },
     b:{ bg:'#F3EAFB', bd:'#C9A9E8', fg:'#6B3FA0', ch:'태' }
@@ -8825,7 +9069,7 @@ function renderMonthGrid(data, monthStart){
     var mm  = raw.match(/^(.*?)\s*[（(]\s*([^）)]*)\s*[）)]\s*$/);
     var nm  = mm ? mm[1].trim() : raw;
     var mine = marks[s.id] || {};
-    var tot = { a:0, h:0, r:0, b:0 };
+    var tot = { a:0, l:0, h:0, r:0, b:0 };
     var zebra = idx % 2 ? '#FCFCFA' : '#fff';
 
     h += "<tr>";
@@ -8839,7 +9083,7 @@ function renderMonthGrid(data, monthStart){
       var cell = '';
       if(list.length){
         // 한 칸에 여러 개면 나란히 (결석 > 숙제 > 재시험 > 태도 순)
-        var order = ['a','h','r','b'];
+        var order = ['a','l','h','r','b'];
         var seen = {};
         order.forEach(function(k){
           var hit = list.filter(function(x){ return x.k===k; });
@@ -8860,6 +9104,7 @@ function renderMonthGrid(data, monthStart){
 
     var bits = [];
     if(tot.a) bits.push("<span style='color:#C0392B'>결"+tot.a+"</span>");
+    if(tot.l) bits.push("<span style='color:#B4651A'>지"+tot.l+"</span>");
     if(tot.h) bits.push("<span style='color:#A87B18'>숙"+tot.h+"</span>");
     if(tot.r) bits.push("<span style='color:#2E6FB7'>재"+tot.r+"</span>");
     if(tot.b) bits.push("<span style='color:#6B3FA0'>태"+tot.b+"</span>");
@@ -9408,6 +9653,174 @@ function _scReload(){
     })
     .withFailureHandler(function(){ showToast("목록을 새로 불러오지 못했어요."); })
     .fetchClassManage();
+}
+
+// ════════════════════════════════════════════════════════════
+//  전체 시간표 보기 (요일 × 선생님)
+// ════════════════════════════════════════════════════════════
+var _mtData = null;
+
+// 반 이름에 따라 옅은 색을 입혀 한눈에 구분되게 합니다
+function _mtColor(name){
+  var s = String(name || ''), n = 0;
+  for(var i=0;i<s.length;i++) n = (n*31 + s.charCodeAt(i)) % 360;
+  return { bg:'hsl(' + n + ',72%,93%)', fg:'hsl(' + n + ',58%,30%)' };
+}
+
+function openMasterTimetable(){
+  var old = document.getElementById('mtOverlay');
+  if(old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'mtOverlay';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9400;"
+    + "display:flex;align-items:flex-start;justify-content:center;padding:18px;overflow:auto";
+  ov.onclick = function(e){ if(e.target === ov) closeMasterTimetable(); };
+
+  var box = document.createElement('div');
+  box.id = 'mtBox';
+  box.style.cssText = "background:#fff;border-radius:16px;padding:18px;width:100%;"
+    + "max-width:1400px;box-shadow:0 10px 36px rgba(0,0,0,0.24)";
+  box.innerHTML = "<div style='color:#bbb;font-size:13px;padding:24px;text-align:center'>"
+    + "전체 시간표를 맞추는 중…</div>";
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+
+  google.script.run
+    .withSuccessHandler(function(d){ _mtData = d; renderMasterTimetable(); })
+    .withFailureHandler(function(e){
+      box.innerHTML = "<div style='color:#C0392B;font-size:13px;padding:24px;text-align:center'>"
+        + "불러오지 못했어요: " + _plEsc(e && e.message ? e.message : '') + "</div>";
+    })
+    .fetchMasterTimetable();
+}
+
+function closeMasterTimetable(){
+  var ov = document.getElementById('mtOverlay');
+  if(ov) ov.remove();
+}
+
+// 요일 한 장
+function _mtDayTable(wd, big){
+  var d  = _mtData || {};
+  var day = (d.byDay || {})[wd] || {};
+  var cols = (d.teachers || []).filter(function(t){ return day[t.id]; });
+  var pers = d.periods || [];
+  if(!cols.length) return '';
+
+  var w = WG_WEEKDAYS.filter(function(x){ return x.d === wd; })[0];
+  var fs   = big ? '12px' : '11px';
+  var hfs  = big ? '12.5px' : '11.5px';
+  var pad  = big ? '5px 6px' : '4px 5px';
+
+  var h = "<table style='border-collapse:collapse;width:100%;table-layout:fixed;"
+        +   "font-size:" + fs + "'>"
+        + "<tr>"
+        + "<th style='background:#DCE6D2;border:1px solid #fff;padding:" + pad + ";"
+        +   "font-size:" + hfs + ";font-weight:800;color:#2D3A28;width:76px;"
+        +   "white-space:nowrap'>" + (w ? w.full : '') + "</th>";
+  cols.forEach(function(t){
+    h += "<th style='background:#EDF2E7;border:1px solid #fff;padding:" + pad + ";"
+      +    "font-size:" + hfs + ";font-weight:700;color:" + (t.active ? '#2D3A28' : '#A8B09C')
+      +    ";white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"
+      +    _plEsc(t.name) + "</th>";
+  });
+  h += "</tr>";
+
+  pers.forEach(function(p){
+    var info = _periodInfo(p);
+    var any  = cols.some(function(t){ return (day[t.id] || {})[p]; });
+    if(!any) return;
+    h += "<tr>"
+      +  "<td style='background:#F4F6F1;border:1px solid #fff;padding:" + pad + ";"
+      +    "font-weight:700;color:#5B6551;text-align:center;white-space:nowrap'>"
+      +    (info ? _h12(info.start) + "~" + _h12(info.end) : (p + '교시')) + "</td>";
+    cols.forEach(function(t){
+      var names = (day[t.id] || {})[p] || [];
+      if(!names.length){
+        h += "<td style='border:1px solid #EEF0EA;background:#fff;padding:" + pad + "'></td>";
+        return;
+      }
+      var inner = names.map(function(nm){
+        var col = _mtColor(nm);
+        return "<span style='display:inline-block;background:" + col.bg + ";color:" + col.fg + ";"
+          +    "border-radius:4px;padding:1px 6px;font-weight:800;white-space:nowrap;"
+          +    "margin:1px'>" + _plEsc(nm) + "</span>";
+      }).join('');
+      h += "<td style='border:1px solid #EEF0EA;padding:" + pad + ";text-align:center;"
+        +    "background:#fff'>" + inner + "</td>";
+    });
+    h += "</tr>";
+  });
+  return h + "</table>";
+}
+
+function renderMasterTimetable(){
+  var box = document.getElementById('mtBox');
+  if(!box) return;
+  var d = _mtData || {};
+
+  if(!(d.teachers || []).length){
+    box.innerHTML = "<div style='display:flex;align-items:center;gap:8px;margin-bottom:12px'>"
+      + "<div style='font-size:15px;font-weight:800;color:#2D3A28;flex:1'>📊 전체 시간표</div>"
+      + "<button onclick='closeMasterTimetable()' style='background:none;border:none;"
+      +   "font-size:20px;cursor:pointer;color:#A8B09C'>✕</button></div>"
+      + "<div style='color:#C3C9BB;font-size:13px;padding:24px;text-align:center;line-height:1.7'>"
+      + "아직 짜인 반 시간표가 없어요.<br>"
+      + "각 반 카드의 <b>시간표 → ＋ 만들기</b> 로 넣으시면 여기에 자동으로 모입니다.</div>";
+    return;
+  }
+
+  var days = WG_WEEKDAYS.slice(0, 6).filter(function(w){ return (d.byDay || {})[w.d]; });
+
+  var body = days.map(function(w){
+    return "<div style='margin-bottom:16px;break-inside:avoid'>" + _mtDayTable(w.d, true) + "</div>";
+  }).join('');
+
+  box.innerHTML =
+      "<div style='display:flex;align-items:center;gap:8px;margin-bottom:4px'>"
+    +   "<div style='font-size:15px;font-weight:800;color:#2D3A28;flex:1'>📊 전체 시간표</div>"
+    +   "<button onclick='saveMasterTimetable(this)' style='background:#2D6A4F;color:#fff;"
+    +     "border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;"
+    +     "cursor:pointer;white-space:nowrap'>🖼 사진으로 보기</button>"
+    +   "<button onclick='closeMasterTimetable()' style='background:none;border:none;"
+    +     "font-size:20px;cursor:pointer;color:#A8B09C'>✕</button>"
+    + "</div>"
+    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:14px'>"
+    +   "반 카드에 시간표를 넣으면 여기에 자동으로 모입니다 · "
+    +   "선생님은 최근 Daily Report 기록에서 찾았어요</div>"
+    + "<div id='mtSheets'>" + body + "</div>";
+}
+
+// 사진으로 보기 — 시간표 안내문과 같은 미리보기 창을 씁니다
+function saveMasterTimetable(btn){
+  var d = _mtData || {};
+  var days = WG_WEEKDAYS.slice(0, 6).filter(function(w){ return (d.byDay || {})[w.d]; });
+  if(!days.length){ showToast("보여드릴 시간표가 없어요."); return; }
+
+  var now = new Date(Date.now() + 9*60*60*1000);
+  var title = "WILLGROW Time Table   "
+            + ["Jan","Feb","Mar","Apr","May","Jun",
+               "Jul","Aug","Sep","Oct","Nov","Dec"][now.getUTCMonth()]
+            + " " + now.getUTCDate() + ", " + now.getUTCFullYear();
+
+  var css = "<style>*{box-sizing:border-box}"
+          + "body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',"
+          +   "'Apple SD Gothic Neo',sans-serif}"
+          + ".sheet{background:#fff;padding:12mm 12mm 10mm}"
+          + "table{border-collapse:collapse}</style>";
+
+  var body = "<div class='sheet' style='width:380mm'>"
+    + "<div style='text-align:center;font-size:26px;font-weight:900;color:#2D302E;"
+    +   "margin-bottom:10px;letter-spacing:-.5px'>" + _plEsc(title) + "</div>"
+    + days.map(function(w){
+        return "<div style='margin-bottom:9px'>" + _mtDayTable(w.d, true) + "</div>";
+      }).join('')
+    + "<div style='font-size:10px;color:#A8B09C;text-align:right;margin-top:6px'>"
+    +   "WILLGROW · 철산캠퍼스</div>"
+    + "</div>";
+
+  _prPreview("전체 시간표", css, body, "WILLGROW_전체시간표", btn);
 }
 
 // ── 반 이름에서 학년 묶음 알아내기 ─────────────────────────
@@ -10719,14 +11132,14 @@ function _prParentHtml(cls, mon, stu, rows, days, dayTxt){
               + "변경 시 별도로 안내드립니다.";
 
   var body =
-      "<div class='sheet' style='width:297mm;padding:9mm 11mm 8mm;"
+      "<div class='sheet' style='width:297mm;padding:14mm 17mm 13mm;"
     +   "display:flex;flex-direction:column'>"
 
     // 머리 — 로고 / 오른쪽 작은 글씨
     + "<div style='display:flex;align-items:flex-start;justify-content:space-between'>"
     +   _prLogo(62, 13)
     +   "<div class='eyebrow' style='font-size:8.5px;padding-top:4mm'>"
-    +     mon + "월 · CLASS SCHEDULE</div>"
+    +     "CLASS SCHEDULE</div>"
     + "</div>"
 
     // 제목
@@ -10919,9 +11332,50 @@ function renderTextbookMgr(){
       }).join("")
     + "</div>";
 
-  if(ser && ser.sections && ser.sections.length){
-    h += "<div style='font-size:11px;color:#8A9178;margin-bottom:10px'>영역: "
-      +  ser.sections.map(function(x){ return _plEsc(x); }).join(' · ') + "</div>";
+  // ── 영역(카테고리) ──
+  if(ser){
+    var secs = ser.sections || [];
+    h += "<div style='background:#FAFBF8;border:1px solid #EEF0EA;border-radius:10px;"
+      +    "padding:10px 12px;margin-bottom:12px'>"
+      +  "<div style='display:flex;align-items:center;gap:7px;margin-bottom:"
+      +    (secs.length ? "7px" : "0") + "'>"
+      +    "<span style='font-size:11.5px;font-weight:700;color:#5B6551;white-space:nowrap'>"
+      +      "영역</span>"
+      +    "<span style='flex:1;font-size:10.5px;color:#A8B09C'>"
+      +      "시간표에서 이 시리즈를 고를 때 같이 고르는 칸이에요"
+      +      " (예: Grammar · Reading · Speaking)</span>"
+      +  "</div>";
+
+    if(secs.length){
+      h += "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px'>"
+        +  secs.map(function(x){
+             return "<span style='display:inline-flex;align-items:center;gap:5px;"
+               +    "background:#EFF4EA;color:#2D6A4F;border-radius:20px;"
+               +    "padding:3px 5px 3px 11px;font-size:11.5px;font-weight:700'>"
+               +    _plEsc(x)
+               + (canEdit
+                   ? "<button onclick='tbRemoveSection(\"" + _mgAttr(x) + "\")' "
+                     + "title='영역 지우기' style='background:rgba(255,255,255,.7);"
+                     + "color:#8A9178;border:none;border-radius:50%;width:17px;height:17px;"
+                     + "font-size:10px;cursor:pointer;line-height:1;padding:0'>✕</button>"
+                   : "")
+               +    "</span>";
+           }).join("")
+        + "</div>";
+    }
+
+    if(canEdit){
+      h += "<div style='display:flex;gap:6px'>"
+        +  "<input type='text' id='tbNewSection' placeholder='예) Grammar' "
+        +    "onkeydown='if(event.key===\"Enter\"){ tbAddSection(); }' "
+        +    "style='flex:1;min-width:0;padding:6px 10px;border:1.5px solid #E2E8D8;"
+        +    "border-radius:8px;font-size:12px;box-sizing:border-box'>"
+        +  "<button onclick='tbAddSection()' style='background:#2D6A4F;color:#fff;border:none;"
+        +    "border-radius:8px;padding:6px 13px;font-size:11.5px;font-weight:700;"
+        +    "cursor:pointer;white-space:nowrap'>＋ 영역</button>"
+        + "</div>";
+    }
+    h += "</div>";
   }
 
   // 교재 목록
@@ -11028,6 +11482,54 @@ function tbDelete(bookId, name){
   })
   .withFailureHandler(function(e){ showToast("지우지 못했어요: " + (e && e.message ? e.message : '')); })
   .deleteTextbook(bookId);
+}
+
+// ── 영역(카테고리) 더하기 / 지우기 ──────────────────────────
+function _tbCurSeries(){
+  if(!_catalog) return null;
+  return (_catalog.series || []).filter(function(s){ return s.code === _tbSeries; })[0] || null;
+}
+
+function tbAddSection(){
+  var ser = _tbCurSeries();
+  if(!ser){ showToast("시리즈를 먼저 골라주세요."); return; }
+  var el = document.getElementById('tbNewSection');
+  var v  = el ? el.value.trim() : '';
+  if(!v){ showToast("영역 이름을 적어주세요."); return; }
+
+  var cur = (ser.sections || []).slice();
+  if(cur.some(function(x){ return String(x).toLowerCase() === v.toLowerCase(); })){
+    showToast("이미 있는 영역이에요."); return;
+  }
+  cur.push(v);
+  _tbSaveSections(ser.code, cur, "영역을 더했어요.");
+}
+
+function tbRemoveSection(name){
+  var ser = _tbCurSeries();
+  if(!ser) return;
+  if(!confirm("영역 \"" + name + "\" 을 지울까요?\n이미 이 영역으로 짜 둔 시간표는 그대로 남습니다.")) return;
+  var cur = (ser.sections || []).filter(function(x){
+    return String(x).toLowerCase() !== String(name).toLowerCase();
+  });
+  _tbSaveSections(ser.code, cur, "영역을 지웠어요.");
+}
+
+function _tbSaveSections(code, list, msg){
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.success){ showToast((res && res.error) || "저장하지 못했어요."); return; }
+      showToast(msg);
+      _catCache = null;
+      google.script.run
+        .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
+        .withFailureHandler(function(){})
+        .fetchTextbookCatalog(true);
+    })
+    .withFailureHandler(function(e){
+      showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .setSeriesSections(code, list);
 }
 
 function tbAdd(){
