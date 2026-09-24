@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-24 08:53';
+var APP_VERSION = '2026-09-24 09:18';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1282,6 +1282,66 @@ async function addTextbook(course, name, sortOrder) {
   });
   _catCache = null;
   return r ? { success:true, id:r.id } : { success:false, error:'넣지 못했어요.' };
+}
+
+// 새 시리즈 만들기 — 교재 관리 맨 위의 칩 한 개
+async function addSeries(name) {
+  if(!isAdminUser()) return { success:false, error:'시리즈는 관리자만 더할 수 있어요.' };
+  var nm = String(name || '').trim();
+  if(!nm) return { success:false, error:'시리즈 이름을 적어주세요.' };
+
+  // 코드는 이름에서 만듭니다 (영문·숫자만, 대문자)
+  var code = nm.toUpperCase().replace(/[^A-Z0-9가-힣]/g, '');
+  if(!code) code = 'S' + Date.now();
+  if(code.length > 24) code = code.slice(0, 24);
+
+  try {
+    var dup = await _sbGetSafe('textbook_series',
+      'select=code&or=(code.eq.' + encodeURIComponent(code)
+      + ',display_name.eq.' + encodeURIComponent(nm) + ')&limit=1') || [];
+    if(dup.length) return { success:false, error:'이미 있는 시리즈예요.' };
+
+    var all = await _sbGetSafe('textbook_series', 'select=sort_order') || [];
+    var max = 0;
+    all.forEach(function(s){ var n = Number(s.sort_order) || 0; if(n > max) max = n; });
+
+    var r = await sbInsert('textbook_series', {
+      code: code, display_name: nm, sections: [], sort_order: max + 1
+    });
+    _catCache = null;
+    return r ? { success:true, code:code } : { success:false, error:'만들지 못했어요.' };
+  } catch(e) {
+    var m = String(e && e.message || '');
+    if(/42P01|does not exist|relation/i.test(m)){
+      return { success:false,
+               error:'교재 카탈로그가 아직 없어요. RUN_ME_9_교재카탈로그.sql 을 먼저 돌려주세요.' };
+    }
+    return { success:false, error: m || '만들지 못했어요.' };
+  }
+}
+
+// 시리즈 이름 바꾸기 (코드는 그대로 둬야 교재가 안 끊깁니다)
+async function renameSeries(code, name) {
+  if(!isAdminUser()) return { success:false, error:'관리자만 바꿀 수 있어요.' };
+  var nm = String(name || '').trim();
+  if(!code || !nm) return { success:false, error:'이름을 적어주세요.' };
+  await sbPatch('textbook_series', 'code=' + _eq(code), { display_name: nm });
+  _catCache = null;
+  return { success:true };
+}
+
+// 시리즈 지우기 — 교재가 남아 있으면 막습니다
+async function deleteSeries(code) {
+  if(!isAdminUser()) return { success:false, error:'관리자만 지울 수 있어요.' };
+  if(!code) return { success:false, error:'어느 시리즈인지 알 수 없어요.' };
+  var books = await _sbGetSafe('textbooks',
+    'select=id&course=' + _eq(code) + '&limit=1') || [];
+  if(books.length){
+    return { success:false, error:'교재가 남아 있어요. 교재를 먼저 옮기거나 지워주세요.' };
+  }
+  await sbDelete('textbook_series', 'code=' + _eq(code), { allowZero:true });
+  _catCache = null;
+  return { success:true };
 }
 
 // 시리즈의 영역(카테고리) 바꾸기 — 예: Grammar / Reading / Speaking
@@ -3289,7 +3349,7 @@ function _plEsc(s){
 var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
-  setSeriesSections,
+  setSeriesSections, addSeries, renameSeries, deleteSeries,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
   fetchStudentsByClass,
@@ -11193,7 +11253,7 @@ function renderTextbookMgr(){
   }
 
   // 시리즈 고르기
-  h += "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px'>"
+  h += "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;align-items:center'>"
     + _catalog.series.map(function(s){
         var on = s.code === _tbSeries;
         return "<button onclick='tbPickSeries(\"" + _mgAttr(s.code) + "\")' "
@@ -11202,7 +11262,27 @@ function renderTextbookMgr(){
           + "padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer'>"
           + _plEsc(s.name) + " <span style='opacity:.7'>" + s.books.length + "</span></button>";
       }).join("")
+    + (canEdit
+        ? "<button onclick='tbAddSeries()' title='새 시리즈 만들기' "
+          + "style='background:#fff;color:#2D6A4F;border:1.5px dashed #9BB79A;border-radius:14px;"
+          + "padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer'>"
+          + "＋ 새 시리즈</button>"
+        : "")
     + "</div>";
+
+  // 고른 시리즈의 이름 바꾸기 · 지우기
+  if(ser && canEdit){
+    h += "<div style='display:flex;align-items:center;gap:6px;margin:-6px 0 12px'>"
+      +  "<span style='font-size:10.5px;color:#A8B09C'>"
+      +    _plEsc(ser.name) + " 시리즈</span>"
+      +  "<button onclick='tbRenameSeries()' style='background:none;border:none;color:#8A9178;"
+      +    "font-size:10.5px;font-weight:700;cursor:pointer;padding:2px 4px'>이름 바꾸기</button>"
+      +  (ser.books.length
+          ? ""
+          : "<button onclick='tbDeleteSeries()' style='background:none;border:none;color:#C0392B;"
+            + "font-size:10.5px;font-weight:700;cursor:pointer;padding:2px 4px'>시리즈 지우기</button>")
+      + "</div>";
+  }
 
   // ── 영역(카테고리) ──
   if(ser){
@@ -11356,6 +11436,71 @@ function tbDelete(bookId, name){
   .deleteTextbook(bookId);
 }
 
+// ── 시리즈 더하기 / 이름 바꾸기 / 지우기 ───────────────────
+function tbAddSeries(){
+  var nm = prompt("새 시리즈 이름을 적어주세요.\n\n예) Grammar, Phonics Plus, 중등 문법");
+  if(nm === null) return;
+  nm = String(nm).trim();
+  if(!nm) return;
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.success){ showToast((res && res.error) || "만들지 못했어요."); return; }
+      showToast("시리즈를 만들었어요.");
+      _tbSeries = res.code;                    // 새로 만든 것으로 바로 넘어갑니다
+      _tbReloadCatalog();
+    })
+    .withFailureHandler(function(e){
+      showToast("만들지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .addSeries(nm);
+}
+
+function tbRenameSeries(){
+  var ser = _tbCurSeries();
+  if(!ser) return;
+  var nm = prompt("시리즈 이름을 바꿉니다.", ser.name);
+  if(nm === null) return;
+  nm = String(nm).trim();
+  if(!nm || nm === ser.name) return;
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.success){ showToast((res && res.error) || "바꾸지 못했어요."); return; }
+      showToast("이름을 바꿨어요.");
+      _tbReloadCatalog();
+    })
+    .withFailureHandler(function(e){
+      showToast("바꾸지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .renameSeries(ser.code, nm);
+}
+
+function tbDeleteSeries(){
+  var ser = _tbCurSeries();
+  if(!ser) return;
+  if(!confirm("\"" + ser.name + "\" 시리즈를 지울까요?")) return;
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.success){ showToast((res && res.error) || "지우지 못했어요."); return; }
+      showToast("시리즈를 지웠어요.");
+      _tbSeries = '';
+      _tbReloadCatalog();
+    })
+    .withFailureHandler(function(e){
+      showToast("지우지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .deleteSeries(ser.code);
+}
+
+function _tbReloadCatalog(){
+  google.script.run
+    .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
+    .withFailureHandler(function(){})
+    .fetchTextbookCatalog(true);
+}
+
 // ── 영역(카테고리) 더하기 / 지우기 ──────────────────────────
 function _tbCurSeries(){
   if(!_catalog) return null;
@@ -11392,11 +11537,7 @@ function _tbSaveSections(code, list, msg){
     .withSuccessHandler(function(res){
       if(!res || !res.success){ showToast((res && res.error) || "저장하지 못했어요."); return; }
       showToast(msg);
-      _catCache = null;
-      google.script.run
-        .withSuccessHandler(function(cat){ _catalog = cat; renderTextbookMgr(); })
-        .withFailureHandler(function(){})
-        .fetchTextbookCatalog(true);
+      _tbReloadCatalog();
     })
     .withFailureHandler(function(e){
       showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
