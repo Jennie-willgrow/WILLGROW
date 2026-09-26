@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-26 19:45';
+var APP_VERSION = '2026-09-26 21:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1825,6 +1825,10 @@ async function fetchLessonPlanSetup(classId) {
              reviewEvery:Number(r.review_every) || 0,
              isMain:(r.is_main === null || r.is_main === undefined) ? null : !!r.is_main,
              options:r.options || {},
+             // 시험을 이 시간에 놓기 (Junior 는 담임 Grammar 시간)
+             testHost:!!(r.options && r.options.testHost),
+             // 다음 교재의 영역 — 시리즈가 바뀌면 영역 이름도 달라져서 따로 받습니다
+             nextSection:(r.options && r.options.nextSection) || '',
              bookName:bookName[r.textbook_id] || '' };
   });
 
@@ -1930,7 +1934,8 @@ async function saveLessonPlanLines(classId, lines) {
              next_textbook_id:l.nextTextbookId || null,
              review_every:Number(l.reviewEvery) || 0,
              is_main:(l.isMain === null || l.isMain === undefined) ? null : !!l.isMain,
-             options:l.options || {},
+             options:_lpMerge(l.options, { testHost:!!l.testHost,
+                                           nextSection:l.nextSection || '' }),
              updated_at:new Date().toISOString() };
   });
 
@@ -1979,7 +1984,7 @@ function _lpBuildLines(lines, opts) {
     }
     return { no:i + 1, key:l.key, label:l.label || '', reviewLabel:l.reviewLabel || '',
              weekdays:(l.weekdays || []).map(Number),
-             from:l.startDate || '', isMain:!!l.isMain,
+             from:l.startDate || '', isMain:!!l.isMain, testHost:!!l.testHost,
              queue:q, total:q.length };
   }).filter(function(l){ return l.weekdays.length; });
 
@@ -1988,6 +1993,7 @@ function _lpBuildLines(lines, opts) {
   function mainLeft(){
     return mainLines().reduce(function(n, l){ return n + l.queue.length; }, 0);
   }
+  var hosts = L.filter(function(l){ return l.testHost; });
   var midDone = false, finalDone = false, midNo = null;
   function midReady(){
     if(midDone) return false;
@@ -2005,7 +2011,7 @@ function _lpBuildLines(lines, opts) {
 
   if(!L.length) return { entries:[], weeks:0, error:'요일을 고른 교재 줄이 없어요.' };
 
-  var out = [], week = 0, finalPending = false;
+  var out = [], week = 0, midPending = false, finalPending = false;
   var cur = new Date(planStart + 'T00:00:00');
   cur.setDate(cur.getDate() - ((cur.getDay() || 7) - 1));        // 그 주 월요일
 
@@ -2038,58 +2044,75 @@ function _lpBuildLines(lines, opts) {
       return { c:c, off:false, unit:u };
     });
 
+    // 시험을 놓을 수 있는 칸
+    //   [시험은 이 시간에] 를 켠 줄이 있으면 그 줄에만 (Junior 는 담임 Grammar 시간)
+    //   아무도 안 켰으면 [시험 기준] 줄 아무 데나
     function isMainSlot(p){
-      return !p.off && p.c.line.isMain && !notYet(p.c.line, p.c.date) && !p.test;
+      if(p.off || p.test || notYet(p.c.line, p.c.date)) return false;
+      return hosts.length ? p.c.line.testHost : p.c.line.isMain;
     }
     // 시험을 놓으면서 밀어낸 차시는 큐 앞으로 되돌립니다
     function putTest(p, name){
       if(p.unit){ p.c.line.queue.unshift(p.unit); p.unit = null; }
       p.test = name;
     }
+    function otherThanMid(p){ return hosts.length || p.c.line.no !== midNo; }
 
-    // ② 지난주에 미뤄 둔 기말이 있으면 이번 주 첫 메인 칸에
-    if(finalPending && !finalDone){
-      var pick = -1;
-      for(var f1 = 0; f1 < placed.length; f1++){
-        if(!isMainSlot(placed[f1])) continue;
-        if(pick < 0) pick = f1;
-        if(placed[f1].c.line.no !== midNo){ pick = f1; break; }   // 중간과 다른 줄이면 더 좋고
-      }
-      if(pick >= 0){ putTest(placed[pick], 'Final Test'); finalDone = true; finalPending = false; }
-    }
-
-    // ③ 중간고사 — 메인 교재가 모두 절반을 넘긴 주의 마지막 안전한 칸
-    if(!midDone && !finalDone && midReady()){
-      var best = -1, any = -1;
-      for(var m1 = placed.length - 1; m1 >= 0; m1--){
-        if(!isMainSlot(placed[m1])) continue;
-        var mu = placed[m1].unit;
-        if(mu && (mu.sessionNo || 1) !== 1) continue;      // 2차시짜리를 쪼개지 않습니다
-        if(any < 0) any = m1;
-        if(best < 0){ best = m1; break; }
-      }
-      if(best < 0) best = any;
-      if(best >= 0){
-        putTest(placed[best], 'Mid-term Test');
-        midDone = true; midNo = placed[best].c.line.no;
-      }
-    }
-
-    // ④ 기말고사 — 메인 차시를 다 끝낸 "뒤" 에만 놓습니다
-    if(!finalDone && !finalPending && mainLeft() === 0){
+    // 진도를 다 끝낸 "뒤" 의 빈 칸에 놓습니다. 자리가 없으면 false → 다음 주로.
+    function placeAfter(name){
       var lastU = -1;
-      for(var f2 = 0; f2 < placed.length; f2++){
-        if(isMainSlot(placed[f2]) && placed[f2].unit) lastU = f2;
+      for(var i1 = 0; i1 < placed.length; i1++){
+        if(isMainSlot(placed[i1]) && placed[i1].unit) lastU = i1;
       }
       var put = -1, put2 = -1;
-      for(var f3 = lastU + 1; f3 < placed.length; f3++){
-        if(!isMainSlot(placed[f3]) || placed[f3].unit) continue;
-        if(put2 < 0) put2 = f3;
-        if(placed[f3].c.line.no !== midNo){ put = f3; break; }
+      for(var i2 = lastU + 1; i2 < placed.length; i2++){
+        if(!isMainSlot(placed[i2]) || placed[i2].unit) continue;
+        if(put2 < 0) put2 = i2;
+        if(otherThanMid(placed[i2])){ put = i2; break; }
       }
       if(put < 0) put = put2;
-      if(put >= 0){ placed[put].test = 'Final Test'; finalDone = true; }
-      else finalPending = true;                            // 다음 주로 미룹니다
+      if(put < 0) return false;
+      placed[put].test = name;
+      return placed[put];
+    }
+
+    // 미뤄 둔 시험 — 이번 주 첫 칸에. 2차시짜리 수업 한가운데는 피합니다.
+    function placeFirst(name){
+      var put = -1, put2 = -1;
+      for(var i3 = 0; i3 < placed.length; i3++){
+        if(!isMainSlot(placed[i3])) continue;
+        var u3 = placed[i3].unit;
+        if(u3 && (u3.sessionNo || 1) !== 1) continue;     // 1·2차시를 쪼개지 않습니다
+        if(put2 < 0) put2 = i3;
+        if(otherThanMid(placed[i3])){ put = i3; break; }
+      }
+      if(put < 0) put = put2;
+      if(put < 0) return false;
+      putTest(placed[put], name);
+      return placed[put];
+    }
+
+    // ② 미뤄 둔 시험 먼저
+    if(midPending && !midDone){
+      var mp = placeFirst('Mid-term Test');
+      if(mp){ midDone = true; midNo = mp.c.line.no; midPending = false; }
+    }
+    if(finalPending && !finalDone && midDone){
+      var fp = placeFirst('Final Test');
+      if(fp){ finalDone = true; finalPending = false; }
+    }
+
+    // ③ 중간고사 — 메인 교재가 모두 절반을 넘기고 "그 차시를 끝낸 뒤"
+    if(!midDone && !midPending && !finalDone && midReady()){
+      var mm = placeAfter('Mid-term Test');
+      if(mm){ midDone = true; midNo = mm.c.line.no; }
+      else   midPending = true;                            // 다음 주로 미룹니다
+    }
+
+    // ④ 기말고사 — 메인 차시를 다 끝낸 "뒤"
+    if(!finalDone && !finalPending && midDone && mainLeft() === 0){
+      if(!placeAfter('Final Test')) finalPending = true;
+      else finalDone = true;
     }
 
     // ⑤ 적어 내려갑니다
@@ -2120,6 +2143,14 @@ function _lpBuildLines(lines, opts) {
 }
 
 // ── 만들어서 저장 ────────────────────────────────────────────
+// 있던 설정은 두고 새 값만 덮어씁니다
+function _lpMerge(base, add){
+  var o = {};
+  Object.keys(base || {}).forEach(function(k){ o[k] = base[k]; });
+  Object.keys(add  || {}).forEach(function(k){ o[k] = add[k];  });
+  return o;
+}
+
 // 계획이 시작하는 날 = 교재 시작일 중 가장 이른 날 (아무도 안 정했으면 오늘)
 function _lpPlanStart(lines) {
   var ds = (lines || []).map(function(l){ return l && l.startDate; }).filter(Boolean).sort();
@@ -2147,7 +2178,7 @@ async function generateClassLessonPlan(classId, opts) {
   var nextIds = setup.lines.map(function(l){ return l.nextTextbookId; }).filter(Boolean);
   var nextUnits = nextIds.length ? await _lpUnitsFor(nextIds) : {};
 
-  var build = [], noWd = [], why = [];
+  var build = [], noWd = [], why = [], nextBad = [];
   setup.lines.forEach(function(l){
     var own = _lpPick(setup.units, l.textbookId, l.section);
     var name = l.bookName || setup.bookName[l.textbookId] || '';
@@ -2157,8 +2188,12 @@ async function generateClassLessonPlan(classId, opts) {
 
     var q = own.slice();
     if(l.nextTextbookId && l.nextTextbookId !== l.textbookId){
-      var add = _lpPick(nextUnits, l.nextTextbookId, l.section);
+      // 다음 교재의 영역을 따로 골랐으면 그것으로, 아니면 지금 영역 이름으로
+      var add = _lpPick(nextUnits, l.nextTextbookId, l.nextSection || l.section);
+      if(!add.length && l.nextSection) add = _lpPick(nextUnits, l.nextTextbookId, l.section);
       if(add.length) q = q.concat(add);
+      else nextBad.push((setup.bookName[l.nextTextbookId] || '다음 교재')
+                        + (l.nextSection ? ' · ' + l.nextSection : ''));
     }
 
     build.push({
@@ -2173,7 +2208,8 @@ async function generateClassLessonPlan(classId, opts) {
       reviewEvery: l.reviewEvery || 0,
       isMain: (l.isMain === null)
               ? (LP_MAIN_COURSES.indexOf(setup.bookCourse[l.textbookId]) >= 0)
-              : l.isMain
+              : l.isMain,
+      testHost: !!l.testHost
     });
   });
 
@@ -2182,6 +2218,11 @@ async function generateClassLessonPlan(classId, opts) {
   }
   if(why.length){
     return { success:false, error:why.join('\n\n') };
+  }
+  if(nextBad.length){
+    return { success:false,
+             error:'이어갈 교재의 영역을 못 찾았어요 — ' + nextBad.join(', ')
+                   + '\n\n[끝나면 이어서] 옆의 영역을 골라주세요.' };
   }
   if(!build.some(function(b){ return b.isMain; })){
     return { success:false,
@@ -2255,10 +2296,12 @@ async function fetchClassLessonPlan(classId) {
 
 async function updateLessonPlanEntry(id, label) {
   if(!id) return { success:false };
+  var txt  = String(label || '').trim();
+  var kind = _lpKindOf(txt, '');           // 내용에 맞게 종류(색깔)도 같이 바꿉니다
   await sbPatch('lesson_plan_entries', 'id=' + _eq(id),
-                { label:String(label || '').trim(), locked:true,
+                { label:txt, kind:kind, locked:true,
                   updated_at:new Date().toISOString() });
-  return { success:true };
+  return { success:true, kind:kind };
 }
 
 async function clearLessonPlan(classId) {
@@ -10719,8 +10762,9 @@ function lpOpenMaker(){
       _lpLines = (st.lines || []).map(function(l){
         return { textbookId:l.textbookId, section:l.section, weekdays:l.weekdays.slice(),
                  startDate:l.startDate, startSeq:l.startSeq,
-                 nextTextbookId:l.nextTextbookId, reviewEvery:l.reviewEvery,
-                 isMain:l.isMain };
+                 nextTextbookId:l.nextTextbookId, nextSection:l.nextSection || '',
+                 reviewEvery:l.reviewEvery, isMain:l.isMain,
+                 testHost:!!l.testHost, options:l.options || {} };
       });
       renderLpMaker();
     })
@@ -10856,6 +10900,25 @@ function lpRenderLines(){
         + "</select>"
       : "<span style='font-size:11px;color:#C0392B'>차시가 없어요</span>";
 
+    // 이어갈 교재의 영역 — 시리즈가 바뀌면 영역 이름도 달라집니다
+    var nextSecs = l.nextTextbookId
+      ? _lpPartsOf(_lpSetup.units || {}, l.nextTextbookId) : [];
+    if(l.nextTextbookId && !nextSecs.length){
+      nextSecs = (_lpSetup.bookSections || {})[l.nextTextbookId] || [];
+    }
+    var nextSecHtml = nextSecs.length
+      ? "<div><div style='" + lbl + "'>이어갈 교재의 영역</div>"
+        + "<select onchange='lpSetLine(" + i + ",\"nextSection\",this.value)' "
+        + "style='padding:5px 8px;border-radius:7px;font-size:12px;border:1.5px solid "
+        + (l.nextSection ? "#E2E8D8;background:#fff" : "#E08A8A;background:#FFF4F4;color:#C0392B")
+        + "'>"
+        + "<option value=''>" + (l.nextSection ? "— 영역 —" : "⚠ 골라주세요") + "</option>"
+        + nextSecs.map(function(x){
+            return "<option value='" + _mgAttr(x) + "'"
+                 + (x === l.nextSection ? " selected" : "") + ">" + _plEsc(x) + "</option>";
+          }).join('') + "</select></div>"
+      : "";
+
     // 끝나면 이어갈 책
     var nextOpts = "<option value=''>— 없음 (여기서 끝) —</option>";
     (_lpSetup.bookGroups || []).forEach(function(g){
@@ -10910,11 +10973,23 @@ function lpRenderLines(){
       +   "<div><div style='" + lbl + "'>끝나면 이어서</div>"
       +     "<select onchange='lpSetLine(" + i + ",\"nextTextbookId\",this.value)' style='"
       +     bd + ";max-width:190px'>" + nextOpts + "</select></div>"
-      +   "<label style='font-size:11.5px;color:#5B6551;cursor:pointer;padding-bottom:5px'>"
+      +   nextSecHtml
+      + "</div>"
+
+      // 4줄 — 시험
+      + "<div style='display:flex;gap:16px;flex-wrap:wrap;align-items:center;"
+      +   "margin-top:9px;padding-top:8px;border-top:1px dashed #E6EBE0'>"
+      +   "<label style='font-size:11.5px;color:#5B6551;cursor:pointer'>"
       +     "<input type='checkbox'" + (main ? " checked" : "")
       +     " onchange='lpSetLine(" + i + ",\"isMain\",this.checked)' "
       +     "style='width:13px;height:13px;vertical-align:-2px'> 시험 기준"
-      +     "<span style='color:#C3C9BB'> (중간·기말)</span></label>"
+      +     "<span style='color:#C3C9BB'> (이 교재가 절반 지나면 중간)</span></label>"
+      +   "<label style='font-size:11.5px;color:" + (l.testHost ? "#C0392B" : "#5B6551")
+      +     ";cursor:pointer;font-weight:" + (l.testHost ? "700" : "400") + "'>"
+      +     "<input type='checkbox'" + (l.testHost ? " checked" : "")
+      +     " onchange='lpSetLine(" + i + ",\"testHost\",this.checked)' "
+      +     "style='width:13px;height:13px;vertical-align:-2px'> 시험은 이 시간에"
+      +     "<span style='color:#C3C9BB;font-weight:400'> (담임 수업)</span></label>"
       + "</div>"
       + "</div>";
   }).join('');
@@ -10922,7 +10997,8 @@ function lpRenderLines(){
 
 function lpAddLine(){
   _lpLines.push({ textbookId:'', section:'', weekdays:[], startDate:'', startSeq:1,
-                  nextTextbookId:'', reviewEvery:0, isMain:null });
+                  nextTextbookId:'', nextSection:'', reviewEvery:0, isMain:null,
+                  testHost:false, options:{} });
   lpRenderLines(); lpRefreshOff();
 }
 function lpDelLine(i){
@@ -10938,20 +11014,40 @@ function lpToggleWd(i, w){
 }
 function lpSetLine(i, field, val){
   var l = _lpLines[i]; if(!l) return;
-  if(field === 'startSeq' || field === 'reviewEvery') l[field] = Number(val) || 0;
-  else if(field === 'isMain')                        l[field] = !!val;
-  else                                               l[field] = val || '';
+  if(field === 'startSeq' || field === 'reviewEvery')  l[field] = Number(val) || 0;
+  else if(field === 'isMain' || field === 'testHost')  l[field] = !!val;
+  else                                                l[field] = val || '';
   if(field === 'section' || field === 'reviewEvery' || field === 'isMain') lpRenderLines();
   if(field === 'startDate') lpRefreshOff();
+  if(field === 'nextTextbookId'){
+    l.nextSection = '';
+    lpRenderLines();
+    if(val && !Object.keys(_lpSetup.units || {}).some(function(k){
+          return k.indexOf(val + '|') === 0; })){
+      google.script.run
+        .withSuccessHandler(function(u){
+          Object.keys(u || {}).forEach(function(k){ _lpSetup.units[k] = u[k]; });
+          lpRenderLines();
+        })
+        .withFailureHandler(function(){})
+        .fetchBookUnits(val);
+    }
+  }
+  if(field === 'testHost' && val){
+    // 시험은 한 시간에만
+    _lpLines.forEach(function(x, k){ if(k !== i) x.testHost = false; });
+    lpRenderLines();
+  }
 }
 
 // 책을 바꾸면 그 책의 차시를 받아 와 시작 차시 칸을 채웁니다
 function lpSetBook(i, id){
   var l = _lpLines[i]; if(!l) return;
-  l.textbookId = id || '';
-  l.section    = '';
-  l.startSeq   = 1;
-  l.isMain     = null;
+  l.textbookId  = id || '';
+  l.section     = '';
+  l.startSeq    = 1;
+  l.isMain      = null;
+  l.nextSection = '';
   if(!id){ lpRenderLines(); return; }
   if(Object.keys(_lpSetup.units || {}).some(function(k){ return k.indexOf(id + '|') === 0; })){
     lpRenderLines(); return;
@@ -11051,23 +11147,51 @@ function _lpMonday(ds){
        + '-' + String(d.getDate()).padStart(2,'0');
 }
 
+// 칸 색깔 — 내용에 따라. 손으로 고쳐도 알아서 바뀝니다.
+function _lpKindOf(label, kind){
+  var t = String(label || '').trim();
+  if(!t) return '빈칸';
+  if(/mid-?term|final|\btest\b|시험|테스트/i.test(t))  return '테스트';
+  if(/review|리뷰|복습/i.test(t))                      return '리뷰';
+  if(/presentation|발표/i.test(t))                     return '발표';
+  if(kind === '휴강' || kind === '특별수업') return kind;   // 휴강은 글자로 못 가립니다
+  return '수업';
+}
+
 function _lpGrid(forImage){
   if(!_lpPlan.length) return '';
 
-  // 세로 = 주차, 가로 = 요일·교시
-  var cols = {}, weeks = {};
+  // 가로 = 요일.  같은 날 수업이 둘이면 아래로 내려갑니다 (시간표처럼)
+  var wds = {}, weeks = {};
   _lpPlan.forEach(function(e){
     var d = new Date(e.date + 'T00:00:00');
     var wd = d.getDay() === 0 ? 7 : d.getDay();
-    var ck = wd + '|' + e.period;
-    cols[ck] = cols[ck] || { wd:wd, period:e.period, part:'' };
-    if(!cols[ck].part && e.part) cols[ck].part = e.part;
+    wds[wd] = true;
     var mk = _lpMonday(e.date);
-    (weeks[mk] = weeks[mk] || {})[ck] = e;
+    if(!weeks[mk]) weeks[mk] = {};
+    (weeks[mk][wd] = weeks[mk][wd] || []).push(e);
   });
-  var colList = Object.keys(cols).map(function(k){ return cols[k]; })
-    .sort(function(a,b){ return a.wd - b.wd || a.period - b.period; });
+  var wdList = Object.keys(wds).map(Number).sort(function(a,b){ return a-b; });
   var wkList = Object.keys(weeks).sort();
+
+  // 같은 날 안에서는 줄 번호(교시) 순서
+  wkList.forEach(function(mk){
+    wdList.forEach(function(wd){
+      if(weeks[mk][wd]) weeks[mk][wd].sort(function(a,b){ return a.period - b.period; });
+    });
+  });
+
+  // 요일 밑에 붙일 이름 — 그 요일에 가장 자주 나오는 교재
+  var wdName = {};
+  wdList.forEach(function(wd){
+    var tally = {};
+    wkList.forEach(function(mk){
+      (weeks[mk][wd] || []).forEach(function(e){
+        if(e.part) tally[e.part] = (tally[e.part] || 0) + 1; });
+    });
+    var names = Object.keys(tally).sort(function(a,b){ return tally[b] - tally[a]; });
+    wdName[wd] = names.slice(0, 2).join(' · ');
+  });
 
   var fs  = forImage ? '12px' : '11.5px';
   var pad = forImage ? '6px 8px' : '5px 7px';
@@ -11076,45 +11200,61 @@ function _lpGrid(forImage){
         +   "font-size:" + fs + "'>"
         + "<tr><th style='background:#DCE6D2;border:1px solid #fff;padding:" + pad + ";"
         +   "width:74px;font-weight:800;color:#2D3A28;white-space:nowrap'>주차</th>";
-  colList.forEach(function(cl){
-    var w = WG_WEEKDAYS.filter(function(x){ return x.d === cl.wd; })[0];
+  wdList.forEach(function(wd){
+    var w = WG_WEEKDAYS.filter(function(x){ return x.d === wd; })[0];
     h += "<th style='background:#EDF2E7;border:1px solid #fff;padding:" + pad + ";"
       +    "font-weight:700;color:#2D3A28;line-height:1.35'>"
       +    (w ? w.full : '') + "<br><span style='font-size:9.5px;font-weight:600;color:#8A9178'>"
-      +    _plEsc(cl.part || '') + "</span></th>";
+      +    _plEsc(wdName[wd] || '') + "</span></th>";
   });
   h += "</tr>";
 
   wkList.forEach(function(mk, wi){
-    h += "<tr><td style='background:#F4F6F1;border:1px solid #fff;padding:" + pad + ";"
-      +    "font-weight:700;color:#5B6551;text-align:center;line-height:1.35;"
-      +    "white-space:nowrap'>" + (wi+1) + "주<br>"
-      +    "<span style='font-size:9.5px;font-weight:600;color:#A8B09C'>"
-      +    mk.slice(5).replace('-', '/') + "</span></td>";
-    colList.forEach(function(cl){
-      var e = weeks[mk][cl.wd + '|' + cl.period];
-      if(!e){ h += "<td style='border:1px solid #EEF0EA;background:#FCFCFA;padding:" + pad + "'></td>"; return; }
+    // 이 주에 하루 최대 몇 번 수업인지 → 그만큼 줄을 내립니다
+    var rows = 1;
+    wdList.forEach(function(wd){
+      rows = Math.max(rows, (weeks[mk][wd] || []).length); });
 
-      var bg = '#fff', fg = '#1F2A1B', extra = '';
-      if(e.kind === '휴강'){      bg = '#F4F4F2'; fg = '#A8ACA0'; }
-      else if(e.kind === '특별수업'){ bg = '#FFF4E5'; fg = '#B4651A'; }
-      else if(e.kind === '테스트'){  bg = '#FDECEC'; fg = '#C0392B'; extra = 'font-weight:800;'; }
-      else if(e.kind === '리뷰'){    bg = '#EFF4EA'; fg = '#2D6A4F'; }
-      else if(e.kind === '발표'){    bg = '#F3EAFB'; fg = '#6B3FA0'; }
+    for(var r = 0; r < rows; r++){
+      h += "<tr>";
+      if(r === 0){
+        h += "<td rowspan='" + rows + "' style='background:#F4F6F1;border:1px solid #fff;"
+          +    "padding:" + pad + ";font-weight:700;color:#5B6551;text-align:center;"
+          +    "line-height:1.35;white-space:nowrap;vertical-align:middle'>" + (wi+1) + "주<br>"
+          +    "<span style='font-size:9.5px;font-weight:600;color:#A8B09C'>"
+          +    mk.slice(5).replace('-', '/') + "</span></td>";
+      }
+      wdList.forEach(function(wd){
+        var e = (weeks[mk][wd] || [])[r];
+        if(!e){
+          h += "<td style='border:1px solid #EEF0EA;background:#FCFCFA;padding:" + pad + "'></td>";
+          return;
+        }
+        var kind = _lpKindOf(e.label, e.kind);
+        var bg = '#fff', fg = '#1F2A1B', extra = '';
+        if(kind === '휴강'){           bg = '#F4F4F2'; fg = '#A8ACA0'; }
+        else if(kind === '특별수업'){   bg = '#FFF4E5'; fg = '#B4651A'; }
+        else if(kind === '테스트'){     bg = '#FDECEC'; fg = '#C0392B'; extra = 'font-weight:800;'; }
+        else if(kind === '리뷰'){       bg = '#EFF4EA'; fg = '#2D6A4F'; }
+        else if(kind === '발표'){       bg = '#F3EAFB'; fg = '#6B3FA0'; }
 
-      h += "<td style='border:1px solid #EEF0EA;background:" + bg + ";padding:" + pad + ";"
-        +    "text-align:center;position:relative"
-        +    (forImage ? "" : ";cursor:pointer") + "'"
-        + (forImage ? "" : " onclick='lpEditCell(\"" + e.id + "\")' title='눌러서 고치기'")
-        + ">"
-        +   "<span style='color:" + fg + ";" + extra + "line-height:1.35;"
-        +     "word-break:break-word'>" + _plEsc(e.label || '') + "</span>"
-        +   (e.locked && !forImage
-            ? "<span style='position:absolute;top:1px;right:3px;font-size:8px;"
-              + "color:#8A9178' title='손으로 고친 칸'>✎</span>" : "")
-        + "</td>";
-    });
-    h += "</tr>";
+        h += "<td style='border:1px solid #EEF0EA;background:" + bg + ";padding:" + pad + ";"
+          +    "text-align:center;position:relative"
+          +    (forImage ? "" : ";cursor:pointer") + "'"
+          + (forImage ? "" : " onclick='lpEditCell(\"" + e.id + "\")' title='눌러서 고치기'")
+          + ">"
+          +   (rows > 1 && e.part
+              ? "<span style='display:block;font-size:8.5px;color:#B3BAA9;line-height:1.2'>"
+                + _plEsc(e.part) + "</span>" : "")
+          +   "<span style='color:" + fg + ";" + extra + "line-height:1.35;"
+          +     "word-break:break-word'>" + _plEsc(e.label || '') + "</span>"
+          +   (e.locked && !forImage
+              ? "<span style='position:absolute;top:1px;right:3px;font-size:8px;"
+                + "color:#8A9178' title='손으로 고친 칸'>✎</span>" : "")
+          + "</td>";
+      });
+      h += "</tr>";
+    }
   });
   return h + "</table>";
 }
@@ -11161,11 +11301,16 @@ function renderLessonPlan(problem){
 function lpEditCell(id){
   var e = _lpPlan.filter(function(x){ return x.id === id; })[0];
   if(!e) return;
-  var v = prompt("이 칸의 내용을 고칩니다.\n(비우면 빈 칸이 됩니다)", e.label || '');
+  var v = prompt("이 칸의 내용을 고칩니다.\n"
+               + "· 비우면 빈 칸\n"
+               + "· Mid-term Test / Final Test 라고 적으면 시험 칸(빨강)이 됩니다\n"
+               + "· Review 라고 적으면 리뷰 칸(초록)이 됩니다", e.label || '');
   if(v === null) return;
   google.script.run
-    .withSuccessHandler(function(){
-      e.label = String(v).trim(); e.locked = true;
+    .withSuccessHandler(function(res){
+      e.label = String(v).trim();
+      e.kind  = (res && res.kind) || _lpKindOf(e.label, '');
+      e.locked = true;
       renderLessonPlan();
       showToast("고쳤어요.");
     })
