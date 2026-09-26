@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-26 21:00';
+var APP_VERSION = '2026-09-27 00:10';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1829,6 +1829,8 @@ async function fetchLessonPlanSetup(classId) {
              testHost:!!(r.options && r.options.testHost),
              // 다음 교재의 영역 — 시리즈가 바뀌면 영역 이름도 달라져서 따로 받습니다
              nextSection:(r.options && r.options.nextSection) || '',
+             // 교재에 딸린 Review · Unit Test 를 쓰는 반인지
+             useBookReview:!!(r.options && r.options.useBookReview),
              bookName:bookName[r.textbook_id] || '' };
   });
 
@@ -1935,7 +1937,8 @@ async function saveLessonPlanLines(classId, lines) {
              review_every:Number(l.reviewEvery) || 0,
              is_main:(l.isMain === null || l.isMain === undefined) ? null : !!l.isMain,
              options:_lpMerge(l.options, { testHost:!!l.testHost,
-                                           nextSection:l.nextSection || '' }),
+                                           nextSection:l.nextSection || '',
+                                           useBookReview:!!l.useBookReview }),
              updated_at:new Date().toISOString() };
   });
 
@@ -1961,11 +1964,17 @@ async function saveLessonPlanLines(classId, lines) {
 function _lpBuildLines(lines, opts) {
   opts = opts || {};
   var nonClass = opts.nonClass || {}, maxWeeks = opts.maxWeeks || 40;
+  var blocked = opts.blocked || {};          // 손으로 끼워 넣은 칸 (date|줄번호)
   var planStart = opts.startDate;
 
   // 줄마다 차시 줄서기 — 시작 차시부터 자르고 Review 를 끼웁니다
   var L = lines.map(function(l, i){
     var q = (l.units || []).slice(Math.max(0, (l.startSeq || 1) - 1));
+    // 교재에 딸려 오는 Review · Unit Test 는 "쓰는 반" 에서만 넣습니다.
+    // (Bricks Reading 의 4유닛마다 Review 처럼)
+    if(!l.useBookReview){
+      q = q.filter(function(u){ return !u.optional; });
+    }
     var every = Number(l.reviewEvery) || 0;
     if(every > 0){
       var withRev = [], n = 0;
@@ -1983,6 +1992,7 @@ function _lpBuildLines(lines, opts) {
       q = withRev;
     }
     return { no:i + 1, key:l.key, label:l.label || '', reviewLabel:l.reviewLabel || '',
+             book:l.book || '',
              weekdays:(l.weekdays || []).map(Number),
              from:l.startDate || '', isMain:!!l.isMain, testHost:!!l.testHost,
              queue:q, total:q.length };
@@ -1994,6 +2004,7 @@ function _lpBuildLines(lines, opts) {
     return mainLines().reduce(function(n, l){ return n + l.queue.length; }, 0);
   }
   var hosts = L.filter(function(l){ return l.testHost; });
+  var lastBook = {};                    // 줄마다 지금 쓰고 있는 책
   var midDone = false, finalDone = false, midNo = null;
   function midReady(){
     if(midDone) return false;
@@ -2040,6 +2051,8 @@ function _lpBuildLines(lines, opts) {
     var placed = cells.map(function(c){
       if(c.off) return { c:c, off:true, unit:null };
       var l = c.line;
+      // 손으로 끼워 넣은 칸 — 진도를 안 쓰고 지나갑니다
+      if(blocked[c.date + '|' + l.no]) return { c:c, off:false, unit:null, skip:true };
       var u = (notYet(l, c.date) || !l.queue.length) ? null : l.queue.shift();
       return { c:c, off:false, unit:u };
     });
@@ -2048,12 +2061,21 @@ function _lpBuildLines(lines, opts) {
     //   [시험은 이 시간에] 를 켠 줄이 있으면 그 줄에만 (Junior 는 담임 Grammar 시간)
     //   아무도 안 켰으면 [시험 기준] 줄 아무 데나
     function isMainSlot(p){
-      if(p.off || p.test || notYet(p.c.line, p.c.date)) return false;
+      if(p.off || p.skip || p.test || notYet(p.c.line, p.c.date)) return false;
       return hosts.length ? p.c.line.testHost : p.c.line.isMain;
     }
-    // 시험을 놓으면서 밀어낸 차시는 큐 앞으로 되돌립니다
+    // 시험을 놓으면 그 차시부터 한 칸씩 뒤로 밉니다 (순서가 뒤섞이지 않게)
     function putTest(p, name){
-      if(p.unit){ p.c.line.queue.unshift(p.unit); p.unit = null; }
+      if(p.unit){
+        var carry = p.unit, ln = p.c.line;
+        p.unit = null;
+        for(var z = placed.indexOf(p) + 1; z < placed.length && carry; z++){
+          var q2 = placed[z];
+          if(q2.off || q2.skip || q2.test || q2.c.line !== ln) continue;
+          var tmp = q2.unit; q2.unit = carry; carry = tmp;
+        }
+        if(carry) ln.queue.unshift(carry);      // 이번 주에 자리가 없으면 다음 주로
+      }
       p.test = name;
     }
     function otherThanMid(p){ return hosts.length || p.c.line.no !== midNo; }
@@ -2124,14 +2146,19 @@ function _lpBuildLines(lines, opts) {
         return;
       }
       if(p.test){
-        out.push({ date:c.date, period:l2.no, part:l2.key, kind:'테스트', label:p.test });
+        out.push({ date:c.date, period:l2.no, part:l2.key, kind:'테스트', label:p.test,
+                   book: l2.isMain ? (lastBook[l2.no] || l2.book) : '' });
         return;
       }
+      if(p.skip) return;                       // 손으로 넣은 칸은 그대로 둡니다
       var u = p.unit;
+      // 메인 교재가 다음 책으로 넘어가면 그 책 이름으로 바뀝니다
+      if(l2.isMain && u && u.book) lastBook[l2.no] = u.book;
       out.push({ date:c.date, period:l2.no, part:l2.key,
                  kind: u ? u.kind : '빈칸',
                  label: u ? u.label : '',
                  unitId: u ? u.id : null,
+                 book: l2.isMain ? (lastBook[l2.no] || l2.book) : '',
                  pageFrom: u ? u.pageFrom : null,
                  pageTo:   u ? u.pageTo   : null });
     });
@@ -2182,16 +2209,23 @@ async function generateClassLessonPlan(classId, opts) {
   setup.lines.forEach(function(l){
     var own = _lpPick(setup.units, l.textbookId, l.section);
     var name = l.bookName || setup.bookName[l.textbookId] || '';
+    var isMainCourse = LP_MAIN_COURSES.indexOf(setup.bookCourse[l.textbookId]) >= 0;
     if(!l.weekdays.length) noWd.push(name);
     var w = _lpWhyNoUnits(setup.units, l.textbookId, l.section, name);
     if(w) why.push(w);
 
-    var q = own.slice();
+    function tag(list, bookName){
+      return (list || []).map(function(u){
+        var c = {}; Object.keys(u).forEach(function(k){ c[k] = u[k]; });
+        c.book = bookName; return c;
+      });
+    }
+    var q = tag(own, name);
     if(l.nextTextbookId && l.nextTextbookId !== l.textbookId){
       // 다음 교재의 영역을 따로 골랐으면 그것으로, 아니면 지금 영역 이름으로
       var add = _lpPick(nextUnits, l.nextTextbookId, l.nextSection || l.section);
       if(!add.length && l.nextSection) add = _lpPick(nextUnits, l.nextTextbookId, l.section);
-      if(add.length) q = q.concat(add);
+      if(add.length) q = q.concat(tag(add, setup.bookName[l.nextTextbookId] || ''));
       else nextBad.push((setup.bookName[l.nextTextbookId] || '다음 교재')
                         + (l.nextSection ? ' · ' + l.nextSection : ''));
     }
@@ -2206,10 +2240,12 @@ async function generateClassLessonPlan(classId, opts) {
       startDate: l.startDate || '',
       startSeq: l.startSeq || 1,
       reviewEvery: l.reviewEvery || 0,
-      isMain: (l.isMain === null)
-              ? (LP_MAIN_COURSES.indexOf(setup.bookCourse[l.textbookId]) >= 0)
-              : l.isMain,
-      testHost: !!l.testHost
+      // 중간·기말은 Star · Galaxy · Junior 에만 있습니다.
+      // Bricks 같은 서브 교재는 켜져 있어도 시험을 놓지 않습니다.
+      isMain:   isMainCourse && (l.isMain === null ? true : !!l.isMain),
+      testHost: isMainCourse && !!l.testHost,
+      useBookReview: !!l.useBookReview,
+      book: name
     });
   });
 
@@ -2226,19 +2262,25 @@ async function generateClassLessonPlan(classId, opts) {
   }
   if(!build.some(function(b){ return b.isMain; })){
     return { success:false,
-             error:'중간·기말 시험을 놓을 교재가 없어요.\n한 줄에 [시험 기준] 을 켜주세요.' };
+             error:'중간·기말을 놓을 메인 교재가 없어요.\n'
+                   + 'Star · Galaxy · New Super Junior 중 한 줄을 넣어주세요.\n'
+                   + '(Bricks Reading 같은 서브 교재는 시험이 없습니다)' };
   }
 
   var built = _lpBuildLines(build, {
-    startDate: planStart, nonClass: setup.nonClass, maxWeeks: 40
+    startDate: planStart, nonClass: setup.nonClass, blocked: blocked, maxWeeks: 40
   });
   if(built.error) return { success:false, error:built.error };
 
   // 손으로 고친 칸은 지키고, 나머지만 새로 씁니다
   var keep = await _sbGetSafe('lesson_plan_entries',
-    'select=date,period&class_id=' + _eq(classId) + '&locked=is.true') || [];
-  var lockedSet = {};
-  keep.forEach(function(k){ lockedSet[k.date + '|' + k.period] = true; });
+    'select=date,period,note&class_id=' + _eq(classId) + '&locked=is.true') || [];
+  var lockedSet = {}, blocked = {};
+  keep.forEach(function(k){
+    lockedSet[k.date + '|' + k.period] = true;
+    // [끼워 넣기] 로 넣은 칸은 진도를 안 쓰고 넘어갑니다 → 뒤가 한 칸씩 밀립니다
+    if(k.note === '끼움') blocked[k.date + '|' + k.period] = true;
+  });
 
   await sbDelete('lesson_plan_entries',
     'class_id=' + _eq(classId) + '&locked=is.false', { allowZero:true });
@@ -2247,7 +2289,7 @@ async function generateClassLessonPlan(classId, opts) {
     .filter(function(e){ return !lockedSet[e.date + '|' + e.period]; })
     .map(function(e){
       return { class_id:classId, date:e.date, period:e.period,
-               part:String(e.part || ''),
+               part:String(e.part || ''), book:e.book || null,
                unit_id:e.unitId || null, label:e.label || '', kind:e.kind || '수업',
                page_from:e.pageFrom || null, page_to:e.pageTo || null, locked:false };
     });
@@ -2278,12 +2320,14 @@ async function generateClassLessonPlan(classId, opts) {
 async function fetchClassLessonPlan(classId) {
   if(!classId) return { entries:[] };
   try {
-    var rows = await sbGet('lesson_plan_entries',
+    var rows = await sbGetSoft('lesson_plan_entries',
+      'select=id,date,period,part,book,label,kind,page_from,page_to,locked,note'
+      + '&class_id=' + _eq(classId) + '&order=date.asc,period.asc',
       'select=id,date,period,part,label,kind,page_from,page_to,locked,note'
       + '&class_id=' + _eq(classId) + '&order=date.asc,period.asc');
     return { entries:(rows || []).map(function(r){
       return { id:r.id, date:r.date, period:Number(r.period), part:r.part || '',
-               label:r.label || '', kind:r.kind || '수업',
+               book:r.book || '', label:r.label || '', kind:r.kind || '수업',
                pageFrom:r.page_from, pageTo:r.page_to,
                locked:!!r.locked, note:r.note || '' };
     }) };
@@ -2294,14 +2338,17 @@ async function fetchClassLessonPlan(classId) {
   }
 }
 
-async function updateLessonPlanEntry(id, label) {
+async function updateLessonPlanEntry(id, label, mode) {
   if(!id) return { success:false };
   var txt  = String(label || '').trim();
   var kind = _lpKindOf(txt, '');           // 내용에 맞게 종류(색깔)도 같이 바꿉니다
+  var ins  = (mode === 'insert');          // 끼워 넣기 — 뒤 회차가 한 칸씩 밀립니다
+  if(ins && !kind) kind = '특별수업';
   await sbPatch('lesson_plan_entries', 'id=' + _eq(id),
-                { label:txt, kind:kind, locked:true,
+                { label:txt, kind:(ins ? '특별수업' : kind), locked:true,
+                  note:(ins ? '끼움' : null),
                   updated_at:new Date().toISOString() });
-  return { success:true, kind:kind };
+  return { success:true, kind:(ins ? '특별수업' : kind), inserted:ins };
 }
 
 async function clearLessonPlan(classId) {
@@ -10764,7 +10811,8 @@ function lpOpenMaker(){
                  startDate:l.startDate, startSeq:l.startSeq,
                  nextTextbookId:l.nextTextbookId, nextSection:l.nextSection || '',
                  reviewEvery:l.reviewEvery, isMain:l.isMain,
-                 testHost:!!l.testHost, options:l.options || {} };
+                 testHost:!!l.testHost, useBookReview:!!l.useBookReview,
+                 options:l.options || {} };
       });
       renderLpMaker();
     })
@@ -10854,6 +10902,12 @@ function lpRenderLines(){
     if(!secs.length) secs = (_lpSetup.bookSections || {})[l.textbookId] || [];
     var need  = !!(secs.length && !l.section);      // 영역을 골라야 하는 줄
     var main  = _lpIsMain(l);
+    // 교재 자체에 Review · Unit Test 차시가 들어 있는 교재인지 (Bricks 등)
+    var hasBookRev = units.some(function(u){ return u.optional; });
+    // 중간·기말이 있는 메인 과정인지 (Star · Galaxy · Junior).
+    // Bricks 같은 서브 교재는 시험이 없어서 칸을 아예 안 보여줍니다.
+    var canTest = (_lpSetup.mainCourses || [])
+                    .indexOf((_lpSetup.bookCourse || {})[l.textbookId]) >= 0;
 
     // 교재
     var bookOpts = "<option value=''>— 교재 고르기 —</option>";
@@ -10959,38 +11013,42 @@ function lpRenderLines(){
       +     "onchange='lpSetLine(" + i + ",\"startDate\",this.value)' style='" + bd + "'></div>"
       + "</div>"
 
-      // 3줄 — 시작 차시 · Review · 다음 책 · 시험 기준
+      // 3줄 — 시작 차시 · (교재 Review) · 다음 책
       + "<div style='display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end'>"
       +   "<div><div style='" + lbl + "'>어느 차시부터</div>" + seqHtml + "</div>"
-      +   "<div><div style='" + lbl + "'>"
-      +     _plEsc(((_lpSetup.bookSeries || {})[l.textbookId] || '') + ' Review') + "</div>"
-      +     "<select onchange='lpSetLine(" + i + ",\"reviewEvery\",this.value)' style='" + bd + "'>"
-      +     [0,1,2,3,4,5].map(function(n){
-            return "<option value='" + n + "'"
-                 + (n === (l.reviewEvery || 0) ? " selected" : "") + ">"
-                 + (n === 0 ? '안 넣음' : n + '유닛마다 한 번') + "</option>"; }).join('')
-      +     "</select></div>"
+      +   (hasBookRev
+          ? "<div><div style='" + lbl + "'>"
+            + _plEsc(((_lpSetup.bookSeries || {})[l.textbookId] || '') + ' Review') + "</div>"
+            + "<label style='display:inline-block;font-size:11.5px;color:#5B6551;"
+            + "cursor:pointer;padding:6px 0'>"
+            + "<input type='checkbox'" + (l.useBookReview ? " checked" : "")
+            + " onchange='lpSetLine(" + i + ",\"useBookReview\",this.checked)' "
+            + "style='width:13px;height:13px;vertical-align:-2px'> 교재에 있는 Review 쓰기"
+            + "<span style='color:#C3C9BB'> (Unit Test 포함)</span></label></div>"
+          : "")
       +   "<div><div style='" + lbl + "'>끝나면 이어서</div>"
       +     "<select onchange='lpSetLine(" + i + ",\"nextTextbookId\",this.value)' style='"
       +     bd + ";max-width:190px'>" + nextOpts + "</select></div>"
       +   nextSecHtml
       + "</div>"
 
-      // 4줄 — 시험
-      + "<div style='display:flex;gap:16px;flex-wrap:wrap;align-items:center;"
-      +   "margin-top:9px;padding-top:8px;border-top:1px dashed #E6EBE0'>"
-      +   "<label style='font-size:11.5px;color:#5B6551;cursor:pointer'>"
-      +     "<input type='checkbox'" + (main ? " checked" : "")
-      +     " onchange='lpSetLine(" + i + ",\"isMain\",this.checked)' "
-      +     "style='width:13px;height:13px;vertical-align:-2px'> 시험 기준"
-      +     "<span style='color:#C3C9BB'> (이 교재가 절반 지나면 중간)</span></label>"
-      +   "<label style='font-size:11.5px;color:" + (l.testHost ? "#C0392B" : "#5B6551")
-      +     ";cursor:pointer;font-weight:" + (l.testHost ? "700" : "400") + "'>"
-      +     "<input type='checkbox'" + (l.testHost ? " checked" : "")
-      +     " onchange='lpSetLine(" + i + ",\"testHost\",this.checked)' "
-      +     "style='width:13px;height:13px;vertical-align:-2px'> 시험은 이 시간에"
-      +     "<span style='color:#C3C9BB;font-weight:400'> (담임 수업)</span></label>"
-      + "</div>"
+      // 4줄 — 시험. 중간·기말이 있는 교재(Star · Galaxy · Junior)에서만 보여줍니다.
+      + (canTest
+        ? "<div style='display:flex;gap:16px;flex-wrap:wrap;align-items:center;"
+          + "margin-top:9px;padding-top:8px;border-top:1px dashed #E6EBE0'>"
+          + "<label style='font-size:11.5px;color:#5B6551;cursor:pointer'>"
+          +   "<input type='checkbox'" + (l.isMain === false ? "" : " checked")
+          +   " onchange='lpSetLine(" + i + ",\"isMain\",this.checked)' "
+          +   "style='width:13px;height:13px;vertical-align:-2px'> 시험 기준"
+          +   "<span style='color:#C3C9BB'> (이 교재가 절반 지나면 중간)</span></label>"
+          + "<label style='font-size:11.5px;color:" + (l.testHost ? "#C0392B" : "#5B6551")
+          +   ";cursor:pointer;font-weight:" + (l.testHost ? "700" : "400") + "'>"
+          +   "<input type='checkbox'" + (l.testHost ? " checked" : "")
+          +   " onchange='lpSetLine(" + i + ",\"testHost\",this.checked)' "
+          +   "style='width:13px;height:13px;vertical-align:-2px'> 시험은 이 시간에"
+          +   "<span style='color:#C3C9BB;font-weight:400'> (담임 수업)</span></label>"
+          + "</div>"
+        : "")
       + "</div>";
   }).join('');
 }
@@ -10998,7 +11056,7 @@ function lpRenderLines(){
 function lpAddLine(){
   _lpLines.push({ textbookId:'', section:'', weekdays:[], startDate:'', startSeq:1,
                   nextTextbookId:'', nextSection:'', reviewEvery:0, isMain:null,
-                  testHost:false, options:{} });
+                  testHost:false, useBookReview:false, options:{} });
   lpRenderLines(); lpRefreshOff();
 }
 function lpDelLine(i){
@@ -11015,9 +11073,11 @@ function lpToggleWd(i, w){
 function lpSetLine(i, field, val){
   var l = _lpLines[i]; if(!l) return;
   if(field === 'startSeq' || field === 'reviewEvery')  l[field] = Number(val) || 0;
-  else if(field === 'isMain' || field === 'testHost')  l[field] = !!val;
+  else if(field === 'isMain' || field === 'testHost'
+       || field === 'useBookReview')                   l[field] = !!val;
   else                                                l[field] = val || '';
-  if(field === 'section' || field === 'reviewEvery' || field === 'isMain') lpRenderLines();
+  if(field === 'section' || field === 'reviewEvery' || field === 'isMain'
+     || field === 'useBookReview') lpRenderLines();
   if(field === 'startDate') lpRefreshOff();
   if(field === 'nextTextbookId'){
     l.nextSection = '';
@@ -11209,7 +11269,48 @@ function _lpGrid(forImage){
   });
   h += "</tr>";
 
+  // 주마다 "그 주의 메인 교재" — 책이 바뀌면 구간을 나눠 보여줍니다
+  var wkBook = {};
+  wkList.forEach(function(mk){
+    var tally = {};
+    wdList.forEach(function(wd){
+      (weeks[mk][wd] || []).forEach(function(e){
+        if(e.book) tally[e.book] = (tally[e.book] || 0) + 1; });
+    });
+    var ks = Object.keys(tally).sort(function(a,b){ return tally[b] - tally[a]; });
+    wkBook[mk] = ks[0] || '';
+  });
+  // 빈 주는 앞 주의 책을 그대로 잇습니다
+  var carry = '';
+  wkList.forEach(function(mk){
+    if(wkBook[mk]) carry = wkBook[mk]; else wkBook[mk] = carry;
+  });
+  // 구간마다 몇 주째인지
+  var blockNo = {}, seen = null, n0 = 0;
   wkList.forEach(function(mk, wi){
+    if(wkBook[mk] !== seen){ seen = wkBook[mk]; n0 = 0; }
+    blockNo[mk] = ++n0;
+  });
+  var books = wkList.map(function(mk){ return wkBook[mk]; });
+  var manyBooks = books.filter(function(b, i){ return b && books.indexOf(b) === i; }).length > 1;
+
+  var shownBook = null;
+  wkList.forEach(function(mk, wi){
+    // 메인 교재가 바뀌면 구간 머리글을 한 줄 넣습니다
+    if(manyBooks && wkBook[mk] !== shownBook){
+      shownBook = wkBook[mk];
+      var till = wkList.filter(function(x){ return wkBook[x] === shownBook; });
+      h += "<tr><td colspan='" + (wdList.length + 1) + "' "
+        +    "style='background:#EAF3EC;border:1px solid #fff;padding:" + pad + ";"
+        +    "font-weight:800;color:#2D6A4F;font-size:" + (forImage ? '12.5px' : '12px') + "'>"
+        +    "📘 " + _plEsc(shownBook || '교재')
+        +    "<span style='font-weight:600;color:#7FA189;margin-left:8px;font-size:10.5px'>"
+        +    "1주 ~ " + till.length + "주"
+        +    " · " + till[0].slice(5).replace('-', '/')
+        +    " ~ " + till[till.length-1].slice(5).replace('-', '/')
+        +    "</span></td></tr>";
+    }
+
     // 이 주에 하루 최대 몇 번 수업인지 → 그만큼 줄을 내립니다
     var rows = 1;
     wdList.forEach(function(wd){
@@ -11220,9 +11321,14 @@ function _lpGrid(forImage){
       if(r === 0){
         h += "<td rowspan='" + rows + "' style='background:#F4F6F1;border:1px solid #fff;"
           +    "padding:" + pad + ";font-weight:700;color:#5B6551;text-align:center;"
-          +    "line-height:1.35;white-space:nowrap;vertical-align:middle'>" + (wi+1) + "주<br>"
+          +    "line-height:1.35;white-space:nowrap;vertical-align:middle'>"
+          +    (manyBooks ? blockNo[mk] : (wi+1)) + "주<br>"
           +    "<span style='font-size:9.5px;font-weight:600;color:#A8B09C'>"
-          +    mk.slice(5).replace('-', '/') + "</span></td>";
+          +    mk.slice(5).replace('-', '/') + "</span>"
+          +    (manyBooks
+              ? "<br><span style='font-size:8.5px;font-weight:600;color:#C3C9BB'>"
+                + "전체 " + (wi+1) + "주</span>" : "")
+          +    "</td>";
       }
       wdList.forEach(function(wd){
         var e = (weeks[mk][wd] || [])[r];
@@ -11301,23 +11407,96 @@ function renderLessonPlan(problem){
 function lpEditCell(id){
   var e = _lpPlan.filter(function(x){ return x.id === id; })[0];
   if(!e) return;
-  var v = prompt("이 칸의 내용을 고칩니다.\n"
-               + "· 비우면 빈 칸\n"
-               + "· Mid-term Test / Final Test 라고 적으면 시험 칸(빨강)이 됩니다\n"
-               + "· Review 라고 적으면 리뷰 칸(초록)이 됩니다", e.label || '');
-  if(v === null) return;
+  var old = document.getElementById('lpCellBox');
+  if(old) old.remove();
+
+  var d = new Date(e.date + 'T00:00:00');
+  var when = (d.getMonth()+1) + '/' + d.getDate()
+           + ' ' + ['일','월','화','수','목','금','토'][d.getDay()] + '요일';
+
+  var ov = document.createElement('div');
+  ov.id = 'lpCellBox';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9600;"
+    + "display:flex;align-items:center;justify-content:center;padding:18px";
+  ov.addEventListener('click', function(ev){ if(ev.target === ov) ov.remove(); });
+  ov.innerHTML =
+      "<div style='background:#fff;border-radius:16px;padding:20px;width:100%;max-width:380px;"
+    +   "box-shadow:0 10px 36px rgba(0,0,0,0.24)'>"
+    +   "<div style='font-size:14.5px;font-weight:800;color:#2D3A28'>" + _plEsc(when)
+    +     " <span style='font-size:11px;font-weight:600;color:#A8B09C'>"
+    +     _plEsc(e.part || '') + "</span></div>"
+    +   "<input type='text' id='lpCellVal' value='" + _mgAttr(e.label || '') + "' "
+    +     "style='width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:9px;"
+    +     "font-size:14px;box-sizing:border-box;margin:12px 0 4px'>"
+    +   "<div style='font-size:10.5px;color:#A8B09C;line-height:1.6;margin-bottom:13px'>"
+    +     "Mid-term Test · Final Test 라고 적으면 시험 칸(빨강)이 됩니다<br>"
+    +     "Review 는 초록 · 비우면 빈 칸</div>"
+    +   "<button onclick='lpCellSave(\"replace\")' style='width:100%;background:#2D6A4F;"
+    +     "color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;"
+    +     "font-weight:700;cursor:pointer;margin-bottom:7px'>이 칸만 고치기</button>"
+    +   "<button onclick='lpCellSave(\"insert\")' style='width:100%;background:#FFF4E5;"
+    +     "color:#B4651A;border:1.5px solid #F0D3A8;border-radius:10px;padding:11px;"
+    +     "font-size:13px;font-weight:700;cursor:pointer'>"
+    +     "끼워 넣고 뒤로 밀기 <span style='font-weight:500;font-size:11px'>"
+    +     "(Project 수업 등)</span></button>"
+    +   "<div style='font-size:10.5px;color:#C3C9BB;line-height:1.55;margin-top:8px'>"
+    +     "· 이 칸만 고치기 — 뒤 진도는 그대로<br>"
+    +     "· 끼워 넣고 뒤로 밀기 — 이번 회차부터 한 칸씩 다음으로 내려갑니다</div>"
+    +   "<button onclick=\"document.getElementById('lpCellBox').remove()\" "
+    +     "style='width:100%;background:none;border:none;color:#A8B09C;font-size:12px;"
+    +     "cursor:pointer;margin-top:10px'>취소</button>"
+    + "</div>";
+  document.body.appendChild(ov);
+  ov.setAttribute('data-id', id);
+  setTimeout(function(){
+    var i = document.getElementById('lpCellVal');
+    if(i){ i.focus(); i.select(); }
+  }, 40);
+}
+
+function lpCellSave(mode){
+  var ov = document.getElementById('lpCellBox');
+  if(!ov) return;
+  var id = ov.getAttribute('data-id');
+  var v  = (document.getElementById('lpCellVal') || {}).value || '';
+  var e  = _lpPlan.filter(function(x){ return x.id === id; })[0];
+  if(mode === 'insert' && !String(v).trim()){
+    showToast("끼워 넣을 수업 이름을 적어주세요."); return;
+  }
+  ov.remove();
+
   google.script.run
     .withSuccessHandler(function(res){
-      e.label = String(v).trim();
-      e.kind  = (res && res.kind) || _lpKindOf(e.label, '');
-      e.locked = true;
-      renderLessonPlan();
-      showToast("고쳤어요.");
+      if(e){
+        e.label = String(v).trim();
+        e.kind  = (res && res.kind) || _lpKindOf(e.label, '');
+        e.locked = true;
+        e.note = (mode === 'insert') ? '끼움' : '';
+      }
+      if(mode === 'insert'){
+        showToast("끼워 넣었어요. 뒤 회차를 다시 맞추는 중…");
+        google.script.run
+          .withSuccessHandler(function(r2){
+            if(!r2 || !r2.success){ showToast((r2 && r2.error) || "다시 맞추지 못했어요."); return; }
+            google.script.run
+              .withSuccessHandler(function(r3){
+                _lpPlan = (r3 && r3.entries) || [];
+                renderLessonPlan();
+                showToast("뒤 회차를 한 칸씩 밀었어요.");
+              })
+              .fetchClassLessonPlan(_lpCid);
+          })
+          .withFailureHandler(function(){ showToast("다시 맞추지 못했어요."); })
+          .generateClassLessonPlan(_lpCid, {});
+      } else {
+        renderLessonPlan();
+        showToast("고쳤어요.");
+      }
     })
     .withFailureHandler(function(err){
       showToast("고치지 못했어요: " + (err && err.message ? err.message : ''));
     })
-    .updateLessonPlanEntry(id, v);
+    .updateLessonPlanEntry(id, v, mode);
 }
 
 function lpSaveImage(btn){
