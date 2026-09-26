@@ -493,7 +493,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 Class Hub</div><div style="font-size:11px;color:#999;margin-top:2px">담임 · 학생 명단 · 시간표 · 이번주/지난주 진도</div></div><div style="display:flex;gap:6px"><button onclick="openTextbookMgr()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📚 교재 관리</button><button onclick="schedPrintAll()" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨 전체 시간표</button><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 · 선생님 · 학생 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
+</div><div id="classMgmtScreen" style="display:none"><div class="container" style="max-width:1000px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🏫 Class Hub</div><div style="font-size:11px;color:#999;margin-top:2px">담임 · 학생 명단 · 시간표 · 이번주/지난주 진도</div></div><div style="display:flex;gap:6px"><button onclick="openTextbookMgr()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📚 교재 관리</button><button onclick="openMasterTimetable()" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📊 전체 시간표</button><button onclick="schedPrintAll()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">🖨 반별 인쇄</button><button onclick="initClassMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div class="top-box"><label>반 찾기</label><input type="text" id="cmSearch" placeholder="반 · 선생님 · 학생 이름으로 찾기…" oninput="renderClassMgmt()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div id="classMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="absenceScreen" style="display:none"><div class="container" style="max-width:1120px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 출석부</div><div style="font-size:11px;color:#999;margin-top:2px">결석 기록 관리</div></div><button onclick="loadAbsenceStudents()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div class="top-box"><label>반 선택</label><select id="absClassSel" onchange="loadAbsenceStudents(); _mgOffset=0; loadMonthGrid();"><option value="">-- 반 선택 --</option></select></div><div id="monthGridBox" style="display:none;background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <div style="font-size:14px;font-weight:700;color:#363D2E">📊 월별 현황</div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-24 09:18';
+var APP_VERSION = '2026-09-24 11:55';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1509,6 +1509,88 @@ async function fetchClassManage() {
              return { id:x.id, name:x.name || '' }; })),
            thisWeekFrom: thisFrom, lastWeekFrom: rangeFrom };
 }
+// ════════════════════════════════════════════════════════════
+//  전체 시간표 — Daily Report 만 보고 만듭니다
+//
+//  리포트 한 줄에 "언제(날짜+교시) · 어느 반 · 어느 선생님" 이 다 있어서,
+//  최근 4주치를 모아 "요일·교시마다 가장 자주 있던 수업" 을 뽑습니다.
+//  휴강이나 대강이 한 번 섞여도 흔들리지 않습니다.
+// ════════════════════════════════════════════════════════════
+async function fetchMasterTimetable() {
+  var WEEKS = 4;
+  var d = new Date(Date.now() + 9*60*60*1000);
+  d.setUTCDate(d.getUTCDate() - WEEKS*7);
+  var from = d.toISOString().slice(0,10);
+
+  var reps = await sbGetSoft('daily_reports',
+    'select=date,period,class_id,teacher_id&date=gte.' + from,
+    'select=date,class_id,teacher_id&date=gte.' + from)
+    .catch(function(){ return []; }) || [];
+
+  if(!reps.length) return { teachers:[], periods:[], byDay:{}, weeks:WEEKS, noPeriod:0 };
+
+  var classes  = await _sbGetSafe('classes', 'select=id,name') || [];
+  var teachers = await fetchTeachers();
+  var cName = {}, tName = {}, tActive = {};
+  classes.forEach(function(x){ cName[x.id] = x.name || ''; });
+  teachers.forEach(function(t){
+    tName[t.id] = t.name || '';
+    tActive[t.id] = (t.active !== false);
+  });
+
+  // ── 요일·교시·선생님 칸마다 반 이름을 세어 둡니다 ──
+  var tally = {}, usedT = {}, usedP = {}, noPeriod = 0;
+
+  reps.forEach(function(r){
+    if(!r.class_id || !r.teacher_id) return;
+    var p = Number(r.period);
+    if(!p){ noPeriod++; return; }                 // 시간을 안 고른 리포트는 건너뜁니다
+
+    var nm = cName[r.class_id] || '';
+    if(!nm || isMakeupClass(nm)) return;           // 보충반은 빼요
+
+    var dd = new Date(String(r.date) + 'T00:00:00');
+    var wd = dd.getDay(); wd = (wd === 0) ? 7 : wd;
+    if(wd > 6) return;
+
+    var key = wd + '|' + p + '|' + r.teacher_id;
+    if(!tally[key]) tally[key] = {};
+    tally[key][nm] = (tally[key][nm] || 0) + 1;
+
+    usedT[r.teacher_id] = true;
+    usedP[p] = true;
+  });
+
+  // ── 칸마다 가장 자주 나온 반만 남깁니다 ──
+  var byDay = {};
+  Object.keys(tally).forEach(function(key){
+    var parts = key.split('|');
+    var wd = Number(parts[0]), p = Number(parts[1]), tid = parts[2];
+
+    var best = null, n = 0;
+    Object.keys(tally[key]).forEach(function(nm){
+      if(tally[key][nm] > n){ n = tally[key][nm]; best = nm; }
+    });
+    if(!best) return;
+
+    if(!byDay[wd]) byDay[wd] = {};
+    if(!byDay[wd][tid]) byDay[wd][tid] = {};
+    byDay[wd][tid][p] = { name:best, n:n };        // n = 최근 4주 중 몇 번 있었는지
+  });
+
+  var cols = Object.keys(usedT).map(function(id){
+    return { id:id, name:tName[id] || '(이름 없음)', active:tActive[id] !== false };
+  }).sort(function(a,b){
+    if(a.active !== b.active) return a.active ? -1 : 1;
+    return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
+  });
+
+  var periods = Object.keys(usedP).map(Number).sort(function(a,b){ return a-b; });
+
+  return { teachers:cols, periods:periods, byDay:byDay,
+           weeks:WEEKS, noPeriod:noPeriod, from:from };
+}
+
 // 학생을 다른 반으로 옮기기
 async function moveStudentClass(studentId, toClassId) {
   if(!studentId || !toClassId) return { success:false, error:'반을 골라주세요.' };
@@ -2366,8 +2448,21 @@ async function createBlankReport(data) {
   if(data.classId && data.classId!=='')    insert.class_id=data.classId;
   if(data.lastLesson) insert.last_lesson=data.lastLesson;
   if(data.lastHW)     insert.last_hw=data.lastHW;
-  var result = await sbInsert('daily_reports', insert);
-  return result ? { success:true, pageId:result.id } : { success:false };
+  if(data.period)     insert.period=Number(data.period);
+
+  try {
+    var result = await sbInsert('daily_reports', insert);
+    return result ? { success:true, pageId:result.id } : { success:false };
+  } catch(e) {
+    // period 칸이 아직 없으면 그것만 빼고 만듭니다
+    var m = String(e && e.message || '');
+    if(/42703|period|column/i.test(m) && insert.period !== undefined){
+      delete insert.period;
+      var r2 = await sbInsert('daily_reports', insert);
+      return r2 ? { success:true, pageId:r2.id } : { success:false };
+    }
+    throw e;
+  }
 }
 
 async function updateReportTitle(pageId, title) {
@@ -3350,6 +3445,7 @@ var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
+  fetchMasterTimetable,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
   fetchStudentsByClass,
@@ -9696,6 +9792,172 @@ function _scReload(){
     .fetchClassManage();
 }
 
+// ════════════════════════════════════════════════════════════
+//  전체 시간표 보기 (요일 × 선생님)
+// ════════════════════════════════════════════════════════════
+var _mtData = null;
+
+// 반 이름마다 옅은 색을 입혀 한눈에 구분되게 합니다
+function _mtColor(name){
+  var s = String(name || ''), n = 0;
+  for(var i=0;i<s.length;i++) n = (n*31 + s.charCodeAt(i)) % 360;
+  return { bg:'hsl(' + n + ',72%,93%)', fg:'hsl(' + n + ',58%,30%)' };
+}
+
+function openMasterTimetable(){
+  var old = document.getElementById('mtOverlay');
+  if(old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'mtOverlay';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9400;"
+    + "display:flex;align-items:flex-start;justify-content:center;padding:18px;overflow:auto";
+  ov.onclick = function(e){ if(e.target === ov) closeMasterTimetable(); };
+
+  var box = document.createElement('div');
+  box.id = 'mtBox';
+  box.style.cssText = "background:#fff;border-radius:16px;padding:18px;width:100%;"
+    + "max-width:1400px;box-shadow:0 10px 36px rgba(0,0,0,0.24)";
+  box.innerHTML = "<div style='color:#bbb;font-size:13px;padding:24px;text-align:center'>"
+    + "최근 4주 리포트를 모으는 중…</div>";
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+
+  google.script.run
+    .withSuccessHandler(function(d){ _mtData = d; renderMasterTimetable(); })
+    .withFailureHandler(function(e){
+      box.innerHTML = "<div style='color:#C0392B;font-size:13px;padding:24px;text-align:center'>"
+        + "불러오지 못했어요: " + _plEsc(e && e.message ? e.message : '') + "</div>";
+    })
+    .fetchMasterTimetable();
+}
+
+function closeMasterTimetable(){
+  var ov = document.getElementById('mtOverlay');
+  if(ov) ov.remove();
+}
+
+// 요일 한 장
+function _mtDayTable(wd){
+  var d   = _mtData || {};
+  var day = (d.byDay || {})[wd] || {};
+  var cols = (d.teachers || []).filter(function(t){ return day[t.id]; });
+  var pers = d.periods || [];
+  if(!cols.length) return '';
+
+  var w = WG_WEEKDAYS.filter(function(x){ return x.d === wd; })[0];
+  var weeks = d.weeks || 4;
+
+  var h = "<table style='border-collapse:collapse;width:100%;table-layout:fixed;font-size:12px'>"
+        + "<tr>"
+        + "<th style='background:#DCE6D2;border:1px solid #fff;padding:5px 6px;font-size:12.5px;"
+        +   "font-weight:800;color:#2D3A28;width:80px;white-space:nowrap'>"
+        +   (w ? w.full : '') + "</th>";
+  cols.forEach(function(t){
+    h += "<th style='background:#EDF2E7;border:1px solid #fff;padding:5px 6px;font-size:12.5px;"
+      +    "font-weight:700;color:" + (t.active ? '#2D3A28' : '#A8B09C')
+      +    ";white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"
+      +    _plEsc(t.name) + "</th>";
+  });
+  h += "</tr>";
+
+  pers.forEach(function(p){
+    var info = _periodInfo(p);
+    if(!cols.some(function(t){ return (day[t.id] || {})[p]; })) return;
+    h += "<tr>"
+      +  "<td style='background:#F4F6F1;border:1px solid #fff;padding:5px 6px;font-weight:700;"
+      +    "color:#5B6551;text-align:center;white-space:nowrap'>"
+      +    (info ? _h12(info.start) + "~" + _h12(info.end) : (p + '교시')) + "</td>";
+    cols.forEach(function(t){
+      var hit = (day[t.id] || {})[p];
+      if(!hit){
+        h += "<td style='border:1px solid #EEF0EA;background:#fff;padding:5px 6px'></td>";
+        return;
+      }
+      var col = _mtColor(hit.name);
+      // 4주 중 한두 번뿐이면 옅게 — 대강이나 보충일 수 있어요
+      var sure = hit.n >= Math.max(2, weeks - 1);
+      h += "<td style='border:1px solid #EEF0EA;padding:5px 6px;text-align:center;background:#fff'>"
+        +  "<span title='최근 " + weeks + "주 중 " + hit.n + "번' "
+        +    "style='display:inline-block;background:" + col.bg + ";color:" + col.fg + ";"
+        +    "border-radius:4px;padding:1px 6px;font-weight:800;white-space:nowrap;"
+        +    "opacity:" + (sure ? '1' : '.5') + "'>" + _plEsc(hit.name) + "</span></td>";
+    });
+    h += "</tr>";
+  });
+  return h + "</table>";
+}
+
+function renderMasterTimetable(){
+  var box = document.getElementById('mtBox');
+  if(!box) return;
+  var d = _mtData || {};
+  var head = "<div style='display:flex;align-items:center;gap:8px;margin-bottom:4px'>"
+    + "<div style='font-size:15px;font-weight:800;color:#2D3A28;flex:1'>📊 전체 시간표</div>";
+
+  if(!(d.teachers || []).length){
+    box.innerHTML = head
+      + "<button onclick='closeMasterTimetable()' style='background:none;border:none;"
+      +   "font-size:20px;cursor:pointer;color:#A8B09C'>✕</button></div>"
+      + "<div style='color:#C3C9BB;font-size:13px;padding:24px;text-align:center;line-height:1.8'>"
+      + "아직 모을 리포트가 없어요.<br>"
+      + "Daily Report 를 쓸 때 <b>Time</b> 을 골라주시면 여기에 쌓입니다."
+      + (d.noPeriod ? "<br><span style='color:#B4651A'>시간을 안 고른 리포트 "
+                      + d.noPeriod + "건은 아직 못 씁니다.</span>" : "")
+      + "</div>";
+    return;
+  }
+
+  var days = WG_WEEKDAYS.slice(0, 6).filter(function(w){ return (d.byDay || {})[w.d]; });
+  var body = days.map(function(w){
+    return "<div style='margin-bottom:16px'>" + _mtDayTable(w.d) + "</div>";
+  }).join('');
+
+  box.innerHTML = head
+    + "<button onclick='saveMasterTimetable(this)' style='background:#2D6A4F;color:#fff;"
+    +   "border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;"
+    +   "cursor:pointer;white-space:nowrap'>🖼 사진으로 보기</button>"
+    + "<button onclick='closeMasterTimetable()' style='background:none;border:none;"
+    +   "font-size:20px;cursor:pointer;color:#A8B09C'>✕</button></div>"
+    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:14px;line-height:1.6'>"
+    +   "최근 " + (d.weeks || 4) + "주 Daily Report 에서 모았습니다 · "
+    +   "옅게 보이는 칸은 그 기간에 한두 번뿐이라 대강이나 보충일 수 있어요"
+    +   (d.noPeriod ? "<br><span style='color:#B4651A'>시간을 안 고른 리포트 "
+                      + d.noPeriod + "건은 빠져 있습니다</span>" : "")
+    + "</div>"
+    + "<div id='mtSheets'>" + body + "</div>";
+}
+
+// 사진으로 보기
+function saveMasterTimetable(btn){
+  var d = _mtData || {};
+  var days = WG_WEEKDAYS.slice(0, 6).filter(function(w){ return (d.byDay || {})[w.d]; });
+  if(!days.length){ showToast("보여드릴 시간표가 없어요."); return; }
+
+  var now = new Date(Date.now() + 9*60*60*1000);
+  var title = "WILLGROW Time Table   "
+            + ["Jan","Feb","Mar","Apr","May","Jun",
+               "Jul","Aug","Sep","Oct","Nov","Dec"][now.getUTCMonth()]
+            + " " + now.getUTCDate() + ", " + now.getUTCFullYear();
+
+  var css = "<style>*{box-sizing:border-box}"
+          + "body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',"
+          +   "'Apple SD Gothic Neo',sans-serif}"
+          + ".sheet{background:#fff;padding:12mm 12mm 10mm}"
+          + "table{border-collapse:collapse}</style>";
+
+  var body = "<div class='sheet' style='width:380mm'>"
+    + "<div style='text-align:center;font-size:26px;font-weight:900;color:#2D302E;"
+    +   "margin-bottom:10px;letter-spacing:-.5px'>" + _plEsc(title) + "</div>"
+    + days.map(function(w){
+        return "<div style='margin-bottom:9px'>" + _mtDayTable(w.d) + "</div>";
+      }).join('')
+    + "<div style='font-size:10px;color:#A8B09C;text-align:right;margin-top:6px'>"
+    +   "WILLGROW · 철산캠퍼스</div></div>";
+
+  _prPreview("전체 시간표", css, body, "WILLGROW_전체시간표", btn);
+}
+
 // ── 반 이름에서 학년 묶음 알아내기 ─────────────────────────
 //   "2A" "2B"      → 2학년
 //   "M1A"          → 중1        "H2B" → 고2
@@ -14112,13 +14374,18 @@ function submitLessonPlan(){
 <div id="fullReportModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 16px">
   <div style="background:white;border-radius:16px;width:100%;max-width:520px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
     <div style="background:#4A5240;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border-radius:16px 16px 0 0">
-      <input id="fr_title" type="text" placeholder="e.g. 3:30 3B Sue (6/20)" style="background:transparent;border:none;outline:none;color:white;font-size:15px;font-weight:700;font-family:inherit;width:calc(100% - 40px);caret-color:white" />
+      <input id="fr_title" type="text" oninput="this.dataset.touched='1'" placeholder="e.g. 3:30 3B Sue (6/20)" style="background:transparent;border:none;outline:none;color:white;font-size:15px;font-weight:700;font-family:inherit;width:calc(100% - 40px);caret-color:white" />
       <button onclick="closeFullReportModal()" style="background:rgba(255,255,255,0.18);border:none;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;color:white;flex-shrink:0">×</button>
     </div>
     <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
       <div>
+        <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Time <span style="color:#EF4444">*</span></label>
+        <select id="fr_period" onchange="frSyncTitle()" style="width:100%;padding:11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;background:#fff;font-family:inherit"></select>
+        <div style="font-size:10.5px;color:#A8B09C;margin-top:4px">전체 시간표가 이 시간을 보고 만들어집니다</div>
+      </div>
+      <div>
         <label style="font-size:11px;font-weight:700;color:#5A6350;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px">Class <span style="color:#EF4444">*</span></label>
-        <select id="fr_class" style="width:100%;padding:11px 36px 11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;appearance:none;-webkit-appearance:none;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 13px center;background-size:10px;box-sizing:border-box;outline:none;font-family:inherit">
+        <select id="fr_class" onchange="frSyncTitle()" style="width:100%;padding:11px 36px 11px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:14px;appearance:none;-webkit-appearance:none;background:#fff url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2210%22 height=%226%22 viewBox=%220 0 10 6%22%3E%3Cpath d=%22M1 1l4 4 4-4%22 stroke=%22%23888%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E') no-repeat right 13px center;background-size:10px;box-sizing:border-box;outline:none;font-family:inherit">
           <option value="">-- Select Class --</option>
         </select>
       </div>
@@ -14214,6 +14481,28 @@ function toggleFrMore(){
   sec.style.display = shown ? "none" : "flex";
   btn.textContent = shown ? "+ More (Comments / Book Orders)" : "− Less";
 }
+// 시간·반을 고르면 제목을 "3:30 3B Sue (9/24)" 모양으로 맞춰 줍니다.
+//   선생님이 직접 고쳐 쓰셔도 됩니다 — 그 뒤로는 건드리지 않습니다.
+function frSyncTitle(){
+  var t = document.getElementById('fr_title');
+  if(!t || t.dataset.touched === '1') return;
+
+  var perEl = document.getElementById('fr_period');
+  var clsEl = document.getElementById('fr_class');
+  var info  = perEl && perEl.value ? _periodInfo(Number(perEl.value)) : null;
+  var cls   = clsEl && clsEl.value
+            ? (clsEl.options[clsEl.selectedIndex] || {}).textContent || '' : '';
+
+  var d  = new Date((selectedDate || getTodayStr()) + 'T00:00:00');
+  var md = (d.getMonth()+1) + '/' + d.getDate();
+
+  var parts = [];
+  if(info) parts.push(_h12(info.start));
+  if(cls)  parts.push(cls);
+  if(_userName) parts.push(_userName);
+  t.value = parts.join(' ') + (parts.length ? ' (' + md + ')' : '');
+}
+
 function openFullReportModal(){
   var modal = document.getElementById('fullReportModal');
   if(!modal) return;
@@ -14221,9 +14510,21 @@ function openFullReportModal(){
   ['fr_title','fr_lastLesson','fr_lastHW','fr_lesson','fr_hw','fr_book','fr_comments','fr_bookorders'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value='';
   });
+  var t0 = document.getElementById('fr_title');
+  if(t0) t0.dataset.touched = '';
   ['fr_class','fr_test','fr_attitude'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value='';
   });
+
+  // 시간 고르는 칸 채우기 (1교시 = 2:30)
+  var perEl = document.getElementById('fr_period');
+  if(perEl){
+    perEl.innerHTML = '<option value="">-- 시간 고르기 --</option>'
+      + WG_PERIODS.map(function(p){
+          return '<option value="' + p.p + '">' + _h12(p.start) + ' ~ ' + _h12(p.end) + '</option>';
+        }).join('');
+    perEl.value = '';
+  }
   // Populate class select (always reload)
   var classEl = document.getElementById('fr_class');
   if(classEl){
@@ -14448,7 +14749,8 @@ function submitFullReport(){
     showToast('Save failed: '+e.message);
   })
   .createBlankReport({ title:title, teacherId:teacherId, classId:classId,
-    dateStr:dateStr, lastLesson:lastLesson, lastHW:lastHW });
+    dateStr:dateStr, lastLesson:lastLesson, lastHW:lastHW,
+    period:((document.getElementById('fr_period')||{}).value || '') });
 }
 </script>
 </body></html>
