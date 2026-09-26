@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-26 16:20';
+var APP_VERSION = '2026-09-26 17:35';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1772,244 +1772,193 @@ function _lpNorm(s){
   return String(s || '').toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
 }
 
-// 시간표 칸의 "파트" 이름 — 영역이 있으면 영역, 없으면 시리즈 이름
-function _lpPartOf(slot, cat){
-  if(slot.section) return slot.section;
-  var f = cat ? findTextbook(cat, slot.textbookId) : null;
-  return f ? f.series.name : (slot.subject || '기타');
-}
+// ════════════════════════════════════════════════════════════
+//  레슨플랜 — 시간표와 따로 움직입니다
+//
+//    한 줄 = 한 교재.  "무슨 책 · 주 몇 회(어느 요일) · 언제부터"
+//    줄 번호가 계획표의 가로 칸 순서가 됩니다.
+// ════════════════════════════════════════════════════════════
 
-// 계획을 만들기 전에 보여드릴 것들
-async function fetchLessonPlanContext(classId, startDate, weeks) {
+// 저장된 교재 줄 + 고를 거리들
+async function fetchLessonPlanSetup(classId) {
   if(!classId) return { ok:false, error:'반을 골라주세요.' };
 
-  var cat  = await fetchTextbookCatalog(false);
-  var all  = await fetchClassSchedule(classId);
-  if(!all.length){
-    return { ok:false, error:'이 반은 시간표가 아직 없어요. 먼저 시간표를 만들어 주세요.' };
-  }
+  var cat = await fetchTextbookCatalog(false);
 
-  // ── 레슨플랜이 따로 고른 교재 ──
-  //    선생님이 요일마다 책을 바꿔 두셨으면 시간표보다 이것을 먼저 씁니다.
-  //    비어 있는 칸은 시간표대로 갑니다.
-  var picked = {};
-  var ps = await _sbGetSafe('class_plan_slots',
-    'select=effective_from,weekday,period,textbook_id,section&class_id=' + _eq(classId)) || [];
-  ps.forEach(function(r){
-    picked[(r.effective_from || '') + '|' + r.weekday + '|' + r.period] =
-      { textbookId:r.textbook_id || '', section:r.section || '' };
-  });
-
-  // 시간표를 "언제부터" 로 묶습니다. 계획이 전환일을 지나면 다음 벌로 갈아탑니다.
-  var vers = {};
-  all.forEach(function(r){
-    var k = r.effectiveFrom || '';
-    var pk = k + '|' + Number(r.weekday) + '|' + Number(r.period);
-    var pv = picked[pk];
-    (vers[k] = vers[k] || []).push({
-      weekday:Number(r.weekday), period:Number(r.period),
-      textbookId:(pv && pv.textbookId) ? pv.textbookId : (r.textbookId || ''),
-      section:   pv ? (pv.section || '') : (r.section || ''),
-      tbSched:   r.textbookId || '',                // 시간표에 적힌 책 (되돌리기용)
-      secSched:  r.section || '',
-      chosen:    !!(pv && pv.textbookId),           // 선생님이 따로 고른 칸
-      subject:r.subject || '', from:k });
-  });
-  var verKeys = Object.keys(vers).sort();          // '' 가 맨 앞 = 지금 것
-  verKeys.forEach(function(k){
-    vers[k].forEach(function(s){ s.part = _lpPartOf(s, cat); });
-  });
-
-  // 파트 목록은 모든 벌을 합쳐서 봅니다 (다음 학기 교재도 미리 고를 수 있게)
-  var slots = [];
-  verKeys.forEach(function(k){ slots = slots.concat(vers[k]); });
-
-  // 파트마다 어느 교재를 쓰는지 (같은 파트면 한 교재)
-  var parts = {};
-  slots.forEach(function(s){
-    // 학기가 다르면 같은 이름이어도 다른 줄로 봅니다
-    s.key = (s.from ? s.from + '·' : '') + s.part;
-    if(!parts[s.key]){
-      var f = cat ? findTextbook(cat, s.textbookId) : null;
-      parts[s.key] = { key:s.key, part:s.part, from:s.from || '',
-                       textbookId:s.textbookId,
-                       bookName: f ? _bookFullName(f) : (s.subject || ''),
-                       course:   f ? f.series.code : '',
-                       slots:0 };
-    }
-    parts[s.key].slots++;
-  });
-
-  // 차시 불러오기
-  var ids = Object.keys(parts).map(function(p){ return parts[p].textbookId; })
-                              .filter(Boolean);
-  var units = {};
-  if(ids.length){
-    var uq = await _sbGetSafe('curriculum_units',
-      'select=id,textbook_id,part,seq,label,kind,session_no,session_of,page_from,page_to,optional'
-      + '&textbook_id=in.(' + ids.join(',') + ')&order=part.asc,seq.asc') || [];
-    uq.forEach(function(u){
-      var k = u.textbook_id + '|' + _lpNorm(u.part);
-      if(!units[k]) units[k] = [];
-      units[k].partName = u.part || '';          // 화면에 쓸 제대로 된 이름
-      units[k].push({
-        id:u.id, label:u.label, kind:u.kind || '수업',
-        sessionNo:Number(u.session_no) || 1, sessionOf:Number(u.session_of) || 1,
-        pageFrom:u.page_from, pageTo:u.page_to, optional:!!u.optional
-      });
-    });
-  }
-
-  // 반이 저장해 둔 시작점·다음책·옵션
-  var prog = {};
-  var pr = await sbGetSoft('class_progress',
-    'select=part,start_seq,start_date,next_textbook_id,options&class_id=' + _eq(classId),
-    'select=part,start_seq,next_textbook_id,options&class_id=' + _eq(classId)) || [];
-  pr.forEach(function(p){
-    prog[p.part] = { startSeq:Number(p.start_seq) || 1,
-                     startDate:p.start_date || '',
-                     nextTextbookId:p.next_textbook_id || '',
-                     options:p.options || {} };
-  });
-
-  // "이 책 끝나면 이어갈 책" 후보 — 시리즈를 건너뛸 수도 있어서 전체를 줍니다
-  //   (Sounds Great 5 를 마치고 Bricks Reading 으로 넘어가는 경우처럼)
-  var allBooks = (cat ? cat.series : []).map(function(s){
+  // 고를 수 있는 교재 — 시리즈를 건너뛰어도 됩니다
+  var bookGroups = (cat ? cat.series : []).map(function(s){
     return { series:s.name, code:s.code, sections:(s.sections || []).slice(),
              books:(s.books || []).map(function(b){
                return { id:b.id, name:_bookFullName({ series:s, book:b }) };
              }) };
   }).filter(function(g){ return g.books.length; });
 
-  // 교재 → 그 책이 가진 영역 (요일별 고르기에서 영역 칸을 채우는 데 씁니다)
-  var bookSections = {};
+  var bookSections = {}, bookCourse = {}, bookName = {}, bookSeries = {};
   (cat ? cat.series : []).forEach(function(s){
-    (s.books || []).forEach(function(b){ bookSections[b.id] = (s.sections || []).slice(); });
+    (s.books || []).forEach(function(b){
+      bookSections[b.id] = (s.sections || []).slice();
+      bookCourse[b.id]   = s.code;
+      bookSeries[b.id]   = s.name;                 // "Bricks Reading"
+      bookName[b.id]     = _bookFullName({ series:s, book:b });
+    });
   });
 
-  var out = Object.keys(parts).map(function(p){
-    var x = parts[p];
-    var own = slots.filter(function(s){ return s.key === p; })[0];
-    var key = x.textbookId + '|' + _lpNorm(own.section || '');
-    var list = units[key] || [];
-    // 영역 없는 교재인데 못 찾았으면, 그 교재의 차시를 통째로 씁니다
-    if(!list.length){
-      var alt = Object.keys(units).filter(function(k){
-        return k.indexOf(x.textbookId + '|') === 0; });
-      if(alt.length === 1) list = units[alt[0]];
-    }
-    var g = prog[p] || prog[x.part] || {};
-    return { part:p, partName:(list.partName || x.part), from:x.from,
-             textbookId:x.textbookId, bookName:x.bookName, course:x.course,
-             bookGroups:allBooks,
-             slotsPerWeek:x.slots, unitCount:list.length,
-             hasOptional:list.some(function(u){ return u.optional; }),
-             isMain: LP_MAIN_COURSES.indexOf(x.course) >= 0,
-             startSeq:g.startSeq || 1, startDate:g.startDate || '',
-             nextTextbookId:g.nextTextbookId || '',
-             options:g.options || {},
-             units:list };
+  // 저장해 둔 줄
+  var rows = await _sbGetSafe('class_plan_lines',
+    'select=id,line_no,textbook_id,section,weekdays,start_date,start_seq,'
+    + 'next_textbook_id,review_every,is_main,options'
+    + '&class_id=' + _eq(classId) + '&order=line_no.asc') || [];
+
+  var lines = rows.map(function(r){
+    return { id:r.id, lineNo:Number(r.line_no) || 1,
+             textbookId:r.textbook_id || '', section:r.section || '',
+             weekdays:(r.weekdays || []).map(Number),
+             startDate:r.start_date || '', startSeq:Number(r.start_seq) || 1,
+             nextTextbookId:r.next_textbook_id || '',
+             reviewEvery:Number(r.review_every) || 0,
+             isMain:(r.is_main === null || r.is_main === undefined) ? null : !!r.is_main,
+             options:r.options || {},
+             bookName:bookName[r.textbook_id] || '' };
   });
 
-  // 요일·교시마다 한 줄 — 선생님이 여기서 책을 고르십니다
-  var slotRows = slots.map(function(s){
-    var f  = cat ? findTextbook(cat, s.textbookId) : null;
-    var fs = cat ? findTextbook(cat, s.tbSched)    : null;
-    return { from:s.from || '', weekday:s.weekday, period:s.period,
-             textbookId:s.textbookId || '', section:s.section || '',
-             tbSched:s.tbSched || '', secSched:s.secSched || '',
-             schedName: fs ? _bookFullName(fs) : (s.subject || '비어 있음'),
-             chosen:!!s.chosen, part:s.key,
-             bookName: f ? _bookFullName(f) : (s.subject || '') };
-  }).sort(function(a,b){
-    return (a.from < b.from ? -1 : a.from > b.from ? 1 : 0)
-        || a.weekday - b.weekday || a.period - b.period;
-  });
+  // 줄에 쓰인 교재의 차시 (시작 차시 고르기용)
+  var units = await _lpUnitsFor(lines.map(function(l){ return l.textbookId; }));
 
-  // 빠지는 날 미리보기
-  var from = startDate || getTodayStr();
-  var till = new Date(from + 'T00:00:00');
-  till.setDate(till.getDate() + (weeks || 16) * 7);
-  var nonClass = await fetchNonClassDays(from,
-                   till.getFullYear() + '-' + String(till.getMonth()+1).padStart(2,'0')
-                   + '-' + String(till.getDate()).padStart(2,'0'));
+  // 앞으로 18개월 안에 빠지는 날 — 시작일을 바꿔도 다시 안 불러도 되게 넉넉히
+  var t0 = getTodayStr();
+  var e0 = new Date(t0 + 'T00:00:00');
+  e0.setMonth(e0.getMonth() + 18);
+  var nonClass = await fetchNonClassDays(t0,
+    e0.getFullYear() + '-' + String(e0.getMonth()+1).padStart(2,'0')
+    + '-' + String(e0.getDate()).padStart(2,'0'));
 
-  return { ok:true, slots:slots, parts:out, nonClass:nonClass,
-           versions:verKeys, slotRows:slotRows,
-           bookGroups:allBooks, bookSections:bookSections };
+  return { ok:true, lines:lines, units:units, nonClass:nonClass,
+           bookGroups:bookGroups, bookSections:bookSections,
+           bookCourse:bookCourse, bookName:bookName, bookSeries:bookSeries,
+           mainCourses:LP_MAIN_COURSES.slice() };
 }
 
-// ── 생성기 본체 ──────────────────────────────────────────────
-function _lpBuild(unitsByPart, slots, opts){
-  var startSeq = opts.startSeq || {}, skipOpt = opts.skipOptional || {};
-  var main = opts.mainParts || [], nonClass = opts.nonClass || {};
-  var maxWeeks = opts.maxWeeks || 30;
-  // 교재마다 "이 날부터 시작". 그 전 칸은 비워 둡니다.
-  var startFrom = opts.startFrom || {};
-  function notYet(part, ymdStr){
-    var f = startFrom[part];
-    return !!(f && ymdStr < f);
-  }
+// 교재들의 차시를 "교재ID|영역" 으로 담아 옵니다
+async function _lpUnitsFor(ids) {
+  var use = (ids || []).filter(function(x, i, a){ return x && a.indexOf(x) === i; });
+  var out = {};
+  if(!use.length) return out;
+  var uq = await _sbGetSafe('curriculum_units',
+    'select=id,textbook_id,part,seq,label,kind,session_no,session_of,page_from,page_to,optional'
+    + '&textbook_id=in.(' + use.join(',') + ')&order=part.asc,seq.asc') || [];
+  uq.forEach(function(u){
+    var k = u.textbook_id + '|' + _lpNorm(u.part);
+    if(!out[k]) out[k] = [];
+    out[k].push({ id:u.id, label:u.label, kind:u.kind || '수업',
+      sessionNo:Number(u.session_no) || 1, sessionOf:Number(u.session_of) || 1,
+      pageFrom:u.page_from, pageTo:u.page_to, optional:!!u.optional,
+      partName:u.part || '' });
+  });
+  return out;
+}
 
-  var queue = {}, total = {};
-  Object.keys(unitsByPart).forEach(function(p){
-    queue[p] = (unitsByPart[p] || [])
-      .filter(function(u){ return !(u.optional && skipOpt[p]); })
-      .slice((startSeq[p] || 1) - 1)
-      .map(function(u){ return u; });
-    total[p] = queue[p].length;
+// 한 교재의 차시만 (줄에서 책을 바꿀 때 씁니다)
+async function fetchBookUnits(textbookId) {
+  return await _lpUnitsFor([textbookId]);
+}
+
+// "교재ID|영역" 으로 차시 찾기 — 영역 없는 교재는 통째로
+function _lpPick(units, textbookId, section) {
+  if(!textbookId) return [];
+  var k = textbookId + '|' + _lpNorm(section || '');
+  if(units[k] && units[k].length) return units[k];
+  var alt = Object.keys(units).filter(function(x){
+    return x.indexOf(textbookId + '|') === 0 && units[x].length; });
+  return alt.length === 1 ? units[alt[0]] : [];
+}
+
+// 교재 줄 저장
+async function saveLessonPlanLines(classId, lines) {
+  if(!classId) return { success:false, error:'반을 골라주세요.' };
+  var use = (lines || []).filter(function(l){ return l && l.textbookId; });
+
+  await sbDelete('class_plan_lines', 'class_id=' + _eq(classId), { allowZero:true });
+  if(!use.length) return { success:true, count:0 };
+
+  var rows = use.map(function(l, i){
+    return { class_id:classId, line_no:i + 1,
+             textbook_id:l.textbookId, section:l.section || null,
+             weekdays:(l.weekdays || []).map(Number).sort(function(a,b){ return a-b; }),
+             start_date:l.startDate || null,
+             start_seq:Number(l.startSeq) || 1,
+             next_textbook_id:l.nextTextbookId || null,
+             review_every:Number(l.reviewEvery) || 0,
+             is_main:(l.isMain === null || l.isMain === undefined) ? null : !!l.isMain,
+             options:l.options || {},
+             updated_at:new Date().toISOString() };
   });
 
-  var flex = LP_FLEX.filter(function(p){ return total[p]; });
-  function isFlex(p){ return flex.indexOf(p) >= 0; }
+  var res = await fetch(SUPABASE_URL + '/rest/v1/class_plan_lines', {
+    method:'POST',
+    headers:_sbH({ 'Prefer':'return=minimal' }),
+    body:JSON.stringify(rows)
+  });
+  if(!res.ok){
+    var err = await res.text();
+    if(_handleAuthError(res.status)) throw new Error('AUTH');
+    if(/42P01|does not exist/i.test(err)){
+      return { success:false,
+               error:'교재 줄 표가 아직 없어요. RUN_ME_21_레슨플랜_교재줄.sql 을 먼저 돌려주세요.' };
+    }
+    return { success:false, error:'[교재 줄 저장] ' + err };
+  }
+  return { success:true, count:rows.length };
+}
 
-  function takeFlex(own, ymdStr){
-    var pick = null, worst = 2;
-    flex.forEach(function(p){
-      if(!queue[p].length) return;
-      if(notYet(p, ymdStr)) return;                 // 아직 시작 전인 책은 건너뜁니다
-      var done = (total[p] - queue[p].length) / total[p];
-      if(done < worst - 1e-9){ worst = done; pick = p; }
-      else if(Math.abs(done - worst) < 1e-9 && p === own){ pick = p; }
-    });
-    return pick ? { part:pick, unit:queue[pick].shift() } : null;
-  }
-  function take(part, ymdStr){
-    if(isFlex(part)) return takeFlex(part, ymdStr);
-    if(notYet(part, ymdStr)) return null;
-    if(!queue[part] || !queue[part].length) return null;
-    return { part:part, unit:queue[part].shift() };
-  }
+// ── 생성기 ──────────────────────────────────────────────────
+//   lines[i] = { key, units[], weekdays[], startDate, reviewEvery, isMain, label }
+function _lpBuildLines(lines, opts) {
+  opts = opts || {};
+  var nonClass = opts.nonClass || {}, maxWeeks = opts.maxWeeks || 40;
+  var planStart = opts.startDate;
+
+  // 줄마다 차시 줄서기 — 시작 차시부터 자르고 Review 를 끼웁니다
+  var L = lines.map(function(l, i){
+    var q = (l.units || []).slice(Math.max(0, (l.startSeq || 1) - 1));
+    var every = Number(l.reviewEvery) || 0;
+    if(every > 0){
+      var withRev = [], n = 0;
+      q.forEach(function(u){
+        withRev.push(u);
+        if((u.kind || '수업') === '수업'){
+          n++;
+          if(n % every === 0){
+            withRev.push({ id:null, label:(l.reviewLabel || 'Review'),
+                           kind:'리뷰', sessionNo:1, sessionOf:1,
+                           pageFrom:null, pageTo:null, review:true });
+          }
+        }
+      });
+      q = withRev;
+    }
+    return { no:i + 1, key:l.key, label:l.label || '', reviewLabel:l.reviewLabel || '',
+             weekdays:(l.weekdays || []).map(Number),
+             from:l.startDate || '', isMain:!!l.isMain,
+             queue:q, total:q.length };
+  }).filter(function(l){ return l.weekdays.length; });
+
+  function notYet(l, ymdStr){ return !!(l.from && ymdStr < l.from); }
+  function mainLines(){ return L.filter(function(l){ return l.isMain; }); }
   function mainLeft(){
-    return main.reduce(function(n,p){ return n + (queue[p] ? queue[p].length : 0); }, 0);
+    return mainLines().reduce(function(n, l){ return n + l.queue.length; }, 0);
   }
-  function safeForTest(part){
-    var q = queue[part];
-    return (!q || !q.length) ? true : (q[0].sessionNo || 1) === 1;
+  function safeForTest(l){
+    return !l.queue.length || (l.queue[0].sessionNo || 1) === 1;
   }
 
-  var midDone = false, finalDone = false, midPart = null;
+  var midDone = false, finalDone = false, midNo = null;
   function midReady(){
     if(midDone) return false;
-    return main.every(function(p){
-      return !total[p] || (total[p] - queue[p].length) >= Math.floor(total[p] / 2);
+    var m = mainLines();
+    if(!m.length) return false;
+    return m.every(function(l){
+      return !l.total || (l.total - l.queue.length) >= Math.floor(l.total / 2);
     });
-  }
-
-  // 시간표를 "언제부터" 로 나눠 둡니다
-  var vers = {};
-  slots.forEach(function(s){ (vers[s.from || ''] = vers[s.from || ''] || []).push(s); });
-  var verKeys = Object.keys(vers).sort();
-
-  // 그 날짜에 쓰는 시간표 — 시작일이 그 날짜 이하인 것 중 가장 늦은 것
-  function slotsOn(ymdStr){
-    var use = verKeys[0];
-    for(var i = 0; i < verKeys.length; i++){
-      if(!verKeys[i] || verKeys[i] <= ymdStr) use = verKeys[i];
-    }
-    var list = (vers[use] || []).slice();
-    list.sort(function(a,b){ return a.weekday - b.weekday || a.period - b.period; });
-    return list;
   }
 
   function _ymd(d){
@@ -2017,180 +1966,147 @@ function _lpBuild(unitsByPart, slots, opts){
          + '-' + String(d.getDate()).padStart(2,'0');
   }
 
+  if(!L.length) return { entries:[], weeks:0, error:'요일을 고른 교재 줄이 없어요.' };
+
   var out = [], week = 0;
-  var cur = new Date(opts.startDate + 'T00:00:00');
-  cur.setDate(cur.getDate() - ((cur.getDay() || 7) - 1));     // 그 주 월요일
+  var cur = new Date(planStart + 'T00:00:00');
+  cur.setDate(cur.getDate() - ((cur.getDay() || 7) - 1));        // 그 주 월요일
 
   while((mainLeft() > 0 || !finalDone) && week < maxWeeks){
     week++;
-    var cells = [];
-    for(var i = 0; i < 7; i++){
-      var d = new Date(cur); d.setDate(cur.getDate() + i);
-      var key = _ymd(d);
-      if(key < opts.startDate) continue;
-      var wd = d.getDay() === 0 ? 7 : d.getDay();
-      slotsOn(key).filter(function(s){ return s.weekday === wd; })
-        .forEach(function(s){
-          var nc = nonClass[key];
-          var off = (nc && (nc.periods === null || nc.periods.indexOf(s.period) >= 0)) ? nc : null;
-          cells.push({ date:key, slot:s, off:off });
-        });
-    }
 
-    // 시험 자리
+    // 이번 주의 칸들 — 줄 순서, 그 다음 날짜 순서
+    var cells = [];
+    for(var di = 0; di < 7; di++){
+      var d = new Date(cur); d.setDate(cur.getDate() + di);
+      var key = _ymd(d);
+      if(key < planStart) continue;
+      var wd = d.getDay() === 0 ? 7 : d.getDay();
+      L.forEach(function(l){
+        if(l.weekdays.indexOf(wd) < 0) return;
+        var nc = nonClass[key];
+        var off = (nc && (nc.periods === null || nc.periods.indexOf(l.no) >= 0)) ? nc : null;
+        cells.push({ date:key, line:l, off:off });
+      });
+    }
+    cells.sort(function(a, b){
+      return (a.date < b.date ? -1 : a.date > b.date ? 1 : 0) || a.line.no - b.line.no;
+    });
+
+    // 시험 자리 — 메인 줄의 그 주 마지막 칸, 유닛을 쪼개지 않는 곳
     var testCell = null;
     var mainCells = cells.filter(function(c){
-      var pk = c.slot.key || c.slot.part;
-      return !c.off && main.indexOf(pk) >= 0 && !notYet(pk, c.date); });
+      return !c.off && c.line.isMain && !notYet(c.line, c.date); });
     var wantFinal = !finalDone && (mainLeft() === 0 || mainLeft() <= mainCells.length);
     if(midReady() || wantFinal){
       for(var k2 = mainCells.length - 1; k2 >= 0; k2--){
-        var p2 = mainCells[k2].slot.key || mainCells[k2].slot.part;
-        if(safeForTest(p2) && p2 !== midPart){ testCell = mainCells[k2]; break; }
+        if(safeForTest(mainCells[k2].line) && mainCells[k2].line.no !== midNo){
+          testCell = mainCells[k2]; break;
+        }
       }
       if(!testCell){
         for(var k3 = mainCells.length - 1; k3 >= 0; k3--){
-          var p3 = mainCells[k3].slot.key || mainCells[k3].slot.part;
-          if(safeForTest(p3)){ testCell = mainCells[k3]; break; }
+          if(safeForTest(mainCells[k3].line)){ testCell = mainCells[k3]; break; }
         }
       }
       if(!testCell && mainCells.length) testCell = mainCells[mainCells.length - 1];
     }
 
     for(var ci = 0; ci < cells.length; ci++){
-      var c = cells[ci], s2 = c.slot;
+      var c = cells[ci], l2 = c.line;
       if(c.off){
-        out.push({ date:c.date, period:s2.period, part:(s2.key || s2.part),
+        out.push({ date:c.date, period:l2.no, part:l2.key,
                    kind:c.off.mode, label:c.off.title });
         continue;
       }
       if(c === testCell){
-        out.push({ date:c.date, period:s2.period, part:(s2.key || s2.part), kind:'테스트',
+        out.push({ date:c.date, period:l2.no, part:l2.key, kind:'테스트',
                    label: midDone ? 'Final Test' : 'Mid-term Test' });
-        if(!midDone){ midDone = true; midPart = (s2.key || s2.part); } else finalDone = true;
+        if(!midDone){ midDone = true; midNo = l2.no; } else finalDone = true;
         continue;
       }
-      var got = take(s2.key || s2.part, c.date);
-      out.push({ date:c.date, period:s2.period,
-                 part: got ? got.part : (s2.key || s2.part),
-                 kind: got ? got.unit.kind : '빈칸',
-                 label: got ? got.unit.label : '',
-                 unitId: got ? got.unit.id : null,
-                 pageFrom: got ? got.unit.pageFrom : null,
-                 pageTo:   got ? got.unit.pageTo   : null });
+      var u = (notYet(l2, c.date) || !l2.queue.length) ? null : l2.queue.shift();
+      out.push({ date:c.date, period:l2.no, part:l2.key,
+                 kind: u ? u.kind : '빈칸',
+                 label: u ? u.label : '',
+                 unitId: u ? u.id : null,
+                 pageFrom: u ? u.pageFrom : null,
+                 pageTo:   u ? u.pageTo   : null });
     }
     cur.setDate(cur.getDate() + 7);
   }
+
   return { entries:out, weeks:week };
 }
 
 // ── 만들어서 저장 ────────────────────────────────────────────
 async function generateClassLessonPlan(classId, opts) {
   opts = opts || {};
+  var planStart = opts.startDate || getTodayStr();
 
-  // ── 요일마다 고르신 교재를 먼저 저장합니다 ──
-  //    그래야 아래에서 다시 읽을 때 그 책으로 계획이 만들어집니다.
-  if(opts.slotPicks){
-    var keepRows = [], dropRows = [];
-    Object.keys(opts.slotPicks).forEach(function(k){
-      var v = opts.slotPicks[k] || {};
-      var bits = k.split('|');                    // from|weekday|period
-      var row = { class_id:classId, effective_from:bits[0] || null,
-                  weekday:Number(bits[1]), period:Number(bits[2]),
-                  textbook_id:v.textbookId || null, section:v.section || null,
-                  updated_at:new Date().toISOString() };
-      (v.textbookId ? keepRows : dropRows).push(row);
-    });
-    try {
-      for(var di = 0; di < dropRows.length; di++){
-        var dr = dropRows[di];
-        await sbDelete('class_plan_slots',
-          'class_id=' + _eq(classId)
-          + '&weekday=' + _eq(dr.weekday) + '&period=' + _eq(dr.period)
-          + (dr.effective_from ? '&effective_from=' + _eq(dr.effective_from)
-                               : '&effective_from=is.null'),
-          { allowZero:true });
-      }
-      if(keepRows.length){
-        var pres = await fetch(SUPABASE_URL + '/rest/v1/class_plan_slots'
-          + '?on_conflict=class_id,effective_from,weekday,period', {
-          method:'POST',
-          headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=minimal' }),
-          body:JSON.stringify(keepRows)
-        });
-        if(!pres.ok){
-          var perr = await pres.text();
-          if(_handleAuthError(pres.status)) throw new Error('AUTH');
-          if(/42P01|does not exist/i.test(perr)){
-            return { success:false,
-                     error:'교재 고르는 칸이 아직 없어요. RUN_ME_20_레슨플랜_교재선택.sql 을 먼저 돌려주세요.' };
-          }
-          return { success:false, error:'[교재 저장] ' + perr };
-        }
-      }
-    } catch(e){
-      if(String(e && e.message) === 'AUTH') throw e;
-      return { success:false, error:'교재를 저장하지 못했어요: ' + (e && e.message || '') };
+  // ① 교재 줄을 먼저 저장합니다
+  if(opts.lines){
+    var sv = await saveLessonPlanLines(classId, opts.lines);
+    if(!sv.success) return sv;
+  }
+
+  // ② 저장된 줄을 다시 읽어 계획을 만듭니다
+  var setup = await fetchLessonPlanSetup(classId);
+  if(!setup.ok) return { success:false, error:setup.error };
+  if(!setup.lines.length){
+    return { success:false, error:'교재 줄이 없어요. ＋ 교재 추가 로 먼저 넣어주세요.' };
+  }
+
+  // 끝나면 이어갈 책의 차시까지 미리 담습니다
+  var nextIds = setup.lines.map(function(l){ return l.nextTextbookId; }).filter(Boolean);
+  var nextUnits = nextIds.length ? await _lpUnitsFor(nextIds) : {};
+
+  var build = [], noWd = [], noUnits = [];
+  setup.lines.forEach(function(l){
+    var own = _lpPick(setup.units, l.textbookId, l.section);
+    var name = l.bookName || setup.bookName[l.textbookId] || '';
+    if(!l.weekdays.length) noWd.push(name);
+    if(!own.length)        noUnits.push(name);
+
+    var q = own.slice();
+    if(l.nextTextbookId && l.nextTextbookId !== l.textbookId){
+      var add = _lpPick(nextUnits, l.nextTextbookId, l.section);
+      if(add.length) q = q.concat(add);
     }
-  }
 
-  var ctx = await fetchLessonPlanContext(classId, opts.startDate, 20);
-  if(!ctx.ok) return { success:false, error:ctx.error };
-
-  var unitsByPart = {}, startSeq = {}, skipOpt = {}, mainParts = [], startFrom = {};
-  ctx.parts.forEach(function(p){
-    unitsByPart[p.part] = p.units.slice();
-    startSeq[p.part] = (opts.startSeq && opts.startSeq[p.part]) || p.startSeq || 1;
-    var sd = (opts.bookStart && opts.bookStart[p.part] !== undefined)
-             ? opts.bookStart[p.part] : p.startDate;
-    if(sd) startFrom[p.part] = sd;
-    var o = (opts.options && opts.options[p.part]) || p.options || {};
-    skipOpt[p.part] = !o.review;                 // 리뷰를 하는 반만 리뷰 차시를 씁니다
-    if(p.isMain) mainParts.push(p.part);
-  });
-
-  // ── 이 책이 끝나면 이어갈 책 (선생님이 고른 대로) ──
-  //    책을 넘겨도 진도가 안 끊기게, 다음 책 차시를 뒤에 붙입니다.
-  var nextIds = [];
-  ctx.parts.forEach(function(p){
-    var nid = (opts.nextBook && opts.nextBook[p.part]) || p.nextTextbookId || '';
-    if(nid && nid !== p.textbookId && nextIds.indexOf(nid) < 0) nextIds.push(nid);
-  });
-  if(nextIds.length){
-    var nx = await _sbGetSafe('curriculum_units',
-      'select=id,textbook_id,part,seq,label,kind,session_no,session_of,page_from,page_to,optional'
-      + '&textbook_id=in.(' + nextIds.join(',') + ')&order=part.asc,seq.asc') || [];
-    var byBook = {};
-    nx.forEach(function(u){
-      var k = u.textbook_id + '|' + _lpNorm(u.part);
-      (byBook[k] = byBook[k] || []).push({
-        id:u.id, label:u.label, kind:u.kind || '수업',
-        sessionNo:Number(u.session_no) || 1, sessionOf:Number(u.session_of) || 1,
-        pageFrom:u.page_from, pageTo:u.page_to, optional:!!u.optional
-      });
+    build.push({
+      key:   (l.section || name || ('줄 ' + l.lineNo)),
+      label: (l.section ? (name + ' · ' + l.section) : name),
+      // "Bricks Reading Review" — 시리즈 이름을 씁니다
+      reviewLabel: ((setup.bookSeries[l.textbookId] || name) + ' Review'),
+      units: q,
+      weekdays: l.weekdays,
+      startDate: l.startDate || '',
+      startSeq: l.startSeq || 1,
+      reviewEvery: l.reviewEvery || 0,
+      isMain: (l.isMain === null)
+              ? (LP_MAIN_COURSES.indexOf(setup.bookCourse[l.textbookId]) >= 0)
+              : l.isMain
     });
-    ctx.parts.forEach(function(p){
-      var nid = (opts.nextBook && opts.nextBook[p.part]) || p.nextTextbookId || '';
-      if(!nid || nid === p.textbookId) return;
-      var own = ctx.slots.filter(function(s){ return s.part === p.part; })[0];
-      var k = nid + '|' + _lpNorm(own ? (own.section || '') : '');
-      var add = byBook[k];
-      if(!add){
-        var alt = Object.keys(byBook).filter(function(x){ return x.indexOf(nid + '|') === 0; });
-        if(alt.length === 1) add = byBook[alt[0]];
-      }
-      if(add && add.length) unitsByPart[p.part] = unitsByPart[p.part].concat(add);
-    });
+  });
+
+  if(noWd.length){
+    return { success:false, error:'요일을 안 고른 교재가 있어요 — ' + noWd.join(', ') };
   }
-  if(!mainParts.length){
-    return { success:false, error:'메인 교재(Star·Galaxy·Junior)가 시간표에 없어요.' };
+  if(noUnits.length){
+    return { success:false,
+             error:'차시가 없는 교재가 있어요 — ' + noUnits.join(', ')
+                   + '\n(교재 관리에서 영역을 맞추거나 RUN_ME_17 을 돌려주세요)' };
+  }
+  if(!build.some(function(b){ return b.isMain; })){
+    return { success:false,
+             error:'중간·기말 시험을 놓을 교재가 없어요.\n한 줄에 [시험 기준] 을 켜주세요.' };
   }
 
-  var built = _lpBuild(unitsByPart, ctx.slots, {
-    startDate: opts.startDate || getTodayStr(),
-    startSeq: startSeq, skipOptional: skipOpt, startFrom: startFrom,
-    mainParts: mainParts, nonClass: ctx.nonClass, maxWeeks: 30
+  var built = _lpBuildLines(build, {
+    startDate: planStart, nonClass: setup.nonClass, maxWeeks: 40
   });
+  if(built.error) return { success:false, error:built.error };
 
   // 손으로 고친 칸은 지키고, 나머지만 새로 씁니다
   var keep = await _sbGetSafe('lesson_plan_entries',
@@ -2205,7 +2121,7 @@ async function generateClassLessonPlan(classId, opts) {
     .filter(function(e){ return !lockedSet[e.date + '|' + e.period]; })
     .map(function(e){
       return { class_id:classId, date:e.date, period:e.period,
-               part:String(e.part || '').replace(/^\d{4}-\d{2}-\d{2}·/, ''),
+               part:String(e.part || ''),
                unit_id:e.unitId || null, label:e.label || '', kind:e.kind || '수업',
                page_from:e.pageFrom || null, page_to:e.pageTo || null, locked:false };
     });
@@ -2227,36 +2143,6 @@ async function generateClassLessonPlan(classId, opts) {
       }
       return { success:false, error:'[레슨플랜 저장] ' + err };
     }
-  }
-
-  // 시작점 기억해 두기
-  for(var pi = 0; pi < ctx.parts.length; pi++){
-    var pp = ctx.parts[pi];
-    var body = { class_id:classId, part:pp.part,
-      start_seq:startSeq[pp.part],
-      start_date:startFrom[pp.part] || null,
-      next_textbook_id:(opts.nextBook && opts.nextBook[pp.part]) || pp.nextTextbookId || null,
-      options:(opts.options && opts.options[pp.part]) || pp.options || {},
-      updated_at:new Date().toISOString() };
-    try {
-      var cres = await fetch(SUPABASE_URL + '/rest/v1/class_progress?on_conflict=class_id,part', {
-        method:'POST',
-        headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=minimal' }),
-        body:JSON.stringify([body])
-      });
-      // start_date 칸이 아직 없으면 (RUN_ME_20 전) 그 칸만 빼고 다시
-      if(!cres.ok){
-        var cerr = await cres.text();
-        if(/42703|start_date/i.test(cerr)){
-          delete body.start_date;
-          await fetch(SUPABASE_URL + '/rest/v1/class_progress?on_conflict=class_id,part', {
-            method:'POST',
-            headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=minimal' }),
-            body:JSON.stringify([body])
-          });
-        }
-      }
-    } catch(e){ /* 기억은 못 해도 계획은 만들어졌습니다 */ }
   }
 
   return { success:true, weeks:built.weeks, count:rows.length };
@@ -4166,7 +4052,8 @@ var _serverFunctions = {
   setSeriesSections, addSeries, renameSeries, deleteSeries,
   fetchMasterTimetable, fetchNonClassDays,
   fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
-  fetchLessonPlanContext, generateClassLessonPlan, fetchClassLessonPlan,
+  fetchLessonPlanSetup, fetchBookUnits, saveLessonPlanLines,
+  generateClassLessonPlan, fetchClassLessonPlan,
   updateLessonPlanEntry, clearLessonPlan,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
@@ -10684,7 +10571,7 @@ function saveMasterTimetable(btn){
 //  레슨플랜 화면
 // ════════════════════════════════════════════════════════════
 var _lpCid = '';
-var _lpCtx = null;
+var _lpSetupReady = false;
 var _lpPlan = [];
 
 function _lpClassName(){
@@ -10693,7 +10580,7 @@ function _lpClassName(){
 }
 
 function openLessonPlan(classId){
-  _lpCid = classId; _lpCtx = null; _lpPlan = [];
+  _lpCid = classId; _lpSetup = null; _lpLines = []; _lpPlan = [];
   var old = document.getElementById('lpOverlay');
   if(old) old.remove();
 
@@ -10726,142 +10613,57 @@ function openLessonPlan(classId){
 function closeLessonPlan(){
   var ov = document.getElementById('lpOverlay');
   if(ov) ov.remove();
-  _lpCid = ''; _lpCtx = null; _lpPlan = [];
+  _lpCid = ''; _lpSetup = null; _lpLines = []; _lpPlan = [];
 }
 
-// ── 만들기 확인창 ────────────────────────────────────────────
+// ── 만들기 창 ────────────────────────────────────────────────
+//   시간표와 상관없이, 교재 줄을 쌓아 계획을 만듭니다.
+var _lpSetup = null;      // 서버에서 받아 온 고를 거리들
+var _lpLines = [];        // 화면에서 편집 중인 교재 줄
+
 function lpOpenMaker(){
   var box = document.getElementById('lpBox');
   if(!box) return;
   box.innerHTML = "<div style='color:#bbb;font-size:13px;padding:24px;text-align:center'>"
     + "교재와 빠지는 날을 살펴보는 중…</div>";
 
-  var start = document.getElementById('lpStart');
-  var from  = (start && start.value) || getTodayStr();
-
   google.script.run
-    .withSuccessHandler(function(ctx){
-      _lpCtx = ctx;
-      if(!ctx || !ctx.ok){ renderLessonPlan((ctx && ctx.error) || '불러오지 못했어요.'); return; }
-      renderLpMaker(from);
+    .withSuccessHandler(function(st){
+      if(!st || !st.ok){ renderLessonPlan((st && st.error) || '불러오지 못했어요.'); return; }
+      _lpSetup = st;
+      _lpLines = (st.lines || []).map(function(l){
+        return { textbookId:l.textbookId, section:l.section, weekdays:l.weekdays.slice(),
+                 startDate:l.startDate, startSeq:l.startSeq,
+                 nextTextbookId:l.nextTextbookId, reviewEvery:l.reviewEvery,
+                 isMain:l.isMain };
+      });
+      renderLpMaker();
     })
     .withFailureHandler(function(e){ renderLessonPlan(e && e.message ? e.message : '오류'); })
-    .fetchLessonPlanContext(_lpCid, from, 20);
+    .fetchLessonPlanSetup(_lpCid);
 }
 
-function renderLpMaker(from){
+// 이 줄의 차시 목록
+function _lpLineUnits(l){
+  if(!_lpSetup || !l || !l.textbookId) return [];
+  var u = _lpSetup.units || {};
+  var k = l.textbookId + '|' + _lpNorm(l.section || '');
+  if(u[k] && u[k].length) return u[k];
+  var alt = Object.keys(u).filter(function(x){
+    return x.indexOf(l.textbookId + '|') === 0 && u[x].length; });
+  return alt.length === 1 ? u[alt[0]] : [];
+}
+function _lpIsMain(l){
+  if(!_lpSetup) return false;
+  if(l.isMain === null || l.isMain === undefined){
+    return (_lpSetup.mainCourses || []).indexOf(_lpSetup.bookCourse[l.textbookId]) >= 0;
+  }
+  return !!l.isMain;
+}
+
+function renderLpMaker(){
   var box = document.getElementById('lpBox');
-  if(!box || !_lpCtx) return;
-  var ctx = _lpCtx;
-
-  var off = Object.keys(ctx.nonClass || {}).sort();
-  var offTxt = off.length
-    ? off.slice(0, 8).map(function(k){
-        var v = ctx.nonClass[k];
-        return k.slice(5) + ' ' + (v.title || '')
-             + (v.mode === '특별수업' ? ' (특별수업)' : '');
-      }).join(' · ') + (off.length > 8 ? ' 외 ' + (off.length - 8) + '일' : '')
-    : '없습니다';
-
-  // ── 요일마다 무슨 책을 할지 ────────────────────────────────
-  var WD = ['', '월', '화', '수', '목', '금', '토', '일'];
-  var slotRows = (ctx.slotRows || []);
-  var lastFrom = null, slotHtml = '';
-  slotRows.forEach(function(s, i){
-    if(s.from !== lastFrom){
-      lastFrom = s.from;
-      if((ctx.versions || []).length > 1){
-        slotHtml += "<tr><td colspan='3' style='padding:8px 0 3px'>"
-          + "<span style='font-size:10.5px;font-weight:800;color:#2D6A4F;"
-          +   "background:#EAF3EC;border-radius:6px;padding:2px 8px'>"
-          + (s.from ? _plEsc(s.from) + ' 부터' : '지금 쓰는 시간표') + "</span></td></tr>";
-      }
-    }
-    var bookOpts = "<option value=''>시간표대로 · " + _plEsc(s.schedName) + "</option>";
-    (ctx.bookGroups || []).forEach(function(g){
-      var inner = g.books.map(function(b){
-        return "<option value='" + b.id + "'"
-             + ((s.chosen && b.id === s.textbookId) ? " selected" : "") + ">"
-             + _plEsc(b.name) + "</option>";
-      }).join('');
-      if(inner) bookOpts += "<optgroup label='" + _mgAttr(g.series) + "'>" + inner + "</optgroup>";
-    });
-
-    slotHtml += "<tr data-lpslot='" + _mgAttr(s.from + '|' + s.weekday + '|' + s.period) + "'>"
-      + "<td style='padding:4px 10px 4px 0;white-space:nowrap;vertical-align:middle'>"
-      +   "<span style='font-size:13px;font-weight:800;color:#2D3A28'>" + WD[s.weekday] + "</span>"
-      +   "<span style='font-size:11px;color:#A8B09C;margin-left:5px'>" + s.period + "교시</span>"
-      + "</td>"
-      + "<td style='padding:4px 8px 4px 0;vertical-align:middle'>"
-      +   "<select id='lpSb-" + i + "' onchange='lpSlotBook(" + i + ")' "
-      +     "style='padding:5px 8px;border:1.5px solid #E2E8D8;border-radius:7px;"
-      +     "font-size:12px;background:#fff;width:100%;max-width:280px'>" + bookOpts + "</select>"
-      + "</td>"
-      + "<td style='padding:4px 0;vertical-align:middle'>"
-      +   "<span id='lpSsWrap-" + i + "'></span>"
-      + "</td></tr>";
-  });
-
-  var rows = ctx.parts.map(function(p){
-    var opts = '';
-    for(var i = 1; i <= Math.max(1, p.unitCount); i++){
-      var u = p.units[i-1];
-      opts += "<option value='" + i + "'" + (i === p.startSeq ? " selected" : "") + ">"
-            + (u ? _plEsc(u.label) : (i + '번째')) + "</option>";
-    }
-    // 이 책이 끝나면 이어갈 책 — 시리즈를 건너뛰어도 됩니다
-    var nextOpts = "<option value=''>— 없음 (여기서 끝) —</option>";
-    (p.bookGroups || []).forEach(function(g){
-      var inner = g.books.filter(function(b){ return b.id !== p.textbookId; })
-        .map(function(b){
-          return "<option value='" + b.id + "'"
-               + (b.id === p.nextTextbookId ? " selected" : "") + ">"
-               + _plEsc(b.name) + "</option>";
-        }).join('');
-      if(inner) nextOpts += "<optgroup label='" + _mgAttr(g.series) + "'>" + inner + "</optgroup>";
-    });
-
-    return "<tr>"
-      + "<td style='padding:6px 8px 6px 0;font-size:12.5px;font-weight:700;color:"
-      +   (p.isMain ? '#2D6A4F' : '#4A5344') + ";white-space:nowrap;vertical-align:top'>"
-      +   _plEsc(p.partName || p.part)
-      +   (p.isMain ? " <span style='font-size:9.5px;color:#9AA391'>메인</span>" : "")
-      +   "<div style='font-size:10.5px;font-weight:600;color:#A8B09C;margin-top:1px'>"
-      +     _plEsc(p.bookName) + "</div>"
-      + "</td>"
-      + "<td style='padding:6px 8px 6px 0;vertical-align:top'>"
-      +   (p.unitCount
-          ? "<select id='lpSeq-" + _mgAttr(p.part) + "' style='padding:5px 8px;border:1.5px solid "
-            + "#E2E8D8;border-radius:7px;font-size:12px;background:#fff;max-width:190px'>"
-            + opts + "</select>"
-            + "<div style='font-size:10px;color:#A8B09C;margin-top:2px'>"
-            + p.unitCount + "차시 · 주 " + p.slotsPerWeek + "칸</div>"
-          : "<span style='font-size:11.5px;color:#C0392B'>차시가 없어요 "
-            + "<span style='color:#A8B09C'>(RUN_ME_17 을 돌려주세요)</span></span>")
-      + "</td>"
-      + "<td style='padding:6px 8px 6px 0;vertical-align:top'>"
-      +   "<div style='font-size:10px;color:#A8B09C;margin-bottom:2px'>이 책 시작일</div>"
-      +   "<input type='date' id='lpFrom-" + _mgAttr(p.part) + "' "
-      +     "value='" + _mgAttr(p.startDate || '') + "' "
-      +     "style='padding:4px 7px;border:1.5px solid #E2E8D8;border-radius:7px;font-size:11.5px'>"
-      +   "<div style='font-size:9.5px;color:#C3C9BB;margin-top:2px'>비우면 바로 시작</div>"
-      + "</td>"
-      + "<td style='padding:6px 8px 6px 0;vertical-align:top'>"
-      +   "<div style='font-size:10px;color:#A8B09C;margin-bottom:2px'>"
-      +     "끝나면 이어서 <span style='color:#C3C9BB'>(다른 시리즈도 됩니다)</span></div>"
-      +   "<select id='lpNext-" + _mgAttr(p.part) + "' style='padding:5px 8px;border:1.5px solid "
-      +     "#E2E8D8;border-radius:7px;font-size:12px;background:#fff;max-width:190px'>"
-      +     nextOpts + "</select>"
-      + "</td>"
-      + "<td style='padding:6px 0;white-space:nowrap;vertical-align:top'>"
-      +   (p.hasOptional
-          ? "<label style='font-size:11.5px;color:#5B6551;cursor:pointer'>"
-            + "<input type='checkbox' id='lpRev-" + _mgAttr(p.part) + "'"
-            + ((p.options && p.options.review) ? " checked" : "")
-            + " style='width:13px;height:13px;vertical-align:-2px'> 리뷰 함</label>"
-          : "")
-      + "</td></tr>";
-  }).join('');
+  if(!box || !_lpSetup) return;
 
   box.innerHTML =
       "<div style='display:flex;align-items:center;gap:8px;margin-bottom:4px'>"
@@ -10871,42 +10673,24 @@ function renderLpMaker(from){
     +     "font-size:20px;cursor:pointer;color:#A8B09C'>✕</button>"
     + "</div>"
     + "<div style='font-size:11px;color:#A8B09C;margin-bottom:14px'>"
-    +   "요일마다 교재를 고르실 수 있어요 · 메인 교재가 끝날 때까지 만듭니다</div>"
+    +   "시간표와 따로 움직입니다 · 교재마다 주 몇 회, 언제부터 할지만 정하시면 됩니다</div>"
 
-    + "<div style='display:flex;align-items:center;gap:8px;margin-bottom:12px'>"
+    + "<div style='display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap'>"
     +   "<span style='font-size:12px;font-weight:700;color:#5B6551'>계획 시작일</span>"
-    +   "<input type='date' id='lpStart' value='" + _mgAttr(from) + "' "
-    +     "onchange='lpOpenMaker()' style='padding:6px 10px;border:1.5px solid #E2E8D8;"
+    +   "<input type='date' id='lpStart' value='" + _mgAttr(getTodayStr()) + "' "
+    +     "onchange='lpRefreshOff()' style='padding:6px 10px;border:1.5px solid #E2E8D8;"
     +     "border-radius:8px;font-size:12.5px'>"
+    +   "<span style='font-size:10.5px;color:#A8B09C'>교재별 시작일을 비우면 이 날부터 시작합니다</span>"
     + "</div>"
 
-    + "<div style='background:#F7FAF6;border:1px solid #E2E8D8;border-radius:11px;"
-    +   "padding:11px 13px;margin-bottom:12px'>"
-    +   "<div style='font-size:11.5px;font-weight:700;color:#2D6A4F;margin-bottom:6px'>"
-    +     "요일마다 무슨 책을 할까요?"
-    +     "<span style='font-weight:600;color:#A8B09C;margin-left:6px'>"
-    +       "그대로 두면 시간표에 적힌 교재로 갑니다</span></div>"
-    +   "<table style='width:100%;border-collapse:collapse'>" + slotHtml + "</table>"
-    +   "<div style='font-size:10px;color:#A8B09C;margin-top:7px'>"
-    +     "책을 바꾸셨다면 [만들기] 를 누른 뒤 다시 들어오시면 "
-    +     "그 책의 시작 차시를 고르실 수 있어요.</div>"
-    + "</div>"
+    + "<div id='lpLines'></div>"
 
-    + "<div style='background:#FAFBF8;border:1px solid #EEF0EA;border-radius:11px;"
-    +   "padding:11px 13px;margin-bottom:12px'>"
-    +   "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:6px'>"
-    +     "교재마다 어디부터 · 언제부터 시작할까요?"
-    +     "<span style='font-weight:600;color:#A8B09C;margin-left:6px'>"
-    +       "책이 끝나면 다음 책으로 이어집니다</span></div>"
-    +   "<table style='width:100%;border-collapse:collapse'>" + rows + "</table>"
-    + "</div>"
+    + "<button onclick='lpAddLine()' style='width:100%;background:#F1F6EE;color:#2D6A4F;"
+    +   "border:1.5px dashed #BBD3BE;border-radius:11px;padding:10px;font-size:12.5px;"
+    +   "font-weight:700;cursor:pointer;margin-bottom:13px'>＋ 교재 추가</button>"
 
-    + "<div style='background:#FFF9E6;border:1px solid #E8C55A;border-radius:11px;"
-    +   "padding:11px 13px;margin-bottom:14px'>"
-    +   "<div style='font-size:11.5px;font-weight:700;color:#7A5A12;margin-bottom:3px'>"
-    +     "이 기간에 빠지는 날 " + off.length + "일</div>"
-    +   "<div style='font-size:11.5px;color:#8A6A22;line-height:1.6'>" + _plEsc(offTxt) + "</div>"
-    + "</div>"
+    + "<div id='lpOffBox' style='background:#FFF9E6;border:1px solid #E8C55A;"
+    +   "border-radius:11px;padding:11px 13px;margin-bottom:14px'></div>"
 
     + "<div style='display:flex;gap:8px'>"
     +   (_lpPlan.length
@@ -10921,71 +10705,217 @@ function renderLpMaker(from){
     +     "cursor:pointer'>✨ 만들기</button>"
     + "</div>";
 
-  // 영역 칸은 고른 책에 따라 달라서 그려 놓고 채웁니다
-  slotRows.forEach(function(s, i){ lpSlotBook(i); });
+  lpRenderLines();
+  lpRefreshOff();
 }
 
-// 요일 한 줄에서 책을 바꾸면 영역 칸을 그 책에 맞게 다시 그립니다
-function lpSlotBook(i){
-  if(!_lpCtx) return;
-  var s   = (_lpCtx.slotRows || [])[i];
-  var sel = document.getElementById('lpSb-' + i);
-  var box = document.getElementById('lpSsWrap-' + i);
-  if(!s || !sel || !box) return;
+var LP_WD = ['', '월', '화', '수', '목', '금', '토', '일'];
 
-  var bid  = sel.value || '';                       // 빈 값 = 시간표대로
-  var secs = bid ? ((_lpCtx.bookSections || {})[bid] || []) : [];
+function lpRenderLines(){
+  var wrap = document.getElementById('lpLines');
+  if(!wrap) return;
 
-  if(!bid){
-    box.innerHTML = "<span style='font-size:11px;color:#A8B09C'>"
-      + (s.secSched ? _plEsc(s.secSched) : '시간표 그대로') + "</span>";
+  if(!_lpLines.length){
+    wrap.innerHTML = "<div style='background:#FAFBF8;border:1px dashed #E2E8D8;"
+      + "border-radius:11px;padding:20px;text-align:center;font-size:12px;color:#A8B09C;"
+      + "margin-bottom:10px'>아직 교재가 없어요.<br>"
+      + "<span style='font-size:11px'>아래 ＋ 교재 추가 를 눌러 주세요.</span></div>";
     return;
   }
-  if(!secs.length){
-    box.innerHTML = "<span style='font-size:11px;color:#C3C9BB'>영역 없음</span>";
-    return;
+
+  wrap.innerHTML = _lpLines.map(function(l, i){
+    var units = _lpLineUnits(l);
+    var secs  = (_lpSetup.bookSections || {})[l.textbookId] || [];
+    var main  = _lpIsMain(l);
+
+    // 교재
+    var bookOpts = "<option value=''>— 교재 고르기 —</option>";
+    (_lpSetup.bookGroups || []).forEach(function(g){
+      var inner = g.books.map(function(b){
+        return "<option value='" + b.id + "'" + (b.id === l.textbookId ? " selected" : "") + ">"
+             + _plEsc(b.name) + "</option>"; }).join('');
+      if(inner) bookOpts += "<optgroup label='" + _mgAttr(g.series) + "'>" + inner + "</optgroup>";
+    });
+
+    // 영역
+    var secHtml = secs.length
+      ? "<select onchange='lpSetLine(" + i + ",\"section\",this.value)' "
+        + "style='padding:5px 8px;border:1.5px solid #E2E8D8;border-radius:7px;"
+        + "font-size:12px;background:#fff'>"
+        + "<option value=''>— 영역 —</option>"
+        + secs.map(function(x){
+            return "<option value='" + _mgAttr(x) + "'"
+                 + (x === l.section ? " selected" : "") + ">" + _plEsc(x) + "</option>";
+          }).join('') + "</select>"
+      : "";
+
+    // 요일 칩
+    var wdHtml = '';
+    for(var w = 1; w <= 6; w++){
+      var on = l.weekdays.indexOf(w) >= 0;
+      wdHtml += "<button onclick='lpToggleWd(" + i + "," + w + ")' "
+        + "style='width:29px;height:29px;border-radius:8px;cursor:pointer;font-size:12.5px;"
+        + "font-weight:800;margin-right:3px;border:1.5px solid "
+        + (on ? "#2D6A4F;background:#2D6A4F;color:#fff" : "#E2E8D8;background:#fff;color:#A8B09C")
+        + "'>" + LP_WD[w] + "</button>";
+    }
+
+    // 시작 차시
+    var seqHtml = units.length
+      ? "<select onchange='lpSetLine(" + i + ",\"startSeq\",this.value)' "
+        + "style='padding:5px 8px;border:1.5px solid #E2E8D8;border-radius:7px;"
+        + "font-size:12px;background:#fff;max-width:170px'>"
+        + units.map(function(u, k){
+            return "<option value='" + (k+1) + "'"
+                 + ((k+1) === (l.startSeq || 1) ? " selected" : "") + ">"
+                 + _plEsc(u.label) + "</option>"; }).join('')
+        + "</select>"
+      : "<span style='font-size:11px;color:#C0392B'>차시가 없어요</span>";
+
+    // 끝나면 이어갈 책
+    var nextOpts = "<option value=''>— 없음 (여기서 끝) —</option>";
+    (_lpSetup.bookGroups || []).forEach(function(g){
+      var inner = g.books.filter(function(b){ return b.id !== l.textbookId; })
+        .map(function(b){
+          return "<option value='" + b.id + "'"
+               + (b.id === l.nextTextbookId ? " selected" : "") + ">"
+               + _plEsc(b.name) + "</option>"; }).join('');
+      if(inner) nextOpts += "<optgroup label='" + _mgAttr(g.series) + "'>" + inner + "</optgroup>";
+    });
+
+    var lbl = "font-size:10px;font-weight:700;color:#A8B09C;margin-bottom:3px";
+    var bd  = "padding:5px 8px;border:1.5px solid #E2E8D8;border-radius:7px;font-size:12px;"
+            + "background:#fff";
+
+    return "<div style='background:#FAFBF8;border:1px solid #EEF0EA;border-radius:12px;"
+      +   "padding:11px 13px;margin-bottom:9px'>"
+
+      // 1줄 — 번호 · 교재 · 영역 · 삭제
+      + "<div style='display:flex;align-items:center;gap:7px;margin-bottom:9px'>"
+      +   "<span style='background:#DCE6D2;color:#2D3A28;font-size:10.5px;font-weight:800;"
+      +     "border-radius:6px;padding:2px 7px;white-space:nowrap'>" + (i+1) + "번째 칸</span>"
+      +   "<select onchange='lpSetBook(" + i + ",this.value)' style='" + bd
+      +     ";flex:1;min-width:150px'>" + bookOpts + "</select>"
+      +   secHtml
+      +   "<button onclick='lpDelLine(" + i + ")' title='이 교재 빼기' "
+      +     "style='background:none;border:none;font-size:15px;color:#C9CFC2;cursor:pointer'>"
+      +     "✕</button>"
+      + "</div>"
+
+      // 2줄 — 요일 · 시작일
+      + "<div style='display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;"
+      +   "margin-bottom:9px'>"
+      +   "<div><div style='" + lbl + "'>주 " + l.weekdays.length + "회 · 어느 요일</div>"
+      +     wdHtml + "</div>"
+      +   "<div><div style='" + lbl + "'>이 교재 시작일</div>"
+      +     "<input type='date' value='" + _mgAttr(l.startDate || '') + "' "
+      +     "onchange='lpSetLine(" + i + ",\"startDate\",this.value)' style='" + bd + "'></div>"
+      + "</div>"
+
+      // 3줄 — 시작 차시 · Review · 다음 책 · 시험 기준
+      + "<div style='display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end'>"
+      +   "<div><div style='" + lbl + "'>어느 차시부터</div>" + seqHtml + "</div>"
+      +   "<div><div style='" + lbl + "'>"
+      +     _plEsc(((_lpSetup.bookSeries || {})[l.textbookId] || '') + ' Review') + "</div>"
+      +     "<select onchange='lpSetLine(" + i + ",\"reviewEvery\",this.value)' style='" + bd + "'>"
+      +     [0,1,2,3,4,5].map(function(n){
+            return "<option value='" + n + "'"
+                 + (n === (l.reviewEvery || 0) ? " selected" : "") + ">"
+                 + (n === 0 ? '안 넣음' : n + '유닛마다 한 번') + "</option>"; }).join('')
+      +     "</select></div>"
+      +   "<div><div style='" + lbl + "'>끝나면 이어서</div>"
+      +     "<select onchange='lpSetLine(" + i + ",\"nextTextbookId\",this.value)' style='"
+      +     bd + ";max-width:190px'>" + nextOpts + "</select></div>"
+      +   "<label style='font-size:11.5px;color:#5B6551;cursor:pointer;padding-bottom:5px'>"
+      +     "<input type='checkbox'" + (main ? " checked" : "")
+      +     " onchange='lpSetLine(" + i + ",\"isMain\",this.checked)' "
+      +     "style='width:13px;height:13px;vertical-align:-2px'> 시험 기준"
+      +     "<span style='color:#C3C9BB'> (중간·기말)</span></label>"
+      + "</div>"
+      + "</div>";
+  }).join('');
+}
+
+function lpAddLine(){
+  _lpLines.push({ textbookId:'', section:'', weekdays:[], startDate:'', startSeq:1,
+                  nextTextbookId:'', reviewEvery:0, isMain:null });
+  lpRenderLines();
+}
+function lpDelLine(i){
+  _lpLines.splice(i, 1);
+  lpRenderLines();
+}
+function lpToggleWd(i, w){
+  var l = _lpLines[i]; if(!l) return;
+  var k = l.weekdays.indexOf(w);
+  if(k >= 0) l.weekdays.splice(k, 1); else l.weekdays.push(w);
+  l.weekdays.sort(function(a,b){ return a-b; });
+  lpRenderLines();
+}
+function lpSetLine(i, field, val){
+  var l = _lpLines[i]; if(!l) return;
+  if(field === 'startSeq' || field === 'reviewEvery') l[field] = Number(val) || 0;
+  else if(field === 'isMain')                        l[field] = !!val;
+  else                                               l[field] = val || '';
+  if(field === 'section' || field === 'reviewEvery' || field === 'isMain') lpRenderLines();
+}
+
+// 책을 바꾸면 그 책의 차시를 받아 와 시작 차시 칸을 채웁니다
+function lpSetBook(i, id){
+  var l = _lpLines[i]; if(!l) return;
+  l.textbookId = id || '';
+  l.section    = '';
+  l.startSeq   = 1;
+  l.isMain     = null;
+  if(!id){ lpRenderLines(); return; }
+  if(Object.keys(_lpSetup.units || {}).some(function(k){ return k.indexOf(id + '|') === 0; })){
+    lpRenderLines(); return;
   }
-  var cur = (bid === s.textbookId) ? (s.section || '') : '';
-  box.innerHTML = "<select id='lpSs-" + i + "' style='padding:5px 8px;border:1.5px solid "
-    + "#E2E8D8;border-radius:7px;font-size:12px;background:#fff'>"
-    + "<option value=''>— 영역 고르기 —</option>"
-    + secs.map(function(x){
-        return "<option value='" + _mgAttr(x) + "'" + (x === cur ? " selected" : "") + ">"
-             + _plEsc(x) + "</option>"; }).join('')
-    + "</select>";
+  lpRenderLines();
+  google.script.run
+    .withSuccessHandler(function(u){
+      Object.keys(u || {}).forEach(function(k){ _lpSetup.units[k] = u[k]; });
+      lpRenderLines();
+    })
+    .withFailureHandler(function(){ showToast("차시를 불러오지 못했어요."); })
+    .fetchBookUnits(id);
+}
+
+// 빠지는 날 — 시작일 기준으로 다시 세어 보여줍니다 (다시 불러오지 않습니다)
+function lpRefreshOff(){
+  var el = document.getElementById('lpOffBox');
+  if(!el || !_lpSetup) return;
+  var from = (document.getElementById('lpStart') || {}).value || getTodayStr();
+  var nc = _lpSetup.nonClass || {};
+  var keys = Object.keys(nc).filter(function(k){ return k >= from; }).sort();
+  var txt = keys.length
+    ? keys.slice(0, 8).map(function(k){
+        var v = nc[k];
+        return k.slice(5) + ' ' + (v.title || '')
+             + (v.mode === '특별수업' ? ' (특별수업)' : '');
+      }).join(' · ') + (keys.length > 8 ? ' 외 ' + (keys.length - 8) + '일' : '')
+    : '없습니다';
+  el.innerHTML = "<div style='font-size:11.5px;font-weight:700;color:#7A5A12;"
+    + "margin-bottom:3px'>이 날 뒤로 빠지는 날 " + keys.length + "일</div>"
+    + "<div style='font-size:11.5px;color:#8A6A22;line-height:1.6'>" + _plEsc(txt) + "</div>";
 }
 
 function lpGenerate(btn){
-  if(!_lpCtx) return;
+  if(!_lpSetup) return;
   var start = (document.getElementById('lpStart') || {}).value || getTodayStr();
-  var startSeq = {}, options = {}, nextBook = {}, bookStart = {};
-  _lpCtx.parts.forEach(function(p){
-    var s = document.getElementById('lpSeq-' + p.part);
-    startSeq[p.part] = s ? Number(s.value) || 1 : 1;
-    var r = document.getElementById('lpRev-' + p.part);
-    options[p.part] = { review: !!(r && r.checked) };
-    var n = document.getElementById('lpNext-' + p.part);
-    nextBook[p.part] = n ? (n.value || '') : '';
-    var f = document.getElementById('lpFrom-' + p.part);
-    bookStart[p.part] = f ? (f.value || '') : '';
-  });
 
-  // 요일마다 고르신 책 (빈 값 = 시간표대로)
-  var slotPicks = {};
-  (_lpCtx.slotRows || []).forEach(function(sr, i){
-    var b = document.getElementById('lpSb-' + i);
-    var c = document.getElementById('lpSs-' + i);
-    slotPicks[sr.from + '|' + sr.weekday + '|' + sr.period] =
-      { textbookId:(b && b.value) || '', section:(c && c.value) || '' };
-  });
-
+  var bad = _lpLines.filter(function(l){ return l.textbookId && !l.weekdays.length; });
+  if(bad.length){ showToast("요일을 안 고른 교재가 있어요."); return; }
+  if(!_lpLines.some(function(l){ return l.textbookId; })){
+    showToast("교재를 한 줄이라도 넣어주세요."); return;
+  }
   if(_lpPlan.length && !confirm("다시 만들까요?\n손으로 고친 칸은 그대로 남습니다.")) return;
   if(btn){ btn.disabled = true; btn.textContent = '만드는 중…'; }
 
   google.script.run
     .withSuccessHandler(function(res){
       if(btn){ btn.disabled = false; btn.textContent = '✨ 만들기'; }
-      if(!res || !res.success){ showToast((res && res.error) || "만들지 못했어요."); return; }
+      if(!res || !res.success){ alert((res && res.error) || "만들지 못했어요."); return; }
       showToast(res.weeks + "주 계획을 만들었어요.");
       google.script.run
         .withSuccessHandler(function(r2){ _lpPlan = (r2 && r2.entries) || []; renderLessonPlan(); })
@@ -10995,9 +10925,7 @@ function lpGenerate(btn){
       if(btn){ btn.disabled = false; btn.textContent = '✨ 만들기'; }
       showToast("만들지 못했어요: " + (e && e.message ? e.message : ''));
     })
-    .generateClassLessonPlan(_lpCid,
-        { startDate:start, startSeq:startSeq, options:options, nextBook:nextBook,
-          bookStart:bookStart, slotPicks:slotPicks });
+    .generateClassLessonPlan(_lpCid, { startDate:start, lines:_lpLines });
 }
 
 // ── 계획표 ──────────────────────────────────────────────────
@@ -11017,7 +10945,8 @@ function _lpGrid(forImage){
     var d = new Date(e.date + 'T00:00:00');
     var wd = d.getDay() === 0 ? 7 : d.getDay();
     var ck = wd + '|' + e.period;
-    cols[ck] = { wd:wd, period:e.period };
+    cols[ck] = cols[ck] || { wd:wd, period:e.period, part:'' };
+    if(!cols[ck].part && e.part) cols[ck].part = e.part;
     var mk = _lpMonday(e.date);
     (weeks[mk] = weeks[mk] || {})[ck] = e;
   });
@@ -11034,11 +10963,10 @@ function _lpGrid(forImage){
         +   "width:74px;font-weight:800;color:#2D3A28;white-space:nowrap'>주차</th>";
   colList.forEach(function(cl){
     var w = WG_WEEKDAYS.filter(function(x){ return x.d === cl.wd; })[0];
-    var info = _periodInfo(cl.period);
     h += "<th style='background:#EDF2E7;border:1px solid #fff;padding:" + pad + ";"
       +    "font-weight:700;color:#2D3A28;line-height:1.35'>"
       +    (w ? w.full : '') + "<br><span style='font-size:9.5px;font-weight:600;color:#8A9178'>"
-      +    (info ? _h12(info.start) : (cl.period + '교시')) + "</span></th>";
+      +    _plEsc(cl.part || '') + "</span></th>";
   });
   h += "</tr>";
 
@@ -11089,8 +11017,8 @@ function renderLessonPlan(problem){
       + "border:none;font-size:20px;cursor:pointer;color:#A8B09C'>✕</button></div>"
       + "<div style='background:#FFF9E6;border:1px solid #E8C55A;border-radius:10px;"
       +   "padding:14px 16px;font-size:12.5px;color:#7A5A12;line-height:1.7;margin-top:12px'>"
-      +   "아직 준비가 안 됐어요.<br><b>RUN_ME_17_커리큘럼.sql</b> 을 Supabase 에서 "
-      +   "한 번 돌려주시면 바로 쓸 수 있습니다.</div>";
+      +   "아직 준비가 안 됐어요.<br>Supabase 에서 <b>RUN_ME_17_커리큘럼.sql</b> 과 "
+      +   "<b>RUN_ME_21_레슨플랜_교재줄.sql</b> 을 한 번씩 돌려주시면 바로 쓸 수 있습니다.</div>";
     return;
   }
   if(problem){
