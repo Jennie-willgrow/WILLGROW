@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-26 12:04';
+var APP_VERSION = '2026-09-26 12:53';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1054,12 +1054,37 @@ function _periodInfo(p){
 }
 
 // 한 반의 시간표 읽기
-async function fetchClassSchedule(classId) {
+var SCHED_COLS = 'id,class_id,weekday,period,start_time,end_time,subject,'
+               + 'teacher_id,textbook_id,section,effective_from';
+var SCHED_COLS_OLD = 'id,class_id,weekday,period,start_time,end_time,subject,'
+                   + 'teacher_id,textbook_id,section';
+
+async function fetchClassSchedule(classId, effectiveFrom) {
   if(!classId) return [];
-  var rows = await _sbGetSafe('class_schedules',
-    'select=id,class_id,weekday,period,start_time,end_time,subject,teacher_id,textbook_id,section'
-    + '&class_id=' + _eq(classId) + '&order=weekday.asc,period.asc') || [];
-  return rows.map(_mapSchedRow);
+  var q = '&class_id=' + _eq(classId) + '&order=weekday.asc,period.asc';
+  var rows = await sbGetSoft('class_schedules', 'select=' + SCHED_COLS + q,
+                             'select=' + SCHED_COLS_OLD + q)
+             .catch(function(){ return []; }) || [];
+  var all = rows.map(_mapSchedRow);
+  if(effectiveFrom === undefined) return all;          // 전부
+  var want = effectiveFrom || '';
+  return all.filter(function(r){ return (r.effectiveFrom || '') === want; });
+}
+
+// 이 반이 가진 시간표들 — [{from:'', count:5}, {from:'2027-01-05', count:5}]
+async function fetchClassScheduleVersions(classId) {
+  var all = await fetchClassSchedule(classId);
+  var by = {};
+  all.forEach(function(r){
+    var k = r.effectiveFrom || '';
+    if(!by[k]) by[k] = { from:k, count:0, days:{} };
+    by[k].count++; by[k].days[r.weekday] = true;
+  });
+  return Object.keys(by).sort().map(function(k){
+    var v = by[k];
+    return { from:v.from, count:v.count,
+             weekdays:Object.keys(v.days).map(Number).sort(function(a,b){ return a-b; }) };
+  });
 }
 
 // 학원 전체 시간표 (인쇄용)
@@ -1075,7 +1100,8 @@ function _mapSchedRow(r){
            start:String(r.start_time||'').slice(0,5),
            end:  String(r.end_time||'').slice(0,5),
            subject:r.subject||'', teacherId:r.teacher_id||'',
-           textbookId:r.textbook_id||'', section:r.section||'' };
+           textbookId:r.textbook_id||'', section:r.section||'',
+           effectiveFrom:r.effective_from || '' };
 }
 
 // 여러 칸을 한 번에 넣기
@@ -1083,7 +1109,7 @@ function _mapSchedRow(r){
 //   items    : [{ period:2, subject:'Grammar' }, { period:3, subject:'Reading' }]
 //              → 시간마다 수업명이 다릅니다
 //   같은 자리에 이미 있으면 덮어씁니다 (merge-duplicates)
-async function saveClassSlots(classId, weekdays, items, teacherId) {
+async function saveClassSlots(classId, weekdays, items, teacherId, effectiveFrom) {
   if(!classId || !weekdays || !weekdays.length || !items || !items.length){
     return { success:false, error:'요일과 시간을 골라주세요.' };
   }
@@ -1096,23 +1122,76 @@ async function saveClassSlots(classId, weekdays, items, teacherId) {
                   start_time:info.start, end_time:info.end,
                   subject:(it.subject||'').trim() || null,
                   teacher_id:teacherId || null,
+                  effective_from:effectiveFrom || null,
                   updated_at:new Date().toISOString() });
     });
   });
   if(!body.length) return { success:false, error:'넣을 칸이 없습니다.' };
 
-  var res = await fetch(SUPABASE_URL + '/rest/v1/class_schedules'
-    + '?on_conflict=class_id,weekday,period', {
+  var res = await fetch(SUPABASE_URL + '/rest/v1/class_schedules', {
     method:'POST',
-    headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=representation' }),
+    headers:_sbH({ 'Prefer':'return=representation' }),
     body:JSON.stringify(body)
   });
   if(!res.ok){
     var err = await res.text();
     if(_handleAuthError(res.status)) throw new Error('AUTH');
+    if(/23505|duplicate/i.test(err)){
+      return { success:false, error:'이미 그 자리에 칸이 있어요.' };
+    }
+    if(/42703|effective_from/i.test(err)){
+      return { success:false,
+               error:'RUN_ME_19_시간표_다음학기.sql 을 먼저 돌려주세요.' };
+    }
     throw new Error('[시간표 저장] ' + err);
   }
   return { success:true, count:body.length };
+}
+
+// ── 다음 시간표 만들기 ──────────────────────────────────────
+//   지금 쓰는 시간표를 통째로 복사해 두고, 교재만 바꾸시면 됩니다.
+async function createNextSchedule(classId, fromDate, copyOf) {
+  if(!classId || !fromDate) return { success:false, error:'시작 날짜를 골라주세요.' };
+
+  var src = await fetchClassSchedule(classId, copyOf || '');
+  if(!src.length) return { success:false, error:'복사할 시간표가 없어요.' };
+
+  var dup = await fetchClassSchedule(classId, fromDate);
+  if(dup.length) return { success:false, error:'그 날짜로 시작하는 시간표가 이미 있어요.' };
+
+  var body = src.map(function(r){
+    return { class_id:classId, weekday:r.weekday, period:r.period,
+             start_time:r.start, end_time:r.end,
+             subject:r.subject || null, teacher_id:r.teacherId || null,
+             textbook_id:r.textbookId || null, section:r.section || null,
+             effective_from:fromDate,
+             updated_at:new Date().toISOString() };
+  });
+
+  var res = await fetch(SUPABASE_URL + '/rest/v1/class_schedules', {
+    method:'POST', headers:_sbH({ 'Prefer':'return=minimal' }),
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){
+    var err = await res.text();
+    if(_handleAuthError(res.status)) throw new Error('AUTH');
+    if(/42703|effective_from/i.test(err)){
+      return { success:false,
+               error:'RUN_ME_19_시간표_다음학기.sql 을 먼저 돌려주세요.' };
+    }
+    return { success:false, error:'[다음 시간표] ' + err };
+  }
+  return { success:true, count:body.length };
+}
+
+// 시간표 한 벌 통째로 지우기
+async function deleteScheduleVersion(classId, fromDate) {
+  if(!classId) return { success:false };
+  var f = fromDate
+    ? 'class_id=' + _eq(classId) + '&effective_from=' + _eq(fromDate)
+    : 'class_id=' + _eq(classId) + '&effective_from=is.null';
+  await sbDelete('class_schedules', f, { allowZero:true });
+  return { success:true };
 }
 
 // 칸 하나의 수업명만 고치기
@@ -1700,31 +1779,43 @@ async function fetchLessonPlanContext(classId, startDate, weeks) {
   if(!classId) return { ok:false, error:'반을 골라주세요.' };
 
   var cat  = await fetchTextbookCatalog(false);
-  var rows = await _sbGetSafe('class_schedules',
-    'select=id,weekday,period,textbook_id,section,subject&class_id=' + _eq(classId)
-    + '&order=weekday.asc,period.asc') || [];
-  if(!rows.length){
+  var all  = await fetchClassSchedule(classId);
+  if(!all.length){
     return { ok:false, error:'이 반은 시간표가 아직 없어요. 먼저 시간표를 만들어 주세요.' };
   }
 
-  var slots = rows.map(function(r){
-    return { weekday:Number(r.weekday), period:Number(r.period),
-             textbookId:r.textbook_id || '', section:r.section || '',
-             subject:r.subject || '' };
+  // 시간표를 "언제부터" 로 묶습니다. 계획이 전환일을 지나면 다음 벌로 갈아탑니다.
+  var vers = {};
+  all.forEach(function(r){
+    var k = r.effectiveFrom || '';
+    (vers[k] = vers[k] || []).push({
+      weekday:Number(r.weekday), period:Number(r.period),
+      textbookId:r.textbookId || '', section:r.section || '',
+      subject:r.subject || '', from:k });
   });
-  slots.forEach(function(s){ s.part = _lpPartOf(s, cat); });
+  var verKeys = Object.keys(vers).sort();          // '' 가 맨 앞 = 지금 것
+  verKeys.forEach(function(k){
+    vers[k].forEach(function(s){ s.part = _lpPartOf(s, cat); });
+  });
+
+  // 파트 목록은 모든 벌을 합쳐서 봅니다 (다음 학기 교재도 미리 고를 수 있게)
+  var slots = [];
+  verKeys.forEach(function(k){ slots = slots.concat(vers[k]); });
 
   // 파트마다 어느 교재를 쓰는지 (같은 파트면 한 교재)
   var parts = {};
   slots.forEach(function(s){
-    if(!parts[s.part]){
+    // 학기가 다르면 같은 이름이어도 다른 줄로 봅니다
+    s.key = (s.from ? s.from + '·' : '') + s.part;
+    if(!parts[s.key]){
       var f = cat ? findTextbook(cat, s.textbookId) : null;
-      parts[s.part] = { part:s.part, textbookId:s.textbookId,
-                        bookName: f ? _bookFullName(f) : (s.subject || ''),
-                        course:   f ? f.series.code : '',
-                        slots:0 };
+      parts[s.key] = { key:s.key, part:s.part, from:s.from || '',
+                       textbookId:s.textbookId,
+                       bookName: f ? _bookFullName(f) : (s.subject || ''),
+                       course:   f ? f.series.code : '',
+                       slots:0 };
     }
-    parts[s.part].slots++;
+    parts[s.key].slots++;
   });
 
   // 차시 불러오기
@@ -1757,17 +1848,18 @@ async function fetchLessonPlanContext(classId, startDate, weeks) {
                      options:p.options || {} };
   });
 
-  // 같은 시리즈의 다른 책들 — "이 책 끝나면 이어갈 책" 고르는 데 씁니다
-  var books = {};
-  (cat ? cat.series : []).forEach(function(s){
-    books[s.code] = (s.books || []).map(function(b){
-      return { id:b.id, name:_bookFullName({ series:s, book:b }) };
-    });
-  });
+  // "이 책 끝나면 이어갈 책" 후보 — 시리즈를 건너뛸 수도 있어서 전체를 줍니다
+  //   (Sounds Great 5 를 마치고 Bricks Reading 으로 넘어가는 경우처럼)
+  var allBooks = (cat ? cat.series : []).map(function(s){
+    return { series:s.name, code:s.code,
+             books:(s.books || []).map(function(b){
+               return { id:b.id, name:_bookFullName({ series:s, book:b }) };
+             }) };
+  }).filter(function(g){ return g.books.length; });
 
   var out = Object.keys(parts).map(function(p){
     var x = parts[p];
-    var own = slots.filter(function(s){ return s.part === p; })[0];
+    var own = slots.filter(function(s){ return s.key === p; })[0];
     var key = x.textbookId + '|' + _lpNorm(own.section || '');
     var list = units[key] || [];
     // 영역 없는 교재인데 못 찾았으면, 그 교재의 차시를 통째로 씁니다
@@ -1776,10 +1868,10 @@ async function fetchLessonPlanContext(classId, startDate, weeks) {
         return k.indexOf(x.textbookId + '|') === 0; });
       if(alt.length === 1) list = units[alt[0]];
     }
-    var g = prog[p] || {};
-    return { part:p, partName:(list.partName || p),
+    var g = prog[p] || prog[x.part] || {};
+    return { part:p, partName:(list.partName || x.part), from:x.from,
              textbookId:x.textbookId, bookName:x.bookName, course:x.course,
-             bookOptions:(books[x.course] || []),
+             bookGroups:allBooks,
              slotsPerWeek:x.slots, unitCount:list.length,
              hasOptional:list.some(function(u){ return u.optional; }),
              isMain: LP_MAIN_COURSES.indexOf(x.course) >= 0,
@@ -1796,7 +1888,8 @@ async function fetchLessonPlanContext(classId, startDate, weeks) {
                    till.getFullYear() + '-' + String(till.getMonth()+1).padStart(2,'0')
                    + '-' + String(till.getDate()).padStart(2,'0'));
 
-  return { ok:true, slots:slots, parts:out, nonClass:nonClass };
+  return { ok:true, slots:slots, parts:out, nonClass:nonClass,
+           versions:verKeys };
 }
 
 // ── 생성기 본체 ──────────────────────────────────────────────
@@ -1848,11 +1941,21 @@ function _lpBuild(unitsByPart, slots, opts){
     });
   }
 
-  var byWeekday = {};
-  slots.forEach(function(s){ (byWeekday[s.weekday] = byWeekday[s.weekday] || []).push(s); });
-  Object.keys(byWeekday).forEach(function(k){
-    byWeekday[k].sort(function(a,b){ return a.period - b.period; });
-  });
+  // 시간표를 "언제부터" 로 나눠 둡니다
+  var vers = {};
+  slots.forEach(function(s){ (vers[s.from || ''] = vers[s.from || ''] || []).push(s); });
+  var verKeys = Object.keys(vers).sort();
+
+  // 그 날짜에 쓰는 시간표 — 시작일이 그 날짜 이하인 것 중 가장 늦은 것
+  function slotsOn(ymdStr){
+    var use = verKeys[0];
+    for(var i = 0; i < verKeys.length; i++){
+      if(!verKeys[i] || verKeys[i] <= ymdStr) use = verKeys[i];
+    }
+    var list = (vers[use] || []).slice();
+    list.sort(function(a,b){ return a.weekday - b.weekday || a.period - b.period; });
+    return list;
+  }
 
   function _ymd(d){
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
@@ -1871,26 +1974,28 @@ function _lpBuild(unitsByPart, slots, opts){
       var key = _ymd(d);
       if(key < opts.startDate) continue;
       var wd = d.getDay() === 0 ? 7 : d.getDay();
-      (byWeekday[wd] || []).forEach(function(s){
-        var nc = nonClass[key];
-        var off = (nc && (nc.periods === null || nc.periods.indexOf(s.period) >= 0)) ? nc : null;
-        cells.push({ date:key, slot:s, off:off });
-      });
+      slotsOn(key).filter(function(s){ return s.weekday === wd; })
+        .forEach(function(s){
+          var nc = nonClass[key];
+          var off = (nc && (nc.periods === null || nc.periods.indexOf(s.period) >= 0)) ? nc : null;
+          cells.push({ date:key, slot:s, off:off });
+        });
     }
 
     // 시험 자리
     var testCell = null;
     var mainCells = cells.filter(function(c){
-      return !c.off && main.indexOf(c.slot.part) >= 0; });
+      return !c.off && main.indexOf(c.slot.key || c.slot.part) >= 0; });
     var wantFinal = !finalDone && (mainLeft() === 0 || mainLeft() <= mainCells.length);
     if(midReady() || wantFinal){
       for(var k2 = mainCells.length - 1; k2 >= 0; k2--){
-        var p2 = mainCells[k2].slot.part;
+        var p2 = mainCells[k2].slot.key || mainCells[k2].slot.part;
         if(safeForTest(p2) && p2 !== midPart){ testCell = mainCells[k2]; break; }
       }
       if(!testCell){
         for(var k3 = mainCells.length - 1; k3 >= 0; k3--){
-          if(safeForTest(mainCells[k3].slot.part)){ testCell = mainCells[k3]; break; }
+          var p3 = mainCells[k3].slot.key || mainCells[k3].slot.part;
+          if(safeForTest(p3)){ testCell = mainCells[k3]; break; }
         }
       }
       if(!testCell && mainCells.length) testCell = mainCells[mainCells.length - 1];
@@ -1899,19 +2004,19 @@ function _lpBuild(unitsByPart, slots, opts){
     for(var ci = 0; ci < cells.length; ci++){
       var c = cells[ci], s2 = c.slot;
       if(c.off){
-        out.push({ date:c.date, period:s2.period, part:s2.part,
+        out.push({ date:c.date, period:s2.period, part:(s2.key || s2.part),
                    kind:c.off.mode, label:c.off.title });
         continue;
       }
       if(c === testCell){
-        out.push({ date:c.date, period:s2.period, part:s2.part, kind:'테스트',
+        out.push({ date:c.date, period:s2.period, part:(s2.key || s2.part), kind:'테스트',
                    label: midDone ? 'Final Test' : 'Mid-term Test' });
-        if(!midDone){ midDone = true; midPart = s2.part; } else finalDone = true;
+        if(!midDone){ midDone = true; midPart = (s2.key || s2.part); } else finalDone = true;
         continue;
       }
-      var got = take(s2.part);
+      var got = take(s2.key || s2.part);
       out.push({ date:c.date, period:s2.period,
-                 part: got ? got.part : s2.part,
+                 part: got ? got.part : (s2.key || s2.part),
                  kind: got ? got.unit.kind : '빈칸',
                  label: got ? got.unit.label : '',
                  unitId: got ? got.unit.id : null,
@@ -1993,7 +2098,8 @@ async function generateClassLessonPlan(classId, opts) {
   var rows = built.entries
     .filter(function(e){ return !lockedSet[e.date + '|' + e.period]; })
     .map(function(e){
-      return { class_id:classId, date:e.date, period:e.period, part:e.part,
+      return { class_id:classId, date:e.date, period:e.period,
+               part:String(e.part || '').replace(/^\d{4}-\d{2}-\d{2}·/, ''),
                unit_id:e.unitId || null, label:e.label || '', kind:e.kind || '수업',
                page_from:e.pageFrom || null, page_to:e.pageTo || null, locked:false };
     });
@@ -3939,6 +4045,7 @@ var _serverFunctions = {
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
   fetchMasterTimetable, fetchNonClassDays,
+  fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
   fetchLessonPlanContext, generateClassLessonPlan, fetchClassLessonPlan,
   updateLessonPlanEntry, clearLessonPlan,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
@@ -10543,13 +10650,16 @@ function renderLpMaker(from){
       opts += "<option value='" + i + "'" + (i === p.startSeq ? " selected" : "") + ">"
             + (u ? _plEsc(u.label) : (i + '번째')) + "</option>";
     }
-    // 이 책이 끝나면 이어갈 책
+    // 이 책이 끝나면 이어갈 책 — 시리즈를 건너뛰어도 됩니다
     var nextOpts = "<option value=''>— 없음 (여기서 끝) —</option>";
-    (p.bookOptions || []).forEach(function(b){
-      if(b.id === p.textbookId) return;
-      nextOpts += "<option value='" + b.id + "'"
-                + (b.id === p.nextTextbookId ? " selected" : "") + ">"
-                + _plEsc(b.name) + "</option>";
+    (p.bookGroups || []).forEach(function(g){
+      var inner = g.books.filter(function(b){ return b.id !== p.textbookId; })
+        .map(function(b){
+          return "<option value='" + b.id + "'"
+               + (b.id === p.nextTextbookId ? " selected" : "") + ">"
+               + _plEsc(b.name) + "</option>";
+        }).join('');
+      if(inner) nextOpts += "<optgroup label='" + _mgAttr(g.series) + "'>" + inner + "</optgroup>";
     });
 
     return "<tr>"
@@ -10571,7 +10681,8 @@ function renderLpMaker(from){
             + "<span style='color:#A8B09C'>(RUN_ME_17 을 돌려주세요)</span></span>")
       + "</td>"
       + "<td style='padding:6px 8px 6px 0;vertical-align:top'>"
-      +   "<div style='font-size:10px;color:#A8B09C;margin-bottom:2px'>끝나면 이어서</div>"
+      +   "<div style='font-size:10px;color:#A8B09C;margin-bottom:2px'>"
+      +     "끝나면 이어서 <span style='color:#C3C9BB'>(다른 시리즈도 됩니다)</span></div>"
       +   "<select id='lpNext-" + _mgAttr(p.part) + "' style='padding:5px 8px;border:1.5px solid "
       +     "#E2E8D8;border-radius:7px;font-size:12px;background:#fff;max-width:190px'>"
       +     nextOpts + "</select>"
@@ -11105,9 +11216,14 @@ function openSchedModal(classId){
     +   "border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;"
     +   "cursor:pointer;margin-bottom:16px'>＋ 시간표에 넣기</button>"
 
+    // ── 시간표 고르기 (학기가 바뀌면 여러 벌) ──
+    + "<div id='sdVersions' style='display:none;align-items:center;gap:5px;flex-wrap:wrap;"
+    +   "margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid #EEF0EA'></div>"
+
     // ── 현재 시간표 ──
     + "<div style='display:flex;align-items:center;gap:8px;margin-bottom:7px'>"
-    +   "<div style='font-size:11.5px;font-weight:700;color:#5B6551;flex:1'>지금 시간표</div>"
+    +   "<div id='sdVerTitle' style='font-size:11.5px;font-weight:700;color:#5B6551;flex:1'>"
+    +     "지금 시간표</div>"
     +   "<button onclick='saveParentNotice(this)' style='background:#2D6A4F;color:#fff;border:none;"
     +     "border-radius:7px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer'>"
     +     "📄 학부모 안내문 보기</button>"
@@ -11182,9 +11298,99 @@ function schedPicked(prefix){
   return out;
 }
 
+var _schedVer  = '';      // 지금 보고 있는 시간표 ('' = 지금 것)
+var _schedVers = [];      // 이 반이 가진 시간표들
+
+// ── 시간표 여러 벌 고르기 ─────────────────────────────────
+function schedRenderVersions(){
+  var box = document.getElementById('sdVersions');
+  var ttl = document.getElementById('sdVerTitle');
+  if(!box) return;
+
+  var list = _schedVers.length ? _schedVers : [{ from:'', count:0 }];
+  var many = list.length > 1;
+
+  box.style.display = 'flex';
+  box.innerHTML = list.map(function(v){
+    var on = (v.from || '') === _schedVer;
+    var name = v.from ? (v.from.slice(5).replace('-', '/') + ' 부터') : '지금';
+    return "<button onclick='schedPickVer(\"" + _mgAttr(v.from || '') + "\")' "
+      + "style='background:" + (on ? '#2D6A4F' : '#F1F3EE') + ";"
+      +   "color:" + (on ? '#fff' : '#8A9178') + ";border:none;border-radius:14px;"
+      +   "padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer'>"
+      +   name + " <span style='opacity:.7'>" + v.count + "칸</span></button>";
+  }).join('')
+  + "<button onclick='schedAddVer()' title='다음 학기 시간표를 미리 짜 둡니다' "
+  +   "style='background:#fff;color:#3C5A8A;border:1.5px dashed #A8BBD8;border-radius:14px;"
+  +   "padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer'>＋ 다음 시간표</button>"
+  + (_schedVer
+      ? "<button onclick='schedDelVer()' style='background:none;border:none;color:#C0392B;"
+        + "font-size:11px;font-weight:700;cursor:pointer;padding:5px 6px'>이 벌 지우기</button>"
+      : "");
+
+  if(ttl){
+    ttl.textContent = _schedVer
+      ? (_schedVer + ' 부터 쓰는 시간표')
+      : (many ? '지금 쓰는 시간표' : '지금 시간표');
+  }
+}
+
+function schedPickVer(from){
+  _schedVer = from || '';
+  schedLoad();
+}
+
+function schedAddVer(){
+  var d = prompt("다음 시간표를 언제부터 쓸까요?\n\n예) 2027-01-05\n"
+               + "(지금 시간표를 복사해 드립니다. 교재만 바꾸시면 돼요)");
+  if(d === null) return;
+  d = String(d).trim();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){ showToast("2027-01-05 처럼 적어주세요."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if(!res || !res.success){ showToast((res && res.error) || "만들지 못했어요."); return; }
+      showToast("다음 시간표를 만들었어요. 교재를 바꿔주세요.");
+      _schedVer = d;
+      schedLoad();
+    })
+    .withFailureHandler(function(e){
+      showToast("만들지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .createNextSchedule(_schedClassId, d, _schedVer);
+}
+
+function schedDelVer(){
+  if(!_schedVer) return;
+  if(!confirm(_schedVer + " 부터 쓰는 시간표를 통째로 지울까요?")) return;
+  google.script.run
+    .withSuccessHandler(function(){
+      showToast("지웠어요.");
+      _schedVer = '';
+      schedLoad();
+    })
+    .withFailureHandler(function(e){
+      showToast("지우지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .deleteScheduleVersion(_schedClassId, _schedVer);
+}
+
 function schedLoad(){
   google.script.run
-  .withSuccessHandler(function(rows){ _schedRows = rows || []; schedRender(); })
+    .withSuccessHandler(function(vs){
+      _schedVers = vs || [];
+      if(!_schedVers.some(function(v){ return (v.from || '') === _schedVer; })) _schedVer = '';
+      schedRenderVersions();
+    })
+    .withFailureHandler(function(){ _schedVers = []; schedRenderVersions(); })
+    .fetchClassScheduleVersions(_schedClassId);
+
+  google.script.run
+  .withSuccessHandler(function(rows){
+    _schedRows = (rows || []).filter(function(r){
+      return (r.effectiveFrom || '') === _schedVer; });
+    schedRender();
+  })
   .withFailureHandler(function(e){
     var g = document.getElementById('sdGrid');
     if(g) g.innerHTML = "<div style='color:#c62828;font-size:12px;padding:12px'>"
@@ -11607,7 +11813,7 @@ function schedAdd(){
     if(btn){ btn.disabled = false; btn.textContent = '＋ 시간표에 넣기'; }
     showToast("넣지 못했어요: " + (e && e.message ? e.message : ''));
   })
-  .saveClassSlots(_schedClassId, days, items, null);
+  .saveClassSlots(_schedClassId, days, items, null, _schedVer || null);
 }
 
 function schedDel(slotId){
