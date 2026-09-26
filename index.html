@@ -511,7 +511,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   <div id="monthGrid" style="overflow-x:auto"></div>
 </div>
 <div id="absenceList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">반을 선택해주세요</div></div></div><div id="absenceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">➕ 결석 추가</div><button onclick="closeAddAbsenceModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div style="font-size:13px;font-weight:600;color:#2D6A4F;margin-bottom:14px;padding:8px 12px;background:#f0fdf4;border-radius:8px">👤 <span id="absModalStudentName"></span></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 날짜 <span class="req">*</span></label><input type="date" id="absDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">사유</label><select id="absReason" onchange="onAbsReasonChange()" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white"><option value="">-- 선택 --</option><option value="병결">병결</option><option value="가족여행">가족여행</option><option value="가족행사">가족행사</option><option value="개인사정">개인사정</option><option value="미통보결석">미통보결석</option><option value="기타">기타</option></select><input type="text" id="absReasonEtc" placeholder="기타 사유 직접 입력..." style="display:none;width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충일 <span style="color:#999;font-weight:400">(선택)</span></label><input type="date" id="absMakeupDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="display:flex;gap:8px;margin-top:16px"><button onclick="closeAddAbsenceModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="absSubmitBtn" onclick="submitAbsence()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="consultModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,380px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">💬 상담 추가</div><button onclick="closeConsultModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">✕</button></div><div id="consultModalStudentName" style="font-size:13px;font-weight:600;color:#1565c0;margin-bottom:12px"></div><div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담일 <span style="color:#e53935">*</span></label><input type="date" id="consultDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담 내용</label><textarea id="consultContent" rows="4" placeholder="상담 내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea></div><div style="display:flex;gap:8px"><button onclick="submitConsult()" id="consultSubmitBtn" style="flex:1;padding:10px;background:#1565c0;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeConsultModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:10px;font-size:13px;cursor:pointer">취소</button></div></div></div>
-<div id="makeupModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">📖 보충일 입력/수정</div><button onclick="closeMakeupModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 날짜 <span class="req">*</span></label><input type="date" id="makeupDateInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 시간 <span style="color:#999;font-weight:400">(선택)</span></label><input type="time" id="makeupTimeInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><button onclick="resetMakeupDate()" style="width:100%;padding:8px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">🗑️ 보충일 초기화 (취소)</button><div style="display:flex;gap:8px;margin-top:4px"><button onclick="closeMakeupModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitMakeupDate()" style="flex:2;background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div></div><div id="meetingsScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700;color:#363D2E;white-space:nowrap">📋 Meeting Notes</div><button onclick="openMeetingModal()" class="btn" style="padding:7px 14px;font-size:12px;width:auto;flex-shrink:0;white-space:nowrap">+ New</button></div><div id="meetingsList" style="padding-bottom:20px"><div class="loading">Loading...</div></div></div><div id="meetingModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px;width:90%;max-width:460px;max-height:88vh;overflow-y:auto"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:16px" id="meetingModalTitle">New Meeting</div><div class="ef"><label>Title <span class="req">*</span></label><input type="text" id="mtgTitle" placeholder="Meeting or event title"></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Date</label><input type="date" id="mtgDate" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>Type <span class="req">*</span></label><select id="mtgType" onchange="onMtgTypeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Staff Meeting">Staff Meeting</option><option value="Native Meeting">Native Meeting</option><option value="Emergency Meeting">Emergency Meeting</option><option value="Schedule/Event">📅 Schedule/Event</option></select></div></div><div id="mtgEventFields" style="display:none;background:#FFF8E7;border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:#92600A;margin-bottom:8px">📅 Calendar Info</div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Start Date <span class="req">*</span></label><input type="date" id="mtgEvtStart" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>End Date</label><input type="date" id="mtgEvtEnd" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div></div><div class="ef"><label>Category <span class="req">*</span></label><select id="mtgEvtCat" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Exam">🔴 Exam</option><option value="Holiday">🔵 Holiday</option><option value="Event">🟢 Event</option><option value="Public Holiday">⚫ Public Holiday</option><option value="Etc">🟣 Etc</option></select></div></div><div class="ef"><label>Notes</label><textarea id="mtgContent" rows="4" placeholder="Meeting notes..." style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical"></textarea></div><div class="ef"><label>Status</label><select id="mtgStatus" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="고민중">🤔 Discussing (고민중)</option><option value="확정">✅ Confirmed (확정)</option></select></div><input type="hidden" id="mtgEditId"><div style="display:flex;gap:8px;margin-top:4px"><button id="mtgDelBtn" onclick="deleteMeetingItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">삭제</button><div style="flex:1"></div><button onclick="closeMeetingModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="saveMeetingItem()" id="mtgSaveBtn" style="background:#4A5240;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">저장</button></div></div></div></div><div id="schoolCalScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 Meetings &amp; Events</div><div style="font-size:11px;color:#999;margin-top:2px">학사일정 달력 · 아래에 회의록이 이어집니다</div></div><span style="font-size:11px;color:#999">일정은 회의록에서 추가합니다</span></div><div id="schoolCalWrap"></div><div id="schoolEventListWrap" style="margin-top:18px"></div><hr style="border:none;border-top:1px solid #E7EAE3;margin:20px 0 0"></div></div><div id="lessonPlanScreen" style="display:none"><div id="lpAddModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:24px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:15px;font-weight:700;color:#363D2E">➕ 레슨플랜 추가</div><button onclick="closeLessonPlanModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><div style="display:flex;flex-direction:column;gap:12px"><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">반 선택</label><select id="lpFormClass" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">반 선택...</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">교재명 *</label><input id="lpFormTitle" type="text" placeholder="교재명 입력" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상태</label><select id="lpFormStatus" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="Not Started">Not Started</option><option value="In Progress" selected>In Progress</option><option value="Completed">Completed</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">PDF 파일 (선택)</label><label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px dashed #ccc;border-radius:8px;cursor:pointer;font-size:12px;color:#777">📎 <span id="lpFormFileLabel">파일 선택 (PDF)</span><input id="lpFormFile" type="file" accept=".pdf,application/pdf" onchange="lpFileChange(this)" style="display:none"></label></div><button id="lpFormSubmit" onclick="submitLessonPlan()" style="background:#363D2E;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">추가</button></div></div></div><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:#363D2E">📖 Lesson Plan</div><div style="display:flex;gap:6px"><button onclick="openLessonPlanModal()" style="background:#363D2E;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">➕ 추가</button><button onclick="initLessonPlanScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div style="margin-bottom:10px"><select id="lpClassFilter" onchange="filterLessonPlan()" style="width:100%;max-width:280px;padding:7px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"><option value="">All Classes</option></select></div><div id="lpStatusFilter" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"></div><div id="lessonPlanList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="newStudentScreen" style="display:none"><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">🙋 신규학생 관리</div><button onclick="initNewStudentScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄 새로고침</button></div><div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:11px;color:#2E7D32;line-height:1.5">📌 등록일 기준 <strong>30일 이내</strong> 신규 학생이 표시됩니다. 30일이 지나면 자동으로 목록에서 제외됩니다.</div><div id="newStudentList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="teacherMgmtScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">👩‍🏫 Teacher Management</div><div style="font-size:11px;color:#999;margin-top:2px">Manage teacher accounts and roles</div></div><div style="display:flex;gap:8px"><button onclick="openTeacherModal(null)" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Add Teacher</button><button onclick="initTeacherMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div>
+<div id="makeupModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">📖 보충일 입력/수정</div><button onclick="closeMakeupModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 날짜 <span class="req">*</span></label><input type="date" id="makeupDateInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 시간 <span style="color:#999;font-weight:400">(선택)</span></label><input type="time" id="makeupTimeInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><button onclick="resetMakeupDate()" style="width:100%;padding:8px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">🗑️ 보충일 초기화 (취소)</button><div style="display:flex;gap:8px;margin-top:4px"><button onclick="closeMakeupModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitMakeupDate()" style="flex:2;background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div></div><div id="meetingsScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700;color:#363D2E;white-space:nowrap">📋 Meeting Notes</div><button onclick="openMeetingModal()" class="btn" style="padding:7px 14px;font-size:12px;width:auto;flex-shrink:0;white-space:nowrap">+ New</button></div><div id="meetingsList" style="padding-bottom:20px"><div class="loading">Loading...</div></div></div><div id="meetingModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px;width:90%;max-width:460px;max-height:88vh;overflow-y:auto"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:16px" id="meetingModalTitle">New Meeting</div><div class="ef"><label>Title <span class="req">*</span></label><input type="text" id="mtgTitle" placeholder="Meeting or event title"></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Date</label><input type="date" id="mtgDate" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>Type <span class="req">*</span></label><select id="mtgType" onchange="onMtgTypeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Staff Meeting">Staff Meeting</option><option value="Native Meeting">Native Meeting</option><option value="Emergency Meeting">Emergency Meeting</option><option value="Schedule/Event">📅 Schedule/Event</option></select></div></div><div id="mtgEventFields" style="display:none;background:#FFF8E7;border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:#92600A;margin-bottom:8px">📅 Calendar Info</div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Start Date <span class="req">*</span></label><input type="date" id="mtgEvtStart" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>End Date</label><input type="date" id="mtgEvtEnd" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div></div><div class="ef"><label>Category <span class="req">*</span></label><select id="mtgEvtCat" onchange="onMtgCatChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Exam">🔴 Exam</option><option value="Holiday">🔵 Holiday</option><option value="Event">🟢 Event</option><option value="Public Holiday">⚫ Public Holiday</option><option value="Etc">🟣 Etc</option></select></div><div class="ef" style="margin-bottom:0"><label>이 날 수업은요? <span style="font-weight:500;color:#999">(Lesson Plan 이 이걸 보고 진도를 건너뜁니다)</span></label><select id="mtgClassMode" onchange="onMtgModeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">🟢 평소대로 — 진도 그대로</option><option value="휴강">🔴 휴강 — 수업 없음</option><option value="특별수업">🟡 특별수업 — 프로젝트·행사 (진도 멈춤)</option></select></div><div id="mtgPeriodBox" style="display:none;margin-top:8px"><label style="font-size:12px;font-weight:600;color:#92600A;display:block;margin-bottom:5px">어느 시간에 걸리나요?</label><div id="mtgPeriodChips" style="display:flex;flex-wrap:wrap;gap:5px"></div><div style="font-size:10.5px;color:#A8872A;margin-top:5px">아무것도 안 고르면 <b>그날 전체</b>입니다. 하루 두 수업 중 하나만 프로젝트면 그 시간만 골라주세요.</div></div></div><div class="ef"><label>Notes</label><textarea id="mtgContent" rows="4" placeholder="Meeting notes..." style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical"></textarea></div><div class="ef"><label>Status</label><select id="mtgStatus" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="고민중">🤔 Discussing (고민중)</option><option value="확정">✅ Confirmed (확정)</option></select></div><input type="hidden" id="mtgEditId"><div style="display:flex;gap:8px;margin-top:4px"><button id="mtgDelBtn" onclick="deleteMeetingItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">삭제</button><div style="flex:1"></div><button onclick="closeMeetingModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="saveMeetingItem()" id="mtgSaveBtn" style="background:#4A5240;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">저장</button></div></div></div></div><div id="schoolCalScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 Meetings &amp; Events</div><div style="font-size:11px;color:#999;margin-top:2px">학사일정 달력 · 아래에 회의록이 이어집니다</div></div><span style="font-size:11px;color:#999">일정은 회의록에서 추가합니다</span></div><div id="schoolCalWrap"></div><div id="schoolEventListWrap" style="margin-top:18px"></div><hr style="border:none;border-top:1px solid #E7EAE3;margin:20px 0 0"></div></div><div id="lessonPlanScreen" style="display:none"><div id="lpAddModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:24px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:15px;font-weight:700;color:#363D2E">➕ 레슨플랜 추가</div><button onclick="closeLessonPlanModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><div style="display:flex;flex-direction:column;gap:12px"><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">반 선택</label><select id="lpFormClass" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">반 선택...</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">교재명 *</label><input id="lpFormTitle" type="text" placeholder="교재명 입력" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상태</label><select id="lpFormStatus" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="Not Started">Not Started</option><option value="In Progress" selected>In Progress</option><option value="Completed">Completed</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">PDF 파일 (선택)</label><label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px dashed #ccc;border-radius:8px;cursor:pointer;font-size:12px;color:#777">📎 <span id="lpFormFileLabel">파일 선택 (PDF)</span><input id="lpFormFile" type="file" accept=".pdf,application/pdf" onchange="lpFileChange(this)" style="display:none"></label></div><button id="lpFormSubmit" onclick="submitLessonPlan()" style="background:#363D2E;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">추가</button></div></div></div><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:#363D2E">📖 Lesson Plan</div><div style="display:flex;gap:6px"><button onclick="openLessonPlanModal()" style="background:#363D2E;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">➕ 추가</button><button onclick="initLessonPlanScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div style="margin-bottom:10px"><select id="lpClassFilter" onchange="filterLessonPlan()" style="width:100%;max-width:280px;padding:7px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"><option value="">All Classes</option></select></div><div id="lpStatusFilter" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"></div><div id="lessonPlanList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="newStudentScreen" style="display:none"><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">🙋 신규학생 관리</div><button onclick="initNewStudentScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄 새로고침</button></div><div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:11px;color:#2E7D32;line-height:1.5">📌 등록일 기준 <strong>30일 이내</strong> 신규 학생이 표시됩니다. 30일이 지나면 자동으로 목록에서 제외됩니다.</div><div id="newStudentList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="teacherMgmtScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">👩‍🏫 Teacher Management</div><div style="font-size:11px;color:#999;margin-top:2px">Manage teacher accounts and roles</div></div><div style="display:flex;gap:8px"><button onclick="openTeacherModal(null)" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Add Teacher</button><button onclick="initTeacherMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div>
 
 <!-- ── 신규 입사 체크리스트 ── -->
 <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;margin-bottom:10px;overflow:hidden">
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-24 11:55';
+var APP_VERSION = '2026-09-26 11:18';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1589,6 +1589,86 @@ async function fetchMasterTimetable() {
 
   return { teachers:cols, periods:periods, byDay:byDay,
            weeks:WEEKS, noPeriod:noPeriod, from:from };
+}
+
+// ════════════════════════════════════════════════════════════
+//  수업 안 하는 날 모으기
+//
+//  두 곳에서 가져와 한 덩어리로 만듭니다.
+//    ① 공휴일  — 앱에 들어 있는 한국 공휴일표 (설날·추석·어린이날 …)
+//    ② 학원 행사 — Meetings & Events 에서 "휴강 / 특별수업" 으로 고른 것
+//
+//  돌려주는 모양
+//    { "2026-09-25": { mode:'휴강',     title:'🌕 Chuseok', periods:null },
+//      "2026-10-08": { mode:'특별수업', title:'Presentation Day', periods:[2] } }
+//
+//    periods 가 null 이면 그날 전체, 배열이면 그 교시만 걸립니다.
+// ════════════════════════════════════════════════════════════
+async function fetchNonClassDays(fromDate, toDate) {
+  var out = {};
+  if(!fromDate || !toDate) return out;
+
+  // ── ① 공휴일 ──
+  var d = new Date(fromDate + 'T00:00:00');
+  var end = new Date(toDate + 'T00:00:00');
+  while(d <= end){
+    var ymd = d.getFullYear() + '-'
+            + String(d.getMonth()+1).padStart(2,'0') + '-'
+            + String(d.getDate()).padStart(2,'0');
+    var hol = (typeof _getHoliday === 'function')
+            ? _getHoliday(d.getFullYear(), d.getMonth(), d.getDate()) : null;
+    if(hol) out[ymd] = { mode:'휴강', title:hol, periods:null, from:'공휴일' };
+    d.setDate(d.getDate() + 1);
+  }
+
+  // ── ② 학원 행사 ──
+  var rows = await sbGetSoft('meetings',
+    'select=title,event_start_date,event_end_date,class_mode,affect_periods'
+    + '&meeting_type=eq.Schedule/Event&class_mode=not.is.null'
+    + '&event_start_date=lte.' + toDate,
+    'select=title,event_start_date,event_end_date,event_category'
+    + '&meeting_type=eq.Schedule/Event&event_start_date=lte.' + toDate)
+    .catch(function(){ return []; }) || [];
+
+  rows.forEach(function(r){
+    var mode = r.class_mode;
+    // class_mode 칸이 아직 없으면 분류로 대신 봅니다
+    if(mode === undefined){
+      mode = (r.event_category === 'Holiday' || r.event_category === 'Public Holiday')
+             ? '휴강' : '';
+    }
+    if(!mode) return;
+
+    var s = r.event_start_date;
+    var e = r.event_end_date || s;
+    if(!s || e < fromDate || s > toDate) return;
+
+    var cur = new Date((s < fromDate ? fromDate : s) + 'T00:00:00');
+    var fin = new Date((e > toDate   ? toDate   : e) + 'T00:00:00');
+    while(cur <= fin){
+      var k = cur.getFullYear() + '-'
+            + String(cur.getMonth()+1).padStart(2,'0') + '-'
+            + String(cur.getDate()).padStart(2,'0');
+      // 공휴일(그날 전체)이 이미 잡혀 있으면 그대로 둡니다
+      if(!(out[k] && out[k].periods === null && out[k].mode === '휴강')){
+        out[k] = { mode:mode, title:r.title || '', from:'행사',
+                   periods:(r.affect_periods && r.affect_periods.length)
+                             ? r.affect_periods.map(Number) : null };
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+
+  return out;
+}
+
+// 그 날 그 교시에 수업을 하나요?
+//   돌려주는 값 : null(평소대로) · {mode:'휴강'…} · {mode:'특별수업'…}
+function _nonClassAt(map, ymd, period){
+  var hit = map && map[ymd];
+  if(!hit) return null;
+  if(hit.periods === null) return hit;                 // 그날 전체
+  return (hit.periods.indexOf(Number(period)) >= 0) ? hit : null;
 }
 
 // 학생을 다른 반으로 옮기기
@@ -3017,14 +3097,16 @@ async function deleteNativeMemo(pageId) {
 
 // ── 회의록 + 학원 달력 ───────────────────────────────────────
 async function fetchMeetings() {
-  var rows = await sbGet('meetings',
+  var rows = await sbGetSoft('meetings',
+    'select=id,title,meeting_date,meeting_type,content,author,is_done,event_start_date,event_end_date,event_category,class_mode,affect_periods&order=meeting_date.desc',
     'select=id,title,meeting_date,meeting_type,content,author,is_done,event_start_date,event_end_date,event_category&order=meeting_date.desc');
   return rows.map(function(r){
     return { id:r.id, title:r.title||'', meetingDate:r.meeting_date||'',
              meetingType:r.meeting_type||'', content:r.content||'',
              author:r.author||'', status:r.is_done?'확정':'고민중',
              eventStartDate:r.event_start_date||'', eventEndDate:r.event_end_date||'',
-             eventCategory:r.event_category||'' };
+             eventCategory:r.event_category||'',
+             classMode:r.class_mode||'', affectPeriods:r.affect_periods||[] };
   });
 }
 async function fetchSchoolEvents() {
@@ -3042,10 +3124,23 @@ async function saveMeeting(data) {
     meeting_type: data.meetingType, content: data.content||null,
     author: data.author||null, is_done: data.status==='확정',
     event_start_date: data.eventStartDate||null, event_end_date: data.eventEndDate||null,
-    event_category: data.eventCategory||null
+    event_category: data.eventCategory||null,
+    class_mode: data.classMode||null,
+    affect_periods: (data.affectPeriods && data.affectPeriods.length)
+                      ? data.affectPeriods : null
   };
-  if(data.id) { await sbPatch('meetings','id='+_eq(data.id), payload); }
-  else { await sbInsert('meetings', payload); }
+  try {
+    if(data.id) { await sbPatch('meetings','id='+_eq(data.id), payload); }
+    else { await sbInsert('meetings', payload); }
+  } catch(e) {
+    // class_mode 칸이 아직 없으면 그것만 빼고 저장합니다
+    var m = String(e && e.message || '');
+    if(/42703|class_mode|affect_periods|column/i.test(m)){
+      delete payload.class_mode; delete payload.affect_periods;
+      if(data.id) { await sbPatch('meetings','id='+_eq(data.id), payload); }
+      else { await sbInsert('meetings', payload); }
+    } else throw e;
+  }
   return { success: true };
 }
 async function deleteMeeting(id) {
@@ -3445,7 +3540,7 @@ var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
-  fetchMasterTimetable,
+  fetchMasterTimetable, fetchNonClassDays,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
   fetchSchoolOptions, fetchVehicleOptions,
   fetchStudentsByClass,
@@ -12721,6 +12816,10 @@ function openMeetingModal(id){
   document.getElementById('mtgEvtStart').value='';
   document.getElementById('mtgEvtEnd').value='';
   document.getElementById('mtgEvtCat').value='';
+  document.getElementById('mtgClassMode').value='';
+  _mtgPeriods = [];
+  renderMtgPeriodChips();
+  onMtgModeChange();
   document.getElementById('mtgEditId').value='';
   document.getElementById('mtgEventFields').style.display='none';
   document.getElementById('meetingModalTitle').textContent='New Meeting';
@@ -12736,6 +12835,10 @@ function openMeetingModal(id){
     document.getElementById('mtgEvtStart').value=m.eventStartDate||'';
     document.getElementById('mtgEvtEnd').value=m.eventEndDate||'';
     document.getElementById('mtgEvtCat').value=m.eventCategory||'';
+    document.getElementById('mtgClassMode').value=m.classMode||'';
+    _mtgPeriods = (m.affectPeriods || []).map(Number);
+    renderMtgPeriodChips();
+    onMtgModeChange();
     document.getElementById('mtgEditId').value=m.id;
     document.getElementById('meetingModalTitle').textContent='Edit Meeting';
     document.getElementById('mtgDelBtn').style.display='';
@@ -12743,6 +12846,50 @@ function openMeetingModal(id){
   }
   document.getElementById('meetingModal').style.display='flex';
 }
+// ── 행사의 "수업 여부" 칸 ────────────────────────────────
+var _mtgPeriods = [];
+
+// 분류를 고르면 수업 여부를 알아서 맞춰 줍니다 (Event 는 직접 고르시게 둡니다)
+function onMtgCatChange(){
+  var cat  = (document.getElementById('mtgEvtCat')  || {}).value || '';
+  var mode = document.getElementById('mtgClassMode');
+  if(!mode) return;
+  if(cat === 'Holiday' || cat === 'Public Holiday'){
+    if(!mode.value) mode.value = '휴강';
+  }
+  onMtgModeChange();
+}
+
+// 휴강·특별수업일 때만 교시 고르는 칸을 엽니다
+function onMtgModeChange(){
+  var mode = (document.getElementById('mtgClassMode') || {}).value || '';
+  var box  = document.getElementById('mtgPeriodBox');
+  if(box) box.style.display = mode ? '' : 'none';
+  if(!mode){ _mtgPeriods = []; renderMtgPeriodChips(); }
+}
+
+function renderMtgPeriodChips(){
+  var box = document.getElementById('mtgPeriodChips');
+  if(!box) return;
+  box.innerHTML = WG_PERIODS.map(function(p){
+    var on = _mtgPeriods.indexOf(p.p) >= 0;
+    return "<button type='button' onclick='toggleMtgPeriod(" + p.p + ")' "
+      + "style='background:" + (on ? '#B4651A' : '#fff') + ";"
+      +   "color:" + (on ? '#fff' : '#8A9178') + ";"
+      +   "border:1.5px solid " + (on ? '#B4651A' : '#E2E8D8') + ";border-radius:20px;"
+      +   "padding:3px 10px;font-size:11.5px;font-weight:700;cursor:pointer'>"
+      +   _h12(p.start) + "</button>";
+  }).join('');
+}
+
+function toggleMtgPeriod(p){
+  var i = _mtgPeriods.indexOf(p);
+  if(i >= 0) _mtgPeriods.splice(i, 1);
+  else       _mtgPeriods.push(p);
+  _mtgPeriods.sort(function(a,b){ return a-b; });
+  renderMtgPeriodChips();
+}
+
 function closeMeetingModal(){ document.getElementById('meetingModal').style.display='none'; }
 function saveMeetingItem(){
   var title=(document.getElementById('mtgTitle').value||'').trim();
@@ -12755,6 +12902,7 @@ function saveMeetingItem(){
   var btn=document.getElementById('mtgSaveBtn');
   if(btn){ btn.disabled=true; btn.textContent='저장 중...'; }
   var authorName=_sbUser?(_sbUser.email||'').replace('@willgrow.local',''):'';
+  var classMode=(document.getElementById('mtgClassMode')||{}).value||'';
   google.script.run
   .withSuccessHandler(function(r){
     if(btn){ btn.disabled=false; btn.textContent='저장'; }
@@ -12769,7 +12917,9 @@ function saveMeetingItem(){
     author:authorName, status:document.getElementById('mtgStatus').value,
     eventStartDate:isEvent?document.getElementById('mtgEvtStart').value:null,
     eventEndDate:isEvent?document.getElementById('mtgEvtEnd').value:null,
-    eventCategory:isEvent?document.getElementById('mtgEvtCat').value:null
+    eventCategory:isEvent?document.getElementById('mtgEvtCat').value:null,
+    classMode:     isEvent ? (classMode || null) : null,
+    affectPeriods: (isEvent && classMode && _mtgPeriods.length) ? _mtgPeriods.slice() : null
   });
 }
 function deleteMeetingItem(){
