@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-27 02:00';
+var APP_VERSION = '2026-09-27 03:50';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2236,7 +2236,8 @@ async function generateClassLessonPlan(classId, opts) {
       });
     }
     var q = tag(own, name);
-    if(l.nextTextbookId && l.nextTextbookId !== l.textbookId){
+    // 메인 교재는 이어 붙이지 않습니다 — 다음 권이 됩니다
+    if(!isMainCourse && l.nextTextbookId && l.nextTextbookId !== l.textbookId){
       // 다음 교재의 영역을 따로 골랐으면 그것으로, 아니면 지금 영역 이름으로
       var add = _lpPick(nextUnits, l.nextTextbookId, l.nextSection || l.section);
       if(!add.length && l.nextSection) add = _lpPick(nextUnits, l.nextTextbookId, l.section);
@@ -2288,23 +2289,29 @@ async function generateClassLessonPlan(classId, opts) {
   if(built.error) return { success:false, error:built.error };
 
   // 손으로 고친 칸은 지키고, 나머지만 새로 씁니다
-  var keep = await _sbGetSafe('lesson_plan_entries',
-    'select=date,period,note&class_id=' + _eq(classId)
-    + '&term_no=' + _eq(term) + '&locked=is.true') || [];
+  // opts.keepEdits 가 있을 때만 손으로 고친 칸을 지킵니다.
+  //   · [끼워 넣고 뒤로 밀기] → keepEdits (끼운 칸을 살려 둬야 하니까)
+  //   · [✨ 다시 만들기]      → 완전히 새로. 고친 칸도 전부 지웁니다.
   var lockedSet = {}, blocked = {};
-  keep.forEach(function(k){
-    lockedSet[k.date + '|' + k.period] = true;
-    // [끼워 넣기] 로 넣은 칸은 진도를 안 쓰고 넘어갑니다 → 뒤가 한 칸씩 밀립니다
-    if(k.note === '끼움') blocked[k.date + '|' + k.period] = true;
-  });
+  if(opts.keepEdits){
+    var keep = await _sbGetSafe('lesson_plan_entries',
+      'select=date,period,note&class_id=' + _eq(classId)
+      + '&term_no=' + _eq(term) + '&locked=is.true') || [];
+    keep.forEach(function(k){
+      lockedSet[k.date + '|' + k.period] = true;
+      // [끼워 넣기] 로 넣은 칸은 진도를 안 쓰고 넘어갑니다 → 뒤가 한 칸씩 밀립니다
+      if(k.note === '끼움') blocked[k.date + '|' + k.period] = true;
+    });
+  }
 
+  var lockFilter = opts.keepEdits ? '&locked=is.false' : '';
   try {
     await sbDelete('lesson_plan_entries',
-      'class_id=' + _eq(classId) + '&term_no=' + _eq(term) + '&locked=is.false',
+      'class_id=' + _eq(classId) + '&term_no=' + _eq(term) + lockFilter,
       { allowZero:true });
   } catch(e){
     await sbDelete('lesson_plan_entries',
-      'class_id=' + _eq(classId) + '&locked=is.false', { allowZero:true });
+      'class_id=' + _eq(classId) + lockFilter, { allowZero:true });
   }
 
   var rows = built.entries
@@ -11187,12 +11194,20 @@ function lpRenderLines(){
     if(!secs.length) secs = (_lpSetup.bookSections || {})[l.textbookId] || [];
     var need  = !!(secs.length && !l.section);      // 영역을 골라야 하는 줄
     var main  = _lpIsMain(l);
-    // 교재 자체에 Review · Unit Test 차시가 들어 있는 교재인지 (Bricks 등)
-    var hasBookRev = units.some(function(u){ return u.optional; });
     // 중간·기말이 있는 메인 과정인지 (Star · Galaxy · Junior).
-    // Bricks 같은 서브 교재는 시험이 없어서 칸을 아예 안 보여줍니다.
+    // 메인 교재는 다음 책을 여기서 안 고릅니다 — 새 레슨플랜(권)으로 넘어갑니다.
     var canTest = (_lpSetup.mainCourses || [])
                     .indexOf((_lpSetup.bookCourse || {})[l.textbookId]) >= 0;
+
+    // 교재 자체에 Review · Unit Test 차시가 들어 있는지 (Bricks 등)
+    //   지금 교재뿐 아니라 [끝나면 이어서] 로 고른 교재도 같이 봅니다
+    var nextUnits = (!canTest && l.nextTextbookId)
+      ? _lpPick(_lpSetup.units || {}, l.nextTextbookId, l.nextSection || l.section) : [];
+    var revNow  = units.some(function(u){ return u.optional; });
+    var revNext = nextUnits.some(function(u){ return u.optional; });
+    var hasBookRev = revNow || revNext;
+    // 스위치에 쓸 이름 — Review 가 들어 있는 쪽 교재
+    var revBook = revNow ? l.textbookId : l.nextTextbookId;
 
     // 교재
     var bookOpts = "<option value=''>— 교재 고르기 —</option>";
@@ -11240,9 +11255,9 @@ function lpRenderLines(){
       : "<span style='font-size:11px;color:#C0392B'>차시가 없어요</span>";
 
     // 이어갈 교재의 영역 — 시리즈가 바뀌면 영역 이름도 달라집니다
-    var nextSecs = l.nextTextbookId
+    var nextSecs = (!canTest && l.nextTextbookId)
       ? _lpPartsOf(_lpSetup.units || {}, l.nextTextbookId) : [];
-    if(l.nextTextbookId && !nextSecs.length){
+    if(!canTest && l.nextTextbookId && !nextSecs.length){
       nextSecs = (_lpSetup.bookSections || {})[l.nextTextbookId] || [];
     }
     var nextSecHtml = nextSecs.length
@@ -11312,7 +11327,7 @@ function lpRenderLines(){
       +   "<div><div style='" + lbl + "'>어느 차시부터</div>" + seqHtml + "</div>"
       +   (hasBookRev
           ? "<div><div style='" + lbl + "'>"
-            + _plEsc(((_lpSetup.bookSeries || {})[l.textbookId] || '') + ' Review') + "</div>"
+            + _plEsc(((_lpSetup.bookSeries || {})[revBook] || '') + ' Review') + "</div>"
             + "<label style='display:inline-block;font-size:11.5px;color:#5B6551;"
             + "cursor:pointer;padding:6px 0'>"
             + "<input type='checkbox'" + (l.useBookReview ? " checked" : "")
@@ -11320,10 +11335,14 @@ function lpRenderLines(){
             + "style='width:13px;height:13px;vertical-align:-2px'> 교재에 있는 Review 쓰기"
             + "<span style='color:#C3C9BB'> (Unit Test 포함)</span></label></div>"
           : "")
-      +   "<div><div style='" + lbl + "'>끝나면 이어서</div>"
-      +     "<select onchange='lpSetLine(" + i + ",\"nextTextbookId\",this.value)' style='"
-      +     bd + ";max-width:190px'>" + nextOpts + "</select></div>"
-      +   nextSecHtml
+      +   (canTest
+          ? "<div style='font-size:10.5px;color:#A8B09C;padding-bottom:6px;line-height:1.5'>"
+            + "다음 교재는 <b style='color:#2D6A4F'>새 레슨플랜</b> 으로 만듭니다<br>"
+            + "<span style='color:#C3C9BB'>목록에서 ＋ 다음 교재로 새 레슨플랜</span></div>"
+          : "<div><div style='" + lbl + "'>끝나면 이어서</div>"
+            + "<select onchange='lpSetLine(" + i + ",\"nextTextbookId\",this.value)' style='"
+            + bd + ";max-width:190px'>" + nextOpts + "</select></div>"
+            + nextSecHtml)
       + "</div>"
 
       // 4줄 — 시험. 중간·기말이 있는 교재(Star · Galaxy · Junior)에서만 보여줍니다.
@@ -11402,6 +11421,10 @@ function lpSetBook(i, id){
   l.startSeq    = 1;
   l.isMain      = null;
   l.nextSection = '';
+  // 메인 교재는 다음 책을 여기서 안 고릅니다 (새 레슨플랜으로 넘어갑니다)
+  if((_lpSetup.mainCourses || []).indexOf((_lpSetup.bookCourse || {})[id]) >= 0){
+    l.nextTextbookId = '';
+  }
   if(!id){ lpRenderLines(); return; }
   if(Object.keys(_lpSetup.units || {}).some(function(k){ return k.indexOf(id + '|') === 0; })){
     lpRenderLines(); return;
@@ -11474,7 +11497,9 @@ function lpGenerate(btn){
   if(!_lpLines.some(function(l){ return l.textbookId; })){
     showToast("교재를 한 줄이라도 넣어주세요."); return;
   }
-  if(_lpPlan.length && !confirm("다시 만들까요?\n손으로 고친 칸은 그대로 남습니다.")) return;
+  if(_lpPlan.length && !confirm("처음부터 다시 만들까요?\n\n"
+      + "손으로 고친 칸 · 끼워 넣은 수업이 모두 지워지고\n"
+      + "새 설정대로 깨끗하게 다시 짭니다.")) return;
   if(btn){ btn.disabled = true; btn.textContent = '만드는 중…'; }
 
   google.script.run
@@ -11788,7 +11813,7 @@ function lpCellSave(mode){
               .fetchClassLessonPlan(_lpCid, _lpTerm);
           })
           .withFailureHandler(function(){ showToast("다시 맞추지 못했어요."); })
-          .generateClassLessonPlan(_lpCid, { termNo:_lpTerm });
+          .generateClassLessonPlan(_lpCid, { termNo:_lpTerm, keepEdits:true });
       } else {
         renderLessonPlan();
         showToast("고쳤어요.");
