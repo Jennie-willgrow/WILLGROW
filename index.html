@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-27 03:50';
+var APP_VERSION = '2026-09-27 04:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1839,6 +1839,9 @@ async function fetchLessonPlanSetup(classId, termNo) {
              nextSection:(r.options && r.options.nextSection) || '',
              // 교재에 딸린 Review · Unit Test 를 쓰는 반인지
              useBookReview:!!(r.options && r.options.useBookReview),
+             // 이어갈 교재의 Review 는 따로 정합니다
+             //   (안 하다가 하는 반도, 하다가 그만두는 반도 있어서)
+             nextUseBookReview:!!(r.options && r.options.nextUseBookReview),
              bookName:bookName[r.textbook_id] || '' };
   });
 
@@ -1952,7 +1955,8 @@ async function saveLessonPlanLines(classId, lines, termNo) {
              is_main:(l.isMain === null || l.isMain === undefined) ? null : !!l.isMain,
              options:_lpMerge(l.options, { testHost:!!l.testHost,
                                            nextSection:l.nextSection || '',
-                                           useBookReview:!!l.useBookReview }),
+                                           useBookReview:!!l.useBookReview,
+                                           nextUseBookReview:!!l.nextUseBookReview }),
              updated_at:new Date().toISOString() };
   });
 
@@ -1985,10 +1989,12 @@ function _lpBuildLines(lines, opts) {
   var L = lines.map(function(l, i){
     var q = (l.units || []).slice(Math.max(0, (l.startSeq || 1) - 1));
     // 교재에 딸려 오는 Review · Unit Test 는 "쓰는 반" 에서만 넣습니다.
-    // (Bricks Reading 의 4유닛마다 Review 처럼)
-    if(!l.useBookReview){
-      q = q.filter(function(u){ return !u.optional; });
-    }
+    //   차시마다 keepOpt 가 붙어 있으면 그걸 따릅니다 —
+    //   지금 교재와 이어갈 교재의 Review 를 따로 정할 수 있게요.
+    q = q.filter(function(u){
+      if(!u.optional) return true;
+      return (u.keepOpt === undefined) ? !!l.useBookReview : !!u.keepOpt;
+    });
     var every = Number(l.reviewEvery) || 0;
     if(every > 0){
       var withRev = [], n = 0;
@@ -2229,19 +2235,21 @@ async function generateClassLessonPlan(classId, opts) {
     var w = _lpWhyNoUnits(setup.units, l.textbookId, l.section, name);
     if(w) why.push(w);
 
-    function tag(list, bookName){
+    // 책마다 "이 책의 Review 를 쓰는지" 를 차시에 붙여 둡니다
+    function tag(list, bookName, keepOpt){
       return (list || []).map(function(u){
         var c = {}; Object.keys(u).forEach(function(k){ c[k] = u[k]; });
-        c.book = bookName; return c;
+        c.book = bookName; c.keepOpt = !!keepOpt; return c;
       });
     }
-    var q = tag(own, name);
+    var q = tag(own, name, l.useBookReview);
     // 메인 교재는 이어 붙이지 않습니다 — 다음 권이 됩니다
     if(!isMainCourse && l.nextTextbookId && l.nextTextbookId !== l.textbookId){
       // 다음 교재의 영역을 따로 골랐으면 그것으로, 아니면 지금 영역 이름으로
       var add = _lpPick(nextUnits, l.nextTextbookId, l.nextSection || l.section);
       if(!add.length && l.nextSection) add = _lpPick(nextUnits, l.nextTextbookId, l.section);
-      if(add.length) q = q.concat(tag(add, setup.bookName[l.nextTextbookId] || ''));
+      if(add.length) q = q.concat(tag(add, setup.bookName[l.nextTextbookId] || '',
+                                      l.nextUseBookReview));
       else nextBad.push((setup.bookName[l.nextTextbookId] || '다음 교재')
                         + (l.nextSection ? ' · ' + l.nextSection : ''));
     }
@@ -2448,7 +2456,8 @@ async function fetchNextTermDraft(classId, prevTerm) {
               startDate:'', startSeq:1,
               nextTextbookId:l.nextTextbookId, nextSection:l.nextSection,
               reviewEvery:l.reviewEvery, isMain:l.isMain, testHost:l.testHost,
-              useBookReview:l.useBookReview, options:l.options,
+              useBookReview:l.useBookReview,
+              nextUseBookReview:l.nextUseBookReview, options:l.options,
               carried:false, wasBook:setup.bookName[l.textbookId] || '' };
 
     // 메인 교재는 새로 고르십니다 (이게 새 권의 제목이 됩니다)
@@ -2465,7 +2474,8 @@ async function fetchNextTermDraft(classId, prevTerm) {
           n.textbookId = l.nextTextbookId;
           n.section    = l.nextSection || '';
           n.startSeq   = 1;
-          n.nextTextbookId = ''; n.nextSection = '';
+          n.useBookReview = !!l.nextUseBookReview;   // 이어갈 책의 Review 설정 그대로
+          n.nextTextbookId = ''; n.nextSection = ''; n.nextUseBookReview = false;
           n.carried = true;
         }
       } else {
@@ -11088,6 +11098,7 @@ function lpOpenMaker(){
                    nextTextbookId:l.nextTextbookId || '', nextSection:l.nextSection || '',
                    reviewEvery:l.reviewEvery || 0, isMain:l.isMain,
                    testHost:!!l.testHost, useBookReview:!!l.useBookReview,
+                   nextUseBookReview:!!l.nextUseBookReview,
                    options:l.options || {}, carried:!!l.carried, wasBook:l.wasBook || '' };
         });
         renderLpMaker();
@@ -11099,6 +11110,7 @@ function lpOpenMaker(){
                  nextTextbookId:l.nextTextbookId, nextSection:l.nextSection || '',
                  reviewEvery:l.reviewEvery, isMain:l.isMain,
                  testHost:!!l.testHost, useBookReview:!!l.useBookReview,
+                 nextUseBookReview:!!l.nextUseBookReview,
                  options:l.options || {} };
       });
       renderLpMaker();
@@ -11206,8 +11218,6 @@ function lpRenderLines(){
     var revNow  = units.some(function(u){ return u.optional; });
     var revNext = nextUnits.some(function(u){ return u.optional; });
     var hasBookRev = revNow || revNext;
-    // 스위치에 쓸 이름 — Review 가 들어 있는 쪽 교재
-    var revBook = revNow ? l.textbookId : l.nextTextbookId;
 
     // 교재
     var bookOpts = "<option value=''>— 교재 고르기 —</option>";
@@ -11325,16 +11335,8 @@ function lpRenderLines(){
       // 3줄 — 시작 차시 · (교재 Review) · 다음 책
       + "<div style='display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end'>"
       +   "<div><div style='" + lbl + "'>어느 차시부터</div>" + seqHtml + "</div>"
-      +   (hasBookRev
-          ? "<div><div style='" + lbl + "'>"
-            + _plEsc(((_lpSetup.bookSeries || {})[revBook] || '') + ' Review') + "</div>"
-            + "<label style='display:inline-block;font-size:11.5px;color:#5B6551;"
-            + "cursor:pointer;padding:6px 0'>"
-            + "<input type='checkbox'" + (l.useBookReview ? " checked" : "")
-            + " onchange='lpSetLine(" + i + ",\"useBookReview\",this.checked)' "
-            + "style='width:13px;height:13px;vertical-align:-2px'> 교재에 있는 Review 쓰기"
-            + "<span style='color:#C3C9BB'> (Unit Test 포함)</span></label></div>"
-          : "")
+      +   (revNow ? _lpRevBox(i, 'useBookReview', l.useBookReview,
+                              (_lpSetup.bookSeries || {})[l.textbookId], lbl) : "")
       +   (canTest
           ? "<div style='font-size:10.5px;color:#A8B09C;padding-bottom:6px;line-height:1.5'>"
             + "다음 교재는 <b style='color:#2D6A4F'>새 레슨플랜</b> 으로 만듭니다<br>"
@@ -11342,7 +11344,9 @@ function lpRenderLines(){
           : "<div><div style='" + lbl + "'>끝나면 이어서</div>"
             + "<select onchange='lpSetLine(" + i + ",\"nextTextbookId\",this.value)' style='"
             + bd + ";max-width:190px'>" + nextOpts + "</select></div>"
-            + nextSecHtml)
+            + nextSecHtml
+            + (revNext ? _lpRevBox(i, 'nextUseBookReview', l.nextUseBookReview,
+                                   (_lpSetup.bookSeries || {})[l.nextTextbookId], lbl) : ""))
       + "</div>"
 
       // 4줄 — 시험. 중간·기말이 있는 교재(Star · Galaxy · Junior)에서만 보여줍니다.
@@ -11366,10 +11370,23 @@ function lpRenderLines(){
   }).join('');
 }
 
+// 교재에 딸린 Review · Unit Test 를 쓸지 고르는 칸
+function _lpRevBox(i, field, on, seriesName, lbl){
+  return "<div><div style='" + lbl + "'>"
+    +   _plEsc((seriesName || '') + ' Review') + "</div>"
+    +   "<label style='display:inline-block;font-size:11.5px;cursor:pointer;padding:6px 0;"
+    +     "color:" + (on ? "#2D6A4F;font-weight:700" : "#5B6551") + "'>"
+    +   "<input type='checkbox'" + (on ? " checked" : "")
+    +   " onchange='lpSetLine(" + i + ",\"" + field + "\",this.checked)' "
+    +   "style='width:13px;height:13px;vertical-align:-2px'> Review Test 함"
+    +   "<span style='color:#C3C9BB;font-weight:400'> (Unit Test 포함)</span></label></div>";
+}
+
 function lpAddLine(){
   _lpLines.push({ textbookId:'', section:'', weekdays:[], startDate:'', startSeq:1,
                   nextTextbookId:'', nextSection:'', reviewEvery:0, isMain:null,
-                  testHost:false, useBookReview:false, options:{} });
+                  testHost:false, useBookReview:false, nextUseBookReview:false,
+                  options:{} });
   lpRenderLines(); lpRefreshOff();
 }
 function lpDelLine(i){
@@ -11387,10 +11404,11 @@ function lpSetLine(i, field, val){
   var l = _lpLines[i]; if(!l) return;
   if(field === 'startSeq' || field === 'reviewEvery')  l[field] = Number(val) || 0;
   else if(field === 'isMain' || field === 'testHost'
-       || field === 'useBookReview')                   l[field] = !!val;
+       || field === 'useBookReview'
+       || field === 'nextUseBookReview')               l[field] = !!val;
   else                                                l[field] = val || '';
   if(field === 'section' || field === 'reviewEvery' || field === 'isMain'
-     || field === 'useBookReview') lpRenderLines();
+     || field === 'useBookReview' || field === 'nextUseBookReview') lpRenderLines();
   if(field === 'startDate') lpRefreshOff();
   if(field === 'nextTextbookId'){
     l.nextSection = '';
