@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-27 00:10';
+var APP_VERSION = '2026-09-27 00:40';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2294,17 +2294,40 @@ async function generateClassLessonPlan(classId, opts) {
                page_from:e.pageFrom || null, page_to:e.pageTo || null, locked:false };
     });
 
-  for(var i = 0; i < rows.length; i += 200){
-    var chunk = rows.slice(i, i + 200);
-    var res = await fetch(SUPABASE_URL + '/rest/v1/lesson_plan_entries'
+  // RUN_ME_22 를 아직 안 돌리셨으면 book 칸이 없습니다 → 그 칸만 빼고 저장합니다
+  var dropBook = false;
+  async function _lpPost(chunk){
+    var body = dropBook
+      ? chunk.map(function(r){
+          var c = {};
+          Object.keys(r).forEach(function(k){ if(k !== 'book') c[k] = r[k]; });
+          return c;
+        })
+      : chunk;
+    return await fetch(SUPABASE_URL + '/rest/v1/lesson_plan_entries'
       + '?on_conflict=class_id,date,period', {
       method:'POST',
       headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=minimal' }),
-      body:JSON.stringify(chunk)
+      body:JSON.stringify(body)
     });
+  }
+
+  for(var i = 0; i < rows.length; i += 200){
+    var chunk = rows.slice(i, i + 200);
+    var res = await _lpPost(chunk);
+
     if(!res.ok){
       var err = await res.text();
       if(_handleAuthError(res.status)) throw new Error('AUTH');
+
+      // 'book' 칸이 없다 → 그 칸 없이 처음부터 다시
+      if(/PGRST204|'book' column|column .*book/i.test(err) && !dropBook){
+        dropBook = true;
+        console.warn('[레슨플랜] book 칸이 없어 교재 구간 없이 저장합니다. '
+                   + 'RUN_ME_22_레슨플랜_교재구간.sql 을 돌리시면 구간이 나뉩니다.');
+        i = -200;                       // 처음부터 다시
+        continue;
+      }
       if(/42P01|does not exist/i.test(err)){
         return { success:false,
                  error:'커리큘럼 서랍이 아직 없어요. RUN_ME_17_커리큘럼.sql 을 먼저 돌려주세요.' };
