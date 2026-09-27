@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-28 23:40';
+var APP_VERSION = '2026-09-29 00:20';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -4590,16 +4590,18 @@ async function fetchRosterSheet() {
              native:c.nat ? (c.nat.name || '') : '',
              students:names, count:names.length,
              days:dayTxt, time:timeTxt,
-             main:main.join(' / '), sub:sub.join(' / '),
+             main:main.join(' / '),
+             subs:sub.slice(0, 3),          // 서브교재는 최대 3개
              vocab:c.vocab_book || '' };
   });
 
-  // 담임 → 반 이름 순
+  // 학년 순 (1학년 → 6학년 → 중 → 고 → 그 밖), 같은 학년이면 반 이름 순
   out.sort(function(a, b){
-    return (a.teacher || 'ㅎ').localeCompare(b.teacher || 'ㅎ')
-        || a.className.localeCompare(b.className);
+    var ka = _classGroup(a.className).key, kb = _classGroup(b.className).key;
+    if(ka !== kb) return ka < kb ? -1 : 1;
+    return a.className.localeCompare(b.className);
   });
-  return { items:out, total:stu.length, madeAt:getTodayStr() };
+  return { items:out, madeAt:getTodayStr() };
 }
 
 // ════════════════════════════════════════════════════════════
@@ -12134,85 +12136,112 @@ function _rosterShow(r, btn){
   var items = (r.items || []).filter(function(c){ return c.count > 0; });
   if(!items.length){ showToast("재원 학생이 있는 반이 없어요."); return; }
 
-  // 한 장에 몇 반씩 — 반이 많으면 여러 장으로 나눕니다
-  var PER = 10;
-  var pages = [];
-  for(var i = 0; i < items.length; i += PER) pages.push(items.slice(i, i + PER));
+  // 학년 순으로 세웁니다 (1학년 → 6학년 → 중 → 고 → 그 밖)
+  items.sort(function(a, b){
+    var ka = _classGroup(a.className).key, kb = _classGroup(b.className).key;
+    if(ka !== kb) return ka < kb ? -1 : 1;
+    return String(a.className).localeCompare(String(b.className));
+  });
 
-  var maxRows = 0;
-  items.forEach(function(c){ maxRows = Math.max(maxRows, c.count); });
+  // ── A4 가로 한 장에 전부 담습니다 ───────────────────────────
+  //   반이 많아지면 글씨를 조금씩 줄여서 맞춥니다.
+  var N = items.length;
+  var maxStu = 0;
+  items.forEach(function(c){ maxStu = Math.max(maxStu, c.count); });
+
+  var SHEET_W = 1122, SHEET_H = 793;          // 297mm × 210mm
+  var PAD = 22;                               // 약 6mm
+  var LBL = 34;                               // 왼쪽 항목 이름 칸
+  var W = SHEET_W - PAD * 2, H = SHEET_H - PAD * 2 - 24;   // 24 = 제목줄
+
+  var colW = (W - LBL) / N;
+  // 학년띠 + 담임 + 반 + 원어민 + 요일 + 시간 + 메인 + 서브3 + 단어장 + 학생 + 인원
+  var rowsN = 11 + maxStu;
+
+  var fsH = (H / rowsN) / 1.5;                // 줄 높이로 정한 글씨 크기
+  var fsW = (colW - 5) / 3.3;                 // 칸 너비로 정한 글씨 크기 (한글 3자 기준)
+  var fs  = Math.max(3.4, Math.min(9, Math.min(fsH, fsW)));
+  var fsS = Math.max(3.0, fs * 0.86);         // 교재 이름처럼 긴 글자
+  var pv  = Math.max(0, Math.min(2, fs * 0.2));
 
   var css = "<style>*{box-sizing:border-box}"
     + "body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',"
     +   "'Apple SD Gothic Neo','Malgun Gothic',sans-serif}"
-    + ".sheet{background:#fff;padding:8mm 7mm;page-break-after:always}"
-    + ".sheet:last-child{page-break-after:auto}"
+    + ".sheet{background:#fff;padding:" + PAD + "px;page-break-after:auto}"
     + "table{border-collapse:collapse;width:100%;table-layout:fixed}"
-    + "th,td{border:1px solid #B9BFB1;padding:2px 3px;font-size:8.5px;"
-    +   "line-height:1.25;word-break:break-all;text-align:center}"
-    + "th{background:#EDF2E7;font-weight:800;color:#2D3A28}"
-    + ".hd{background:#DCE6D2;font-weight:800}"
-    + ".lbl{background:#F4F6F1;font-weight:700;color:#5B6551;width:52px;"
-    +   "text-align:center;white-space:nowrap}"
-    + ".nm{font-size:8px;color:#1F2A1B}"
-    + ".sm{font-size:7.5px;color:#5B6551}"
+    + "th,td{border:0.5px solid #B9BFB1;padding:" + pv + "px 1px;font-size:" + fs.toFixed(1) + "px;"
+    +   "line-height:1.18;word-break:break-all;text-align:center;overflow:hidden}"
+    + ".lbl{background:#F4F6F1;font-weight:700;color:#5B6551;width:" + LBL + "px;"
+    +   "white-space:nowrap;font-size:" + fsS.toFixed(1) + "px}"
+    + ".gr{background:#CFDDC2;font-weight:800;color:#28351F;font-size:" + fsS.toFixed(1) + "px}"
+    + ".hd{background:#DCE6D2;font-weight:800;color:#2D3A28}"
+    + ".cls{background:#EDF2E7;font-weight:800;color:#1F2A1B;font-size:"
+    +   (fs * 1.1).toFixed(1) + "px}"
+    + ".sm{font-size:" + fsS.toFixed(1) + "px;color:#5B6551}"
+    + ".nm{color:#1F2A1B}"
     + "</style>";
 
-  function page(list, idx){
-    var h = "<div class='sheet' style='width:297mm'>"
-      + "<div style='display:flex;align-items:flex-end;margin-bottom:5px'>"
-      +   "<div style='font-size:15px;font-weight:900;color:#2D302E;letter-spacing:-.3px'>"
-      +     "WiLLGROW 어학원 재학생 명단</div>"
-      +   "<div style='font-size:9px;color:#8A9178;margin-left:9px'>철산캠퍼스</div>"
-      +   "<div style='margin-left:auto;font-size:9px;color:#8A9178'>"
-      +     _plEsc(r.madeAt || '') + " 기준 · 전체 " + (r.total || 0) + "명"
-      +     (pages.length > 1 ? "  (" + (idx + 1) + "/" + pages.length + ")" : "")
-      +   "</div>"
-      + "</div>"
-      + "<table>";
+  var h = "<div class='sheet' style='width:" + SHEET_W + "px;height:" + SHEET_H + "px'>"
+    + "<div style='display:flex;align-items:flex-end;height:20px;margin-bottom:3px'>"
+    +   "<div style='font-size:13px;font-weight:900;color:#2D302E;letter-spacing:-.3px'>"
+    +     "WiLLGROW 어학원 재학생 명단</div>"
+    +   "<div style='font-size:8px;color:#8A9178;margin-left:8px'>철산캠퍼스</div>"
+    +   "<div style='margin-left:auto;font-size:8px;color:#8A9178'>"
+    +     _plEsc(r.madeAt || '') + " 기준</div>"
+    + "</div>"
+    + "<table>";
 
-    // 머리 — 담임 / 반
-    h += "<tr><td class='lbl'>담임</td>";
-    list.forEach(function(c){
-      h += "<td class='hd'>" + _plEsc(c.teacher || '—') + "</td>"; });
-    h += "</tr><tr><td class='lbl'>반</td>";
-    list.forEach(function(c){
-      h += "<th style='font-size:10px'>" + _plEsc(c.className) + "</th>"; });
-    h += "</tr>";
+  // ── 학년 띠 ──
+  h += "<tr><td class='lbl'></td>";
+  var gi = 0;
+  while(gi < N){
+    var g = _classGroup(items[gi].className), span = 1;
+    while(gi + span < N && _classGroup(items[gi + span].className).key === g.key) span++;
+    h += "<td class='gr' colspan='" + span + "'>" + _plEsc(g.label) + "</td>";
+    gi += span;
+  }
+  h += "</tr>";
 
-    function row(label, get, cls){
-      var s = "<tr><td class='lbl'>" + label + "</td>";
-      list.forEach(function(c){
-        s += "<td class='" + (cls || 'sm') + "'>" + _plEsc(get(c) || '') + "</td>"; });
-      return s + "</tr>";
-    }
-    h += row('원어민', function(c){ return c.native; });
-    h += row('요일',   function(c){ return c.days; });
-    h += row('시간',   function(c){ return c.time; });
-    h += row('메인교재', function(c){ return c.main; });
-    h += row('서브교재', function(c){ return c.sub; });
-    h += row('단어장',  function(c){ return c.vocab; });
-
-    // 학생 이름
-    var rows = 0;
-    list.forEach(function(c){ rows = Math.max(rows, c.count); });
-    for(var k = 0; k < rows; k++){
-      h += "<tr><td class='lbl' style='font-size:7.5px;color:#A8B09C'>"
-        + (k + 1) + "</td>";
-      list.forEach(function(c){
-        h += "<td class='nm'>" + _plEsc(c.students[k] || '') + "</td>"; });
-      h += "</tr>";
-    }
-
-    h += "<tr><td class='lbl' style='background:#DCE6D2'>인원</td>";
-    list.forEach(function(c){
-      h += "<td class='hd' style='font-size:10px'>" + c.count + "</td>"; });
-    h += "</tr></table></div>";
-    return h;
+  function row(label, get, cls){
+    var s = "<tr><td class='lbl'>" + label + "</td>";
+    items.forEach(function(c){
+      s += "<td class='" + (cls || 'sm') + "'>" + _plEsc(get(c) || '') + "</td>"; });
+    return s + "</tr>";
   }
 
-  var body = pages.map(page).join('');
-  _prPreview("전체 재학생 명단", css, body,
+  h += row('담임',   function(c){ return c.teacher; }, 'hd');
+  h += "<tr><td class='lbl'>반</td>";
+  items.forEach(function(c){
+    h += "<td class='cls'>" + _plEsc(c.className) + "</td>"; });
+  h += "</tr>";
+  h += row('원어민', function(c){ return c.native; });
+  h += row('요일',   function(c){ return c.days; });
+  h += row('시간',   function(c){ return c.time; });
+  h += row('메인',   function(c){ return c.main; });
+  for(var k = 0; k < 3; k++){
+    (function(idx){
+      h += row(idx === 0 ? '서브' : '', function(c){ return (c.subs || [])[idx] || ''; });
+    })(k);
+  }
+  h += row('단어장', function(c){ return c.vocab; });
+
+  // ── 학생 이름 ──
+  for(var i = 0; i < maxStu; i++){
+    (function(idx){
+      h += "<tr><td class='lbl' style='color:#B4BCA8'>" + (idx + 1) + "</td>";
+      items.forEach(function(c){
+        h += "<td class='nm'>" + _plEsc(c.students[idx] || '') + "</td>"; });
+      h += "</tr>";
+    })(i);
+  }
+
+  // ── 반별 인원 ──
+  h += "<tr><td class='lbl' style='background:#DCE6D2'>인원</td>";
+  items.forEach(function(c){
+    h += "<td class='hd'>" + c.count + "</td>"; });
+  h += "</tr></table></div>";
+
+  _prPreview("전체 재학생 명단", css, h,
              "WILLGROW_재학생명단_" + (r.madeAt || ''), btn);
 }
 
