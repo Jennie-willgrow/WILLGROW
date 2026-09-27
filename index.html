@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-29 03:20';
+var APP_VERSION = '2026-09-29 03:40';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -16573,8 +16573,29 @@ function _stuListSheetShow(list, btn){
   var SHEET_W = 793, SHEET_H = 1122, PAD = 30;      // A4 세로 210 × 297mm
   var H = SHEET_H - PAD * 2 - 34;
   var PER = 34;                                     // 한 장에 담는 줄 수
-  var pages = [];
-  for(var i = 0; i < list.length; i += PER) pages.push(list.slice(i, i + PER));
+
+  // ── 한 반이 두 장에 걸치지 않게 ──────────────────────
+  //   자리가 모자라면 그 반은 통째로 다음 장으로 넘깁니다.
+  //   (한 반이 34명을 넘으면 어쩔 수 없이 나뉩니다)
+  var groups = [], gk = null;
+  list.forEach(function(st){
+    var k = String(st.className || '');
+    if(k !== gk){ groups.push([]); gk = k; }
+    groups[groups.length - 1].push(st);
+  });
+
+  var pages = [], cur = [];
+  groups.forEach(function(g){
+    if(g.length > PER){                             // 한 반이 한 장보다 클 때
+      if(cur.length){ pages.push(cur); cur = []; }
+      for(var i = 0; i < g.length; i += PER) pages.push(g.slice(i, i + PER));
+      return;
+    }
+    if(cur.length + g.length > PER){ pages.push(cur); cur = []; }
+    cur = cur.concat(g);
+  });
+  if(cur.length) pages.push(cur);
+  if(!pages.length) pages.push([]);
 
   var rowH = Math.max(15, Math.min(26, H / (PER + 1)));
 
@@ -16611,7 +16632,7 @@ function _stuListSheetShow(list, btn){
       +     "WiLLGROW 재원생 명단</div>"
       +   "<div style='font-size:8.5px;color:#8A9178;margin-left:8px'>철산캠퍼스</div>"
       +   "<div style='margin-left:auto;font-size:8.5px;color:#8A9178'>"
-      +     _plEsc(getTodayStr()) + " 기준 · 모두 " + list.length + "명"
+      +     _plEsc(getTodayStr()) + " 기준"
       +     (pages.length > 1 ? "  (" + (idx + 1) + "/" + pages.length + ")" : "")
       +   "</div>"
       + "</div><table><colgroup>";
