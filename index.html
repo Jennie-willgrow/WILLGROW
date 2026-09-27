@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-29 00:20';
+var APP_VERSION = '2026-09-29 01:25';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -4518,6 +4518,26 @@ async function deleteNativeMemo(pageId) {
 //    반 · 담임 · 원어민 · 학생 · 요일 · 시간 · 교재 · 단어장 · 인원
 //    지금 있는 자료를 그대로 모아 뽑습니다 (두 번 일하지 않게)
 // ════════════════════════════════════════════════════════════
+// 교재 이름 줄이기 — 칸이 좁아서 약자로 씁니다
+//   Little Junior Star 3C → S 3C      Galaxy 1 → G 1
+//   Junior 4 → J 4                    Bricks Reading 2 → BR 2
+//   Hand in Hand 3 → HiH 3
+var WG_BOOK_ABBR = { STAR:'S', GALAXY:'G', JUNIOR:'J', PHONICS:'P' };
+function _bookShort(seriesName, seriesCode, bookName){
+  var code = String(seriesCode || '').toUpperCase();
+  var ab = WG_BOOK_ABBR[code];
+  if(!ab){
+    // 이름의 낱말 첫 글자만 (작은 낱말은 소문자로)  Bricks Reading → BR
+    ab = String(seriesName || '').trim().split(/\s+/).map(function(w){
+      if(!w) return '';
+      var c = w.charAt(0);
+      return /^[a-z]/.test(w) ? c : c.toUpperCase();
+    }).join('');
+  }
+  var bn = String(bookName || '').trim();
+  return (ab + (bn ? ' ' + bn : '')).trim();
+}
+
 async function fetchRosterSheet() {
   var cls = await sbGetSoft('classes',
     'select=id,name,vocab_book,teachers!teacher_id(name),'
@@ -4529,67 +4549,76 @@ async function fetchRosterSheet() {
   var byClass = {};
   stu.forEach(function(s){
     if(!s.class_id) return;
-    (byClass[s.class_id] = byClass[s.class_id] || []).push(s.name || '');
+    // "김민준 (Leo)" → 한글 이름만
+    var nm = String(s.name || '').replace(/\s*[（(][^）)]*[）)]\s*$/, '').trim();
+    if(nm) (byClass[s.class_id] = byClass[s.class_id] || []).push(nm);
   });
 
-  // 시간표 — 요일 · 시간
+  // 시간표 — 요일 · 시간 · 교재 (교재는 시간표에 들어간 것을 씁니다)
   var sch = await _sbGetSafe('class_schedules',
-    'select=class_id,weekday,period,start_time,end_time,effective_from') || [];
+    'select=class_id,weekday,period,start_time,end_time,textbook_id,section,effective_from') || [];
   var schBy = {};
   sch.forEach(function(r){
     if(r.effective_from) return;                 // 지금 쓰는 시간표만
     (schBy[r.class_id] = schBy[r.class_id] || []).push(r);
   });
 
-  // 레슨플랜 교재 줄 — 메인 · 서브
+  // 교재 이름 · WG 교재인지
   var cat = await fetchTextbookCatalog(false);
-  var bName = {}, bWG = {};
-  (cat ? cat.series : []).forEach(function(s){
-    (s.books || []).forEach(function(b){
-      bName[b.id] = _bookFullName({ series:s, book:b });
-      bWG[b.id] = LP_WG_COURSES.indexOf(s.code) >= 0;
+  var bShort = {}, bWG = {}, bOrder = {};
+  (cat ? cat.series : []).forEach(function(s, si){
+    (s.books || []).forEach(function(b, bi){
+      bShort[b.id] = _bookShort(s.name, s.code, b.name);
+      bWG[b.id]    = LP_WG_COURSES.indexOf(s.code) >= 0;
+      bOrder[b.id] = si * 100 + bi;
     });
-  });
-  var lines = await _sbGetSafe('class_plan_lines',
-    'select=class_id,line_no,textbook_id,section&order=line_no.asc') || [];
-  var lineBy = {};
-  lines.forEach(function(l){
-    if(!l.textbook_id) return;
-    (lineBy[l.class_id] = lineBy[l.class_id] || []).push(l);
   });
 
   var DAY = ['', '월', '화', '수', '목', '금', '토', '일'];
 
   var out = cls.map(function(c){
     var ss = schBy[c.id] || [];
-    var days = {}, times = {};
-    ss.forEach(function(r){
-      days[Number(r.weekday)] = true;
-      if(r.start_time) times[String(r.start_time).slice(0,5)] = true;
-    });
-    var dayTxt = Object.keys(days).map(Number).sort(function(a,b){ return a-b; })
-                   .map(function(d){ return DAY[d]; }).join('·');
-    var timeTxt = Object.keys(times).sort().map(function(t){ return _h12(t); }).join(', ');
 
-    var ll = lineBy[c.id] || [];
-    var main = [], sub = [];
-    ll.forEach(function(l){
-      var nm = bName[l.textbook_id] || '';
-      if(!nm) return;
-      var txt = nm + (l.section ? ' (' + l.section + ')' : '');
-      (bWG[l.textbook_id] ? main : sub).push(txt);
+    // ── 요일 — 이어지는 요일이면 "월~금" ──
+    var dl = [];
+    ss.forEach(function(r){
+      var d = Number(r.weekday);
+      if(d && dl.indexOf(d) < 0) dl.push(d);
     });
-    // 같은 메인 교재가 여러 영역으로 겹치면 한 번만
-    main = main.map(function(x){ return x.replace(/\s*\([^)]*\)\s*$/, ''); })
-               .filter(function(x, i, a){ return a.indexOf(x) === i; });
-    sub  = sub.filter(function(x, i, a){ return a.indexOf(x) === i; });
+    dl.sort(function(a, b){ return a - b; });
+    var dayTxt = '';
+    if(dl.length){
+      var straight = dl[dl.length - 1] - dl[0] === dl.length - 1;
+      dayTxt = (dl.length >= 3 && straight)
+        ? (DAY[dl[0]] + '~' + DAY[dl[dl.length - 1]])
+        : dl.map(function(d){ return DAY[d]; }).join('·');
+    }
+
+    // ── 시간 — 시작 · 끝 (줄내림으로 보여 줍니다) ──
+    var st = '', en = '';
+    ss.forEach(function(r){
+      var a = String(r.start_time || '').slice(0,5), b = String(r.end_time || '').slice(0,5);
+      if(a && (!st || a < st)) st = a;
+      if(b && (!en || b > en)) en = b;
+    });
+
+    // ── 교재 — 시간표 칸에 들어간 교재 ──
+    var seen = {}, main = [], sub = [];
+    ss.slice().sort(function(a, b){
+      return (bOrder[a.textbook_id] || 0) - (bOrder[b.textbook_id] || 0);
+    }).forEach(function(r){
+      var id = r.textbook_id;
+      if(!id || seen[id] || !bShort[id]) return;
+      seen[id] = true;
+      (bWG[id] ? main : sub).push(bShort[id]);
+    });
 
     var names = (byClass[c.id] || []);
     return { id:c.id, className:c.name || '',
              teacher:c.teachers ? (c.teachers.name || '') : '',
              native:c.nat ? (c.nat.name || '') : '',
              students:names, count:names.length,
-             days:dayTxt, time:timeTxt,
+             days:dayTxt, start:_h12(st), end:_h12(en),
              main:main.join(' / '),
              subs:sub.slice(0, 3),          // 서브교재는 최대 3개
              vocab:c.vocab_book || '' };
@@ -12155,8 +12184,8 @@ function _rosterShow(r, btn){
   var W = SHEET_W - PAD * 2, H = SHEET_H - PAD * 2 - 24;   // 24 = 제목줄
 
   var colW = (W - LBL) / N;
-  // 학년띠 + 담임 + 반 + 원어민 + 요일 + 시간 + 메인 + 서브3 + 단어장 + 학생 + 인원
-  var rowsN = 11 + maxStu;
+  // 학년띠 + 담임 + 반 + 원어민 + 요일 + 시간(두 줄) + 메인 + 서브3 + 단어장 + 학생 + 인원
+  var rowsN = 12 + maxStu;
 
   var fsH = (H / rowsN) / 1.5;                // 줄 높이로 정한 글씨 크기
   var fsW = (colW - 5) / 3.3;                 // 칸 너비로 정한 글씨 크기 (한글 3자 기준)
@@ -12179,6 +12208,9 @@ function _rosterShow(r, btn){
     +   (fs * 1.1).toFixed(1) + "px}"
     + ".sm{font-size:" + fsS.toFixed(1) + "px;color:#5B6551}"
     + ".nm{color:#1F2A1B}"
+    // 학년이 바뀌는 자리의 굵은 세로선
+    + ".br{border-left:2px solid #5E6B52}"
+    + "table{border:1.2px solid #8D9682}"
     + "</style>";
 
   var h = "<div class='sheet' style='width:" + SHEET_W + "px;height:" + SHEET_H + "px'>"
@@ -12191,32 +12223,57 @@ function _rosterShow(r, btn){
     + "</div>"
     + "<table>";
 
+  // ── 학년이 바뀌는 자리 — 여기에 굵은 구분선을 넣습니다 ──
+  var gStart = {};
+  items.forEach(function(c, i){
+    if(i === 0) return;
+    if(_classGroup(c.className).key !== _classGroup(items[i-1].className).key) gStart[i] = true;
+  });
+  function bd(i){ return gStart[i] ? " br" : ""; }      // 왼쪽 굵은 선
+
   // ── 학년 띠 ──
   h += "<tr><td class='lbl'></td>";
   var gi = 0;
   while(gi < N){
     var g = _classGroup(items[gi].className), span = 1;
     while(gi + span < N && _classGroup(items[gi + span].className).key === g.key) span++;
-    h += "<td class='gr' colspan='" + span + "'>" + _plEsc(g.label) + "</td>";
+    h += "<td class='gr" + bd(gi) + "' colspan='" + span + "'>" + _plEsc(g.label) + "</td>";
     gi += span;
   }
   h += "</tr>";
 
   function row(label, get, cls){
     var s = "<tr><td class='lbl'>" + label + "</td>";
-    items.forEach(function(c){
-      s += "<td class='" + (cls || 'sm') + "'>" + _plEsc(get(c) || '') + "</td>"; });
+    items.forEach(function(c, i){
+      s += "<td class='" + (cls || 'sm') + bd(i) + "'>" + _plEsc(get(c) || '') + "</td>"; });
     return s + "</tr>";
   }
 
-  h += row('담임',   function(c){ return c.teacher; }, 'hd');
+  // 담임 — 이름이 잘리지 않게 한 줄에 넣습니다
+  h += "<tr><td class='lbl'>담임</td>";
+  items.forEach(function(c, i){
+    var nm = String(c.teacher || '');
+    // 칸에 들어갈 만큼만 글씨를 줄입니다 (영어 이름은 한글보다 좁습니다)
+    var wide = (nm.match(/[가-힣]/g) || []).length + nm.length * 0.55;
+    var tf = Math.max(2.8, Math.min(fs, (colW - 3) / Math.max(1, wide)));
+    h += "<td class='hd" + bd(i) + "' style='white-space:nowrap;letter-spacing:-.2px;font-size:"
+      + tf.toFixed(1) + "px'>" + _plEsc(nm || '—') + "</td>";
+  });
+  h += "</tr>";
   h += "<tr><td class='lbl'>반</td>";
-  items.forEach(function(c){
-    h += "<td class='cls'>" + _plEsc(c.className) + "</td>"; });
+  items.forEach(function(c, i){
+    h += "<td class='cls" + bd(i) + "'>" + _plEsc(c.className) + "</td>"; });
   h += "</tr>";
   h += row('원어민', function(c){ return c.native; });
   h += row('요일',   function(c){ return c.days; });
-  h += row('시간',   function(c){ return c.time; });
+  // 시간 — 시작 시간 아래에 끝나는 시간
+  h += "<tr><td class='lbl'>시간</td>";
+  items.forEach(function(c, i){
+    h += "<td class='sm" + bd(i) + "' style='white-space:nowrap;line-height:1.1'>"
+      + _plEsc(c.start || '')
+      + (c.end ? "<br>" + _plEsc(c.end) : '') + "</td>";
+  });
+  h += "</tr>";
   h += row('메인',   function(c){ return c.main; });
   for(var k = 0; k < 3; k++){
     (function(idx){
@@ -12229,16 +12286,16 @@ function _rosterShow(r, btn){
   for(var i = 0; i < maxStu; i++){
     (function(idx){
       h += "<tr><td class='lbl' style='color:#B4BCA8'>" + (idx + 1) + "</td>";
-      items.forEach(function(c){
-        h += "<td class='nm'>" + _plEsc(c.students[idx] || '') + "</td>"; });
+      items.forEach(function(c, i2){
+        h += "<td class='nm" + bd(i2) + "'>" + _plEsc(c.students[idx] || '') + "</td>"; });
       h += "</tr>";
     })(i);
   }
 
   // ── 반별 인원 ──
   h += "<tr><td class='lbl' style='background:#DCE6D2'>인원</td>";
-  items.forEach(function(c){
-    h += "<td class='hd'>" + c.count + "</td>"; });
+  items.forEach(function(c, i){
+    h += "<td class='hd" + bd(i) + "'>" + c.count + "</td>"; });
   h += "</tr></table></div>";
 
   _prPreview("전체 재학생 명단", css, h,
