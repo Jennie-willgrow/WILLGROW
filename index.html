@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-27 09:15';
+var APP_VERSION = '2026-09-27 10:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2526,7 +2526,7 @@ async function fetchBookOrderDue() {
     });
   });
 
-  // 이미 주문한 건 빼 줍니다
+  // 이미 주문한 건 "주문함" 으로 표시합니다
   var wg = [], ext = [];
   try { wg  = await fetchWGOrders(); }       catch(e){}
   try { ext = await fetchExternalOrders(); } catch(e){}
@@ -2538,12 +2538,64 @@ async function fetchBookOrderDue() {
     };
     return wg.some(hit) || ext.some(hit);
   }
-  out = out.filter(function(x){ return !ordered(x.className, x.nextBook); });
+
+  // 선생님 메모 · 확인 완료
+  var notes = await _sbGetSafe('book_order_notes',
+    'select=class_id,textbook_id,note,note_by,done,done_by,done_at') || [];
+  var nMap = {};
+  notes.forEach(function(n){ nMap[n.class_id + '|' + n.textbook_id] = n; });
+
+  out.forEach(function(x){
+    var n = nMap[x.classId + '|' + x.nowBookId] || {};
+    x.note    = n.note    || '';
+    x.noteBy  = n.note_by || '';
+    x.done    = !!n.done;
+    x.doneBy  = n.done_by || '';
+    x.doneAt  = n.done_at ? String(n.done_at).slice(0, 10) : '';
+    x.ordered = ordered(x.className, x.nextBook);
+    if(x.ordered && !x.done){ x.done = true; x.doneBy = '주문서'; }
+  });
 
   out.sort(function(a, b){
-    return a.daysLeft - b.daysLeft
+    return (a.done ? 1 : 0) - (b.done ? 1 : 0)
+        || a.daysLeft - b.daysLeft
         || (a.className < b.className ? -1 : a.className > b.className ? 1 : 0); });
-  return { items:out, leadDays:LP_ORDER_LEAD_DAYS };
+
+  return { items:out.filter(function(x){ return !x.done; }),
+           doneItems:out.filter(function(x){ return x.done; }),
+           leadDays:LP_ORDER_LEAD_DAYS };
+}
+
+// 메모 한 줄 · 확인 완료 저장
+async function saveBookOrderNote(classId, textbookId, data) {
+  if(!classId || !textbookId) return { success:false, error:'반과 교재가 필요해요.' };
+  data = data || {};
+
+  var row = { class_id:classId, textbook_id:textbookId,
+              updated_at:new Date().toISOString() };
+  if(data.note !== undefined){ row.note = String(data.note || ''); row.note_by = data.by || ''; }
+  if(data.done !== undefined){
+    row.done    = !!data.done;
+    row.done_by = data.done ? (data.by || '') : null;
+    row.done_at = data.done ? new Date().toISOString() : null;
+  }
+
+  var res = await fetch(SUPABASE_URL + '/rest/v1/book_order_notes'
+    + '?on_conflict=class_id,textbook_id', {
+    method:'POST',
+    headers:_sbH({ 'Prefer':'resolution=merge-duplicates,return=minimal' }),
+    body:JSON.stringify([row])
+  });
+  if(!res.ok){
+    var err = await res.text();
+    if(_handleAuthError(res.status)) throw new Error('AUTH');
+    if(/42P01|does not exist/i.test(err)){
+      return { success:false,
+               error:'메모 서랍이 아직 없어요. RUN_ME_26_교재주문_메모.sql 을 먼저 돌려주세요.' };
+    }
+    return { success:false, error:'[교재 메모] ' + err };
+  }
+  return { success:true };
 }
 
 // ── 권 목록 · 이어받기 ───────────────────────────────────────
@@ -4577,7 +4629,8 @@ var _serverFunctions = {
   fetchMasterTimetable, fetchNonClassDays,
   fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
   fetchLessonPlanSetup, fetchBookUnits, saveLessonPlanLines,
-  fetchLessonPlanTerms, fetchNextTermDraft, fetchBookOrderDue,
+  fetchLessonPlanTerms, fetchNextTermDraft,
+  fetchBookOrderDue, saveBookOrderNote,
   generateClassLessonPlan, fetchClassLessonPlan,
   updateLessonPlanEntry, clearLessonPlan,
   checkPin, fetchTeachers, fetchClasses, fetchClassList, fetchClassesForLP,
@@ -16464,7 +16517,8 @@ function loadBookOrderDue(){
     + "곧 끝나는 교재를 살펴보는 중…</div>";
   google.script.run
     .withSuccessHandler(function(res){
-      _boDue = (res && res.items) || [];
+      _boDue  = (res && res.items) || [];
+      _boDone = (res && res.doneItems) || [];
       renderBookOrderDue(res || {});
       if(typeof setNavBadge === 'function') setNavBadge('bookorderboard', _boDue.length);
     })
@@ -16475,26 +16529,23 @@ function loadBookOrderDue(){
 function renderBookOrderDue(res){
   var box = document.getElementById('bookOrderDueBox');
   if(!box) return;
+  res = res || {};
+  _boDone = res.doneItems || _boDone || [];
 
-  if(!_boDue.length){
-    box.innerHTML = "<div style='background:#F4F6F1;border:1px solid #E2E8D8;border-radius:11px;"
-      + "padding:11px 14px;font-size:12px;color:#7B8474'>"
-      + "📦 3주 안에 끝나는 교재가 없어요."
-      + (res.noPlan ? " <span style='color:#A8B09C'>(레슨플랜이 아직 없습니다)</span>" : "")
-      + "</div>";
-    return;
-  }
+  function card(d, i, isDone){
+    var urgent = !isDone && d.daysLeft <= 7;
+    var line   = isDone ? "#DDE3D6" : (urgent ? "#F0C2C2" : "#EEE3C8");
+    var chip   = isDone ? "#9AA98F" : (urgent ? "#E5484D" : "#D9A62E");
 
-  var rows = _boDue.map(function(d, i){
-    var urgent = d.daysLeft <= 7;
-    return "<div style='display:flex;align-items:center;gap:11px;background:#fff;"
-      +   "border:1px solid " + (urgent ? "#F0C2C2" : "#EEE3C8") + ";border-radius:11px;"
-      +   "padding:11px 13px;margin-bottom:8px'>"
-      +   "<div style='background:" + (urgent ? "#E5484D" : "#D9A62E") + ";color:#fff;"
-      +     "border-radius:9px;padding:5px 9px;font-size:11.5px;font-weight:800;"
-      +     "white-space:nowrap;min-width:44px;text-align:center'>D-" + d.daysLeft + "</div>"
+    return "<div style='background:" + (isDone ? "#FAFBF8" : "#fff") + ";border:1px solid "
+      +   line + ";border-radius:11px;padding:11px 13px;margin-bottom:8px'>"
+
+      + "<div style='display:flex;align-items:center;gap:11px'>"
+      +   "<div style='background:" + chip + ";color:#fff;border-radius:9px;padding:5px 9px;"
+      +     "font-size:11.5px;font-weight:800;white-space:nowrap;min-width:44px;"
+      +     "text-align:center'>" + (isDone ? "✓" : "D-" + d.daysLeft) + "</div>"
       +   "<div style='flex:1;min-width:0'>"
-      +     "<div style='font-size:13px;font-weight:800;color:#2D3A28'>"
+      +     "<div style='font-size:13px;font-weight:800;color:" + (isDone ? "#7B8474" : "#2D3A28") + "'>"
       +       _plEsc(d.className) + " <span style='color:#A8B09C;font-weight:600'>·</span> "
       +       _plEsc(d.nowBook)
       +       "<span style='font-size:10px;font-weight:700;border-radius:5px;padding:1px 6px;"
@@ -16506,27 +16557,127 @@ function renderBookOrderDue(res){
       +       (d.nextBook
                 ? " · 다음 <b style='color:#2D6A4F'>" + _plEsc(d.nextBook) + "</b>"
                 : " · <span style='color:#C0392B'>다음 교재가 아직 없어요</span>")
+      +       (isDone
+                ? " · <b style='color:#5B8A6A'>"
+                  + (d.ordered && d.doneBy === '주문서' ? "주문서 넣음"
+                     : "확인 " + _plEsc(d.doneBy || '') + (d.doneAt ? " (" + d.doneAt + ")" : ""))
+                  + "</b>"
+                : "")
       +     "</div>"
       +   "</div>"
-      +   (d.nextBook
-          ? "<button onclick='boOrderFromDue(" + i + ")' style='background:#2D6A4F;color:#fff;"
-            + "border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;"
-            + "cursor:pointer;white-space:nowrap'>주문서 만들기</button>"
-          : "<button onclick='boOpenPlan(" + i + ")' style='background:#EEF2FA;color:#3C5A8A;"
-            + "border:none;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;"
-            + "cursor:pointer;white-space:nowrap'>레슨플랜 열기</button>")
-      + "</div>";
-  }).join('');
+      +   (isDone
+          ? "<button onclick='boUndo(" + i + ")' style='background:#F1F3EE;color:#7B8474;"
+            + "border:none;border-radius:9px;padding:7px 12px;font-size:11.5px;font-weight:700;"
+            + "cursor:pointer;white-space:nowrap'>되돌리기</button>"
+          : "<div style='display:flex;gap:6px;flex-shrink:0'>"
+            + (d.nextBook
+               ? "<button onclick='boOrderFromDue(" + i + ")' style='background:#2D6A4F;color:#fff;"
+                 + "border:none;border-radius:9px;padding:8px 13px;font-size:12px;font-weight:700;"
+                 + "cursor:pointer;white-space:nowrap'>주문서 만들기</button>"
+               : "<button onclick='boOpenPlan(" + i + ")' style='background:#EEF2FA;color:#3C5A8A;"
+                 + "border:none;border-radius:9px;padding:8px 13px;font-size:12px;font-weight:700;"
+                 + "cursor:pointer;white-space:nowrap'>레슨플랜 열기</button>")
+            + "<button onclick='boMarkDone(" + i + ")' title='주문서 없이 넘기기' "
+            + "style='background:#F1F6EE;color:#2D6A4F;border:1.5px solid #BBD3BE;"
+            + "border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700;"
+            + "cursor:pointer;white-space:nowrap'>✓ 확인</button>"
+            + "</div>")
+      + "</div>"
 
-  box.innerHTML =
+      // 메모 한 줄 — 눌러서 고칩니다
+      + "<div onclick='boEditNote(" + i + "," + (isDone ? 1 : 0) + ")' "
+      +   "title='눌러서 메모 쓰기' style='margin-top:8px;padding:6px 9px;border-radius:8px;"
+      +   "cursor:pointer;font-size:11.5px;line-height:1.5;background:"
+      +   (d.note ? "#FFFBEF;border:1px solid #EADFC0;color:#7A5A12"
+                 : "#F7F8F5;border:1px dashed #DDE3D6;color:#B3BAA9") + "'>"
+      +   (d.note
+          ? "📝 " + _plEsc(d.note)
+            + (d.noteBy ? "<span style='color:#B0A483;font-size:10.5px'> — "
+                          + _plEsc(d.noteBy) + "</span>" : "")
+          : "📝 메모 남기기")
+      + "</div>"
+      + "</div>";
+  }
+
+  var head =
       "<div style='display:flex;align-items:center;gap:7px;margin-bottom:9px'>"
     +   "<span style='font-size:13.5px;font-weight:800;color:#2D3A28'>📦 교재 주문이 필요해요</span>"
-    +   "<span style='background:#E5484D;color:#fff;border-radius:9px;min-width:18px;height:18px;"
-    +     "padding:0 6px;font-size:10.5px;font-weight:800;line-height:18px;text-align:center'>"
-    +     _boDue.length + "</span>"
+    +   (_boDue.length
+        ? "<span style='background:#E5484D;color:#fff;border-radius:9px;min-width:18px;height:18px;"
+          + "padding:0 6px;font-size:10.5px;font-weight:800;line-height:18px;text-align:center'>"
+          + _boDue.length + "</span>"
+        : "")
     +   "<span style='font-size:10.5px;color:#A8B09C;margin-left:auto'>"
     +     "레슨플랜 기준 · 끝나기 3주 전부터</span>"
-    + "</div>" + rows;
+    + "</div>";
+
+  var body = _boDue.length
+    ? _boDue.map(function(d, i){ return card(d, i, false); }).join('')
+    : "<div style='background:#F4F6F1;border:1px solid #E2E8D8;border-radius:11px;"
+      + "padding:11px 14px;font-size:12px;color:#7B8474'>"
+      + "3주 안에 주문할 교재가 없어요."
+      + (res.noPlan ? " <span style='color:#A8B09C'>(레슨플랜이 아직 없습니다)</span>" : "")
+      + "</div>";
+
+  var doneBlock = '';
+  if(_boDone.length){
+    doneBlock =
+        "<div onclick='boToggleDone()' style='margin-top:10px;font-size:11.5px;font-weight:700;"
+      +   "color:#7B8474;cursor:pointer;padding:4px 2px'>"
+      +   (_boShowDone ? "▾" : "▸") + " 확인한 교재 " + _boDone.length + "건</div>"
+      + "<div style='display:" + (_boShowDone ? "block" : "none") + "'>"
+      +   _boDone.map(function(d, i){ return card(d, i, true); }).join('')
+      + "</div>";
+  }
+
+  box.innerHTML = head + body + doneBlock;
+}
+
+var _boDone = [], _boShowDone = false;
+
+function boToggleDone(){
+  _boShowDone = !_boShowDone;
+  renderBookOrderDue({ doneItems:_boDone });
+}
+
+// 주문서 없이 넘기기
+function boMarkDone(i){
+  var d = _boDue[i];
+  if(!d) return;
+  _boSave(d, { done:true }, "확인했어요.");
+}
+function boUndo(i){
+  var d = _boDone[i];
+  if(!d) return;
+  if(d.doneBy === '주문서'){
+    showToast("주문서가 들어간 건이에요. 주문서를 지우면 다시 뜹니다.");
+    return;
+  }
+  _boSave(d, { done:false }, "다시 띄웠어요.");
+}
+
+// 메모 한 줄
+function boEditNote(i, isDone){
+  var d = (isDone ? _boDone : _boDue)[i];
+  if(!d) return;
+  var v = prompt(d.className + " · " + d.nowBook + "\n메모를 적어주세요. (비우면 지웁니다)",
+                 d.note || '');
+  if(v === null) return;
+  _boSave(d, { note:String(v).trim() }, String(v).trim() ? "메모를 남겼어요." : "메모를 지웠어요.");
+}
+
+function _boSave(d, patch, okMsg){
+  patch.by = _userName || '';
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.success){ alert((r && r.error) || "저장하지 못했어요."); return; }
+      showToast(okMsg);
+      loadBookOrderDue();
+    })
+    .withFailureHandler(function(e){
+      showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .saveBookOrderNote(d.classId, d.nowBookId, patch);
 }
 
 // 주문서로 — 반 · 교재 · 시작일을 채워 둡니다
