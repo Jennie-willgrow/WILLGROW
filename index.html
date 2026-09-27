@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-27 10:30';
+var APP_VERSION = '2026-09-27 11:20';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2539,21 +2539,45 @@ async function fetchBookOrderDue() {
     return wg.some(hit) || ext.some(hit);
   }
 
-  // 선생님 메모 · 확인 완료
+  // 확인 완료 (메모는 Daily Report 의 북오더를 그대로 씁니다)
   var notes = await _sbGetSafe('book_order_notes',
-    'select=class_id,textbook_id,note,note_by,done,done_by,done_at') || [];
+    'select=class_id,textbook_id,done,done_by,done_at') || [];
   var nMap = {};
   notes.forEach(function(n){ nMap[n.class_id + '|' + n.textbook_id] = n; });
 
+  // ── 선생님들이 Daily Report 에 써 두신 북오더 메모 ──
+  var memos = [];
+  try { memos = await fetchBookOrdersBoard(); } catch(e){}
+  var byClassName = {};
+  memos.forEach(function(m){
+    var cn = String(m.className || '').trim();
+    if(!cn || !String(m.bookOrders || '').trim()) return;
+    (byClassName[cn] = byClassName[cn] || []).push({
+      date: (m.date || '').slice(0, 10),
+      teacher: m.teacherName || '',
+      text: String(m.bookOrders).trim(),
+      book: m.book || '',
+      pageId: m.pageId
+    });
+  });
+  Object.keys(byClassName).forEach(function(cn){
+    byClassName[cn].sort(function(a, b){ return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+  });
+
   out.forEach(function(x){
     var n = nMap[x.classId + '|' + x.nowBookId] || {};
-    x.note    = n.note    || '';
-    x.noteBy  = n.note_by || '';
     x.done    = !!n.done;
     x.doneBy  = n.done_by || '';
     x.doneAt  = n.done_at ? String(n.done_at).slice(0, 10) : '';
     x.ordered = ordered(x.className, x.nextBook);
     if(x.ordered && !x.done){ x.done = true; x.doneBy = '주문서'; }
+
+    // 그 교재를 하는 동안 쓰인 메모만 (너무 옛날 건 빼고)
+    var mine = (byClassName[String(x.className).trim()] || []).filter(function(m){
+      return !m.date || m.date >= x.from;
+    });
+    x.memos = mine.slice(0, 3);
+    x.memoMore = Math.max(0, mine.length - 3);
   });
 
   out.sort(function(a, b){
@@ -2566,14 +2590,13 @@ async function fetchBookOrderDue() {
            leadDays:LP_ORDER_LEAD_DAYS };
 }
 
-// 메모 한 줄 · 확인 완료 저장
+// 확인 완료 저장 (메모는 Daily Report 에 쓰십니다)
 async function saveBookOrderNote(classId, textbookId, data) {
   if(!classId || !textbookId) return { success:false, error:'반과 교재가 필요해요.' };
   data = data || {};
 
   var row = { class_id:classId, textbook_id:textbookId,
               updated_at:new Date().toISOString() };
-  if(data.note !== undefined){ row.note = String(data.note || ''); row.note_by = data.by || ''; }
   if(data.done !== undefined){
     row.done    = !!data.done;
     row.done_by = data.done ? (data.by || '') : null;
@@ -16584,18 +16607,27 @@ function renderBookOrderDue(res){
             + "</div>")
       + "</div>"
 
-      // 메모 한 줄 — 눌러서 고칩니다
-      + "<div onclick='boEditNote(" + i + "," + (isDone ? 1 : 0) + ")' "
-      +   "title='눌러서 메모 쓰기' style='margin-top:8px;padding:6px 9px;border-radius:8px;"
-      +   "cursor:pointer;font-size:11.5px;line-height:1.5;background:"
-      +   (d.note ? "#FFFBEF;border:1px solid #EADFC0;color:#7A5A12"
-                 : "#F7F8F5;border:1px dashed #DDE3D6;color:#B3BAA9") + "'>"
-      +   (d.note
-          ? "📝 " + _plEsc(d.note)
-            + (d.noteBy ? "<span style='color:#B0A483;font-size:10.5px'> — "
-                          + _plEsc(d.noteBy) + "</span>" : "")
-          : "📝 메모 남기기")
-      + "</div>"
+      // 선생님들이 Daily Report 북오더에 써 두신 메모
+      + ((d.memos && d.memos.length)
+        ? "<div style='margin-top:8px;padding:7px 10px;border-radius:8px;background:#FFFBEF;"
+          + "border:1px solid #EADFC0'>"
+          + "<div style='font-size:10.5px;font-weight:700;color:#A8872A;margin-bottom:4px'>"
+          +   "📝 Daily Report 북오더 " + d.memos.length + "건"
+          +   (d.memoMore ? " <span style='font-weight:500;color:#C4B489'>외 "
+                            + d.memoMore + "건</span>" : "")
+          + "</div>"
+          + d.memos.map(function(m){
+              return "<div style='font-size:11.5px;color:#7A5A12;line-height:1.55;"
+                +   "margin-top:2px;white-space:pre-wrap'>"
+                +   "<span style='color:#B0A483;font-size:10.5px'>"
+                +     _plEsc((m.date || '').slice(5)) + " "
+                +     _plEsc(m.teacher || '') + "</span>  "
+                +   _plEsc(m.text)
+                + "</div>";
+            }).join('')
+          + "</div>"
+        : "<div style='margin-top:7px;font-size:10.5px;color:#C3C9BB'>"
+          + "Daily Report 북오더에 남긴 메모가 없어요</div>")
       + "</div>";
   }
 
@@ -16654,16 +16686,6 @@ function boUndo(i){
     return;
   }
   _boSave(d, { done:false }, "다시 띄웠어요.");
-}
-
-// 메모 한 줄
-function boEditNote(i, isDone){
-  var d = (isDone ? _boDone : _boDue)[i];
-  if(!d) return;
-  var v = prompt(d.className + " · " + d.nowBook + "\n메모를 적어주세요. (비우면 지웁니다)",
-                 d.note || '');
-  if(v === null) return;
-  _boSave(d, { note:String(v).trim() }, String(v).trim() ? "메모를 남겼어요." : "메모를 지웠어요.");
 }
 
 function _boSave(d, patch, okMsg){
