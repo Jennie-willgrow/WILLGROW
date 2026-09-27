@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-27 19:00';
+var APP_VERSION = '2026-09-28 10:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -758,6 +758,31 @@ function canEditPastReports(){
 }
 
 // 마스터·관리자만 할 수 있는 일 (교재 표지 바꾸기 등)
+// ════════════════════════════════════════════════════════════
+//  업무 담당자
+//    담당자로 정해진 분과 마스터에게만 빨간 동그라미가 뜹니다.
+//    아무도 안 정해 두면 예전처럼 모두에게 보입니다.
+// ════════════════════════════════════════════════════════════
+var WG_DUTIES = [
+  { key:'supmat',    icon:'📎', label:'부가자료 제작',  hint:'Desk 에서 제작합니다' },
+  { key:'wgorder',   icon:'📗', label:'WG 교재 주문',   hint:'' },
+  { key:'extorder',  icon:'📔', label:'외부 교재 주문', hint:'' },
+  { key:'parentmsg', icon:'💬', label:'교재구입메세지', hint:'' },
+  { key:'bookorder', icon:'📦', label:'Book Orders',   hint:'곧 끝나는 교재 · 선생님 요청' }
+];
+var WG_DUTY_KEYS = WG_DUTIES.map(function(d){ return d.key; });
+
+var _myDuties = [];          // 로그인한 사람이 맡은 업무
+var _dutyOwners = {};        // 업무별 담당자 이름들
+
+// 이 업무의 빨간 동그라미를 내가 봐야 하나?
+function canSeeDuty(key){
+  if(isMasterUser()) return true;                 // 마스터는 늘 전체
+  if(!_dutyOwners[key] || !_dutyOwners[key].length) return true;  // 담당자 미지정이면 모두
+  return _myDuties.indexOf(key) >= 0;
+}
+function isMasterUser(){ return _userRole === '마스터'; }
+
 function isAdminUser(){
   return _userRole === '마스터' || _userRole === '관리자';
 }
@@ -888,13 +913,30 @@ async function checkPin(pin) {
 //   "고르는 목록" 에서만 activeTeachers() 로 걸러 씁니다.
 async function fetchTeachers() {
   var rows = await sbGetSoft('teachers',
-    'select=id,name,role,is_active,retired_at&order=name.asc',
-    'select=id,name,role&order=name.asc');
+    'select=id,name,role,is_active,retired_at,duties&order=name.asc',
+    'select=id,name,role,is_active,retired_at&order=name.asc');
   return rows.map(function(r){
     return { id:r.id, name:r.name||'', role:r.role||'',
              active: r.is_active !== false,          // 칸이 없던 시절 자료는 재직으로 봅니다
-             retiredAt: r.retired_at || '' };
+             retiredAt: r.retired_at || '',
+             duties: r.duties || [] };               // 맡은 업무
   });
+}
+
+// 맡은 업무 저장
+async function saveTeacherDuties(teacherId, duties) {
+  if(!teacherId) return { success:false, error:'선생님을 골라주세요.' };
+  var list = (duties || []).filter(function(d){ return WG_DUTY_KEYS.indexOf(d) >= 0; });
+  try {
+    await sbPatch('teachers', 'id=' + _eq(teacherId), { duties:list });
+  } catch(e){
+    if(/duties|PGRST204|42703/i.test(String(e && e.message))){
+      return { success:false,
+               error:'담당자 칸이 아직 없어요. RUN_ME_28_담당자.sql 을 먼저 돌려주세요.' };
+    }
+    throw e;
+  }
+  return { success:true };
 }
 
 // 재직중인 선생님만 (고르는 목록용)
@@ -3655,26 +3697,10 @@ async function setAbsent(studentId, dateStr, on, reason, classId, teacherName, p
     absId = ins.id;
   }
 
-  // ── 메모보드에도 한 줄 (이미 있으면 다시 안 만듭니다) ──
-  try {
-    var exist = await _sbGetSafe('korean_memos',
-      'select=id&absence_id='+_eq(absId)+'&limit=1') || [];
-    if(!exist.length){
-      var info = await _sbGetSafe('students',
-        'select=name,classes(name)&id='+_eq(studentId)+'&limit=1') || [];
-      var sname = info.length ? (info[0].name||'') : '';
-      var cname = (info.length && info[0].classes) ? (info[0].classes.name||'') : '';
-      var dObj  = new Date(dateStr+'T00:00:00');
-      var days  = ['일','월','화','수','목','금','토'];
-      var line  = '[결석] ' + dateStr + ' (' + days[dObj.getDay()] + ') '
-                + (cname ? cname+' ' : '') + sname
-                + (reason ? ' (' + reason + ')' : '');
-      await sbInsert('korean_memos', {
-        content:line, type:'결석', author:teacherName||'',
-        absence_id:absId, written_at:new Date().toISOString()
-      });
-    }
-  } catch(e){ console.warn('[setAbsent] 메모 생성 실패:', e); }
+  // ── 결석 메모는 만들지 않습니다 ──
+  //    결석은 출석부 · Daily Report 에 이미 표시되고,
+  //    메모 보드 위쪽 [오늘 결석] 에도 올라오기 때문입니다.
+  //    (예전에 만들어진 메모는 그대로 남습니다)
 
   return { success:true, id:absId };
 }
@@ -4825,7 +4851,7 @@ var _serverFunctions = {
   upsertTuitionPayment, deleteTuitionPayment, markAllMessageSent,
   createPaymentDayChange, fetchMonthlyCollectionSummary, fetchStudentPaymentHistory,
   fetchTodayReports, submitReport, createBlankReport, updateReportTitle,
-  deleteReport, createReportsForDate,
+  deleteReport, createReportsForDate, saveTeacherDuties,
   fetchInquiries, saveInquiry, quickAddInquiry, enrollInquiry,
   fetchUpcomingConsults, searchConsultRecords,
   fetchCommentsBoard, fetchBookOrdersBoard, toggleBookOrderConfirmed,
@@ -10022,39 +10048,100 @@ function loadMemoList(){
   .fetchMemos();
 }
 function renderMemoCard(m){
-  var typeColors = { "기타":"#9e9e9e", "미등원":"#e57373", "결석":"#ef5350", "재학생상담":"#66bb6a", "신규상담":"#ab47bc", "자료오류":"#ffa726" };
-  var typeBadge = m.type ? "<span style='background:"+(typeColors[m.type]||"#9e9e9e")+";color:#fff;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700;letter-spacing:0.3px'>"+m.type+"</span>" : "";
-  var dateStr = m.createdAt ? m.createdAt.substring(0,10) : "";
-  var timeStr = m.createdAt ? m.createdAt.substring(11,16) : "";
-  var confirmed = m.confirmed || [];
-  var confirmTags = confirmed.map(function(t){
-    var name = t.replace("✅ ","");
-    return "<span style='background:#e8f5e9;color:#2D6A4F;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600'>✓ "+name+"</span>";
-  }).join(" ");
-  var confirmCount = confirmed.length;
-  return "<div style='background:#f8f9fa;border-radius:10px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border:1px solid #e8e8e8;border-left:4px solid #bdbdbd'>"
-    + "<div style='display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px'>"
-    + "<div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap'>"
-    + (m.author ? "<span style='font-size:12px;font-weight:700;color:#333'>✍️ "+m.author+"</span>" : "")
-    + "<span style='font-size:11px;color:#aaa'>"+dateStr+" "+timeStr+"</span>"
-    + typeBadge
+  var typeColors = { "기타":"#9e9e9e", "미등원":"#e57373", "결석":"#ef5350",
+                     "재학생상담":"#66bb6a", "신규상담":"#ab47bc", "자료오류":"#ffa726" };
+  var typeBadge = m.type
+    ? "<span style='background:" + (typeColors[m.type] || "#9e9e9e") + ";color:#fff;"
+      + "padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700;"
+      + "letter-spacing:0.3px'>" + m.type + "</span>" : "";
+
+  var dateStr = m.createdAt ? m.createdAt.substring(0, 10) : "";
+  var timeStr = m.createdAt ? m.createdAt.substring(11, 16) : "";
+
+  var recips    = m.recipients || [];
+  var confirmed = (m.confirmed || []).map(function(t){ return String(t).replace("✅ ", ""); });
+  var confSet   = {};
+  confirmed.forEach(function(n){ confSet[_bareName(n)] = true; });
+
+  // 아직 확인 안 한 사람
+  var waiting = recips.filter(function(r){ return !confSet[_bareName(r)]; });
+  var mineWaiting = _hasMe(recips) && !_hasMe(confirmed);
+
+  function chip(txt, bg, fg, bd){
+    return "<span style='background:" + bg + ";color:" + fg + ";border:1px solid " + bd + ";"
+      + "padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;"
+      + "white-space:nowrap'>" + txt + "</span>";
+  }
+
+  return "<div style='background:#fff;border-radius:11px;padding:13px 15px;margin-bottom:10px;"
+    +   "box-shadow:0 1px 4px rgba(0,0,0,0.07);border:1px solid #e8e8e8;border-left:4px solid "
+    +   (mineWaiting ? "#E5484D" : (waiting.length ? "#E8C55A" : "#7FB08A")) + "'>"
+
+    // ── 누가 썼는지 ──
+    + "<div style='display:flex;align-items:flex-start;justify-content:space-between;gap:8px'>"
+    +   "<div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0'>"
+    +     "<span style='background:#2D3A28;color:#fff;border-radius:9px;padding:3px 10px;"
+    +       "font-size:11.5px;font-weight:800'>✍️ " + _esc(m.author || '이름 없음') + "</span>"
+    +     "<span style='font-size:11px;color:#A8B09C'>" + dateStr + " " + timeStr + "</span>"
+    +     typeBadge
+    +     (mineWaiting
+          ? "<span style='background:#E5484D;color:#fff;border-radius:9px;padding:2px 9px;"
+            + "font-size:10.5px;font-weight:800'>나에게 · 확인 필요</span>" : "")
+    +   "</div>"
+    +   "<div style='display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;"
+    +     "justify-content:flex-end'>"
+    +     "<button onclick='showMemoDetail(\"" + m.id + "\")' style='background:#f0f0f0;"
+    +       "border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;"
+    +       "cursor:pointer;color:#555;white-space:nowrap'>📄 보기</button>"
+    +     "<button onclick='openMemoEditModal(\"" + m.id + "\")' style='background:#fff3e0;"
+    +       "border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;"
+    +       "cursor:pointer;color:#e65100;white-space:nowrap'>✏️ 수정</button>"
+    +     "<button onclick='openConfirmPopup(\"" + m.id + "\")' style='background:"
+    +       (mineWaiting ? "#E5484D;color:#fff" : "#e8f5e9;color:#2D6A4F")
+    +       ";border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;"
+    +       "cursor:pointer;white-space:nowrap'>확인 ✓"
+    +       (confirmed.length ? " (" + confirmed.length + ")" : "") + "</button>"
+    +     "<button onclick='deleteMemoCard(\"" + m.id + "\")' style='background:#fdecea;"
+    +       "border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;"
+    +       "cursor:pointer;color:#c62828;white-space:nowrap'>🗑️</button>"
+    +   "</div>"
     + "</div>"
-    + "<div style='display:flex;gap:5px;flex-shrink:0;margin-left:8px;flex-wrap:wrap;justify-content:flex-end'>"
-    + "<button onclick='showMemoDetail(\""+m.id+"\")' style='background:#f0f0f0;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;color:#555;white-space:nowrap'>📄 보기</button>"
-    + "<button onclick='openMemoEditModal(\""+m.id+"\")' style='background:#fff3e0;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;color:#e65100;white-space:nowrap'>✏️ 수정</button>"
-    + "<button onclick='openConfirmPopup(\""+m.id+"\")' style='background:#e8f5e9;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;color:#2D6A4F;white-space:nowrap'>확인 ✓"+(confirmCount>0?" ("+confirmCount+")":"")+"</button>"
-    + "<button onclick='deleteMemoCard(\""+m.id+"\")' style='background:#fdecea;border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;cursor:pointer;color:#c62828;white-space:nowrap'>🗑️</button>"
+
+    // ── 누구에게 ──
+    + "<div style='display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:8px'>"
+    +   "<span style='font-size:10.5px;font-weight:700;color:#A8B09C;margin-right:2px'>"
+    +     "받는 사람</span>"
+    +   (recips.length
+        ? recips.map(function(r){
+            var ok = confSet[_bareName(r)];
+            return chip((ok ? "✓ " : "") + _esc(r),
+                        ok ? "#EAF3EC" : "#FFF7E6",
+                        ok ? "#2D6A4F" : "#8A6A22",
+                        ok ? "#CFE3D4" : "#EADFC0");
+          }).join('')
+        : chip("전체", "#EEF3FA", "#4E6E9E", "#D4E0F0"))
     + "</div>"
+
+    // ── 내용 ──
+    + "<div style='font-size:13px;color:#222;line-height:1.65;white-space:pre-line;"
+    +   "margin:9px 0 0'>" + m.content + "</div>"
+
+    // ── 누가 확인했는지 ──
+    + "<div style='display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:10px;"
+    +   "padding-top:9px;border-top:1px solid #f0f0f0'>"
+    +   (confirmed.length
+        ? "<span style='font-size:10.5px;font-weight:700;color:#7FB08A;margin-right:2px'>"
+          + "확인함</span>"
+          + confirmed.map(function(n){
+              return chip("✓ " + _esc(n), "#EAF3EC", "#2D6A4F", "#CFE3D4"); }).join('')
+        : "<span style='font-size:11px;color:#C3C9BB'>아직 아무도 확인하지 않았어요</span>")
+    +   (waiting.length
+        ? "<span style='font-size:10.5px;color:#C0392B;margin-left:auto;font-weight:700'>"
+          + "기다리는 중 " + waiting.length + "명</span>"
+        : (recips.length
+          ? "<span style='font-size:10.5px;color:#7FB08A;margin-left:auto;font-weight:700'>"
+            + "모두 확인 ✓</span>" : ""))
     + "</div>"
-    + (m.recipients && m.recipients.length
-        ? "<div style='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px'>"
-          + m.recipients.map(function(t){
-              return "<span style='background:#EEF3FA;color:#4E6E9E;padding:2px 8px;border-radius:10px;"
-                   + "font-size:11px;font-weight:600'>→ "+t+"</span>"; }).join("")
-          + "</div>"
-        : "")
-    + "<div style='font-size:13px;color:#222;line-height:1.65;white-space:pre-line;margin-bottom:8px'>"+m.content+"</div>"
-    + (confirmTags ? "<div style='display:flex;flex-wrap:wrap;gap:4px;padding-top:8px;border-top:1px solid #eee'>"+confirmTags+"</div>" : "")
     + "</div>";
 }
 // ════════════════════════════════════════════════════════════
@@ -10533,10 +10620,43 @@ function setNavBadge(mode, n){
 }
 
 var _badgeBusy = false;
+
+// 담당자 명단 — 누가 무슨 업무를 맡았는지
+async function _loadDuties(){
+  try {
+    var ts = await fetchTeachers();
+    _dutyOwners = {};
+    _myDuties = [];
+    var me = _bareName(_userName);
+    (ts || []).forEach(function(t){
+      if(t.active === false) return;
+      (t.duties || []).forEach(function(k){
+        (_dutyOwners[k] = _dutyOwners[k] || []).push(t.name);
+        if(_bareName(t.name) === me) _myDuties.push(k);
+      });
+    });
+  } catch(e){ /* 칸이 없으면 예전처럼 모두에게 */ }
+  // 내 반을 알려면 반 정보도 있어야 합니다
+  try { if(!isMasterUser()) await _buildClassInfoMap(); } catch(e){}
+}
+
+// 내가 담임인 반 이름들
+function _myClassNames(){
+  var me = _bareName(_userName);
+  var out = [];
+  (typeof _classInfoMapCache !== 'undefined' && _classInfoMapCache
+    ? Object.keys(_classInfoMapCache).map(function(k){ return _classInfoMapCache[k]; })
+    : []).forEach(function(c){
+      if(c && c.teacherName && _bareName(c.teacherName) === me && c.className)
+        out.push(c.className);
+    });
+  return out;
+}
 async function refreshNavBadges(){
   if(_badgeBusy) return;
   _badgeBusy = true;
   try {
+    await _loadDuties();
     async function safe(fn){ try { return (await fn()) || []; } catch(e){ return []; } }
     var res = await Promise.all([
       safe(fetchMemos),
@@ -10571,31 +10691,40 @@ async function refreshNavBadges(){
     setNavBadge('memoboard',   unreadMine(memos));
     setNavBadge('nativeboard', unreadMine(filterVisibleMemos(nat)));
 
-    // 📎 부가자료 제작 — 아직 제작완료가 아닌 것
-    setNavBadge('supmat',
+    // 담당자로 정해진 분과 마스터에게만 띄웁니다
+    function dutyBadge(key, n){ setNavBadge(key, canSeeDuty(key) ? n : 0); }
+
+    // 📎 부가자료 제작 — 아직 제작완료가 아닌 것 (Desk 담당)
+    dutyBadge('supmat',
         wg.filter(function(o){ return o.makeStatus !== '완료'; }).length
       + ext.filter(function(o){ return o.supMats && o.supMats.length && o.progress !== '제작완료'; }).length
       + extra.filter(function(o){ return o.makeStatus !== '제작완료'; }).length);
 
     // 📗 / 📔 아직 주문 전
-    setNavBadge('wgorder',  wg.filter(function(o){  return o.orderStatus !== 'Yes'; }).length);
-    setNavBadge('extorder', ext.filter(function(o){ return o.orderStatus !== 'Yes'; }).length);
+    dutyBadge('wgorder',  wg.filter(function(o){  return o.orderStatus !== 'Yes'; }).length);
+    dutyBadge('extorder', ext.filter(function(o){ return o.orderStatus !== 'Yes'; }).length);
 
     // 📦 Book Orders — 곧 끝나는 교재 + 아직 아무도 확인 안 한 선생님 요청
-    setNavBadge('bookorderboard', due.length);
+    setNavBadge('bookorderboard', canSeeDuty('bookorder') ? due.length : 0);
 
     // 📅 신규상담일정 — 오늘부터 앞으로 잡힌 상담
     setNavBadge('consultcal', consults.length);
 
-    // 🙋 신규학생 — 등록 체크리스트가 아직 안 끝난 학생
-    setNavBadge('newstudent', newbies.filter(function(s){
+    // 🙋 신규학생 — 체크리스트가 안 끝난 학생
+    //    담임 선생님은 내 반만, 마스터는 전체
+    var left = newbies.filter(function(s){
       var n = 0;
       if(s.checkedItems) String(s.checkedItems).split(',').forEach(function(v){ if(v) n++; });
       return n < NEW_STUDENT_CHECKS.length;
-    }).length);
+    });
+    if(!isMasterUser()){
+      var mine = _myClassNames();
+      if(mine.length) left = left.filter(function(s){ return mine.indexOf(s.className) >= 0; });
+    }
+    setNavBadge('newstudent', left.length);
 
     // 💬 교재구입메세지 — 아직 안 보낸 것
-    setNavBadge('parentmsg', ext.filter(function(o){ return o.parentMsg !== 'Yes'; }).length);
+    dutyBadge('parentmsg', ext.filter(function(o){ return o.parentMsg !== 'Yes'; }).length);
   } catch(e) {
     console.warn('[badges]', e);
   } finally {
@@ -15701,6 +15830,89 @@ function renderPermTable(){
 var _teacherList = [];
 var _teacherEditId = null;
 
+// ── 맡은 업무 정하기 ────────────────────────────────────────
+function openDutyModal(teacherId){
+  var t = (_teacherList || []).filter(function(x){ return x.id === teacherId; })[0];
+  if(!t) return;
+  var old = document.getElementById('dutyOverlay');
+  if(old) old.remove();
+
+  var master = (t.role === '마스터');
+  var cur = (t.duties || []).slice();
+
+  var ov = document.createElement('div');
+  ov.id = 'dutyOverlay';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9600;"
+    + "display:flex;align-items:center;justify-content:center;padding:18px";
+  ov.addEventListener('click', function(e){ if(e.target === ov) ov.remove(); });
+  ov.setAttribute('data-tid', teacherId);
+
+  ov.innerHTML =
+      "<div style='background:#fff;border-radius:16px;padding:20px;width:100%;max-width:380px;"
+    +   "box-shadow:0 10px 36px rgba(0,0,0,0.24)'>"
+    +   "<div style='font-size:14.5px;font-weight:800;color:#2D3A28'>🔔 "
+    +     _esc(t.name) + " 의 담당 업무</div>"
+    +   (master
+        ? "<div style='background:#F3E8FF;border:1px solid #E3D0F5;border-radius:10px;"
+          + "padding:11px 13px;margin:12px 0;font-size:12px;color:#7B1FA2;line-height:1.6'>"
+          + "마스터는 <b>모든 알림</b>이 보입니다.<br>"
+          + "<span style='color:#9C6BB8'>따로 정하지 않아도 빨간 동그라미가 전부 뜹니다.</span></div>"
+        : "<div style='font-size:11.5px;color:#A8B09C;margin:6px 0 12px;line-height:1.6'>"
+          + "체크한 업무의 빨간 동그라미가 이 선생님께 보입니다.<br>"
+          + "아무도 안 맡은 업무는 모두에게 보입니다.</div>")
+    +   (master ? "" : WG_DUTIES.map(function(d){
+          var on = cur.indexOf(d.key) >= 0;
+          return "<label style='display:flex;align-items:center;gap:9px;padding:9px 11px;"
+            +   "border:1.5px solid " + (on ? "#BBD3BE;background:#F1F6EE" : "#E2E8D8;background:#fff")
+            +   ";border-radius:10px;margin-bottom:7px;cursor:pointer'>"
+            +   "<input type='checkbox' id='dk-" + d.key + "'" + (on ? " checked" : "")
+            +     " style='width:15px;height:15px'>"
+            +   "<span style='flex:1'>"
+            +     "<span style='font-size:13px;font-weight:700;color:#2D3A28'>"
+            +       d.icon + " " + d.label + "</span>"
+            +     (d.hint ? "<span style='display:block;font-size:10.5px;color:#A8B09C;"
+                            + "margin-top:1px'>" + d.hint + "</span>" : "")
+            +   "</span></label>";
+        }).join(''))
+    +   "<div style='display:flex;gap:8px;margin-top:6px'>"
+    +     "<button onclick=\"document.getElementById('dutyOverlay').remove()\" "
+    +       "style='flex:1;background:#F1F3EE;color:#5B6551;border:none;border-radius:10px;"
+    +       "padding:11px;font-size:13px;font-weight:700;cursor:pointer'>닫기</button>"
+    +     (master ? ""
+        : "<button onclick='saveDutyModal(this)' style='flex:2;background:#2D6A4F;color:#fff;"
+          + "border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;"
+          + "cursor:pointer'>저장</button>")
+    +   "</div>"
+    + "</div>";
+  document.body.appendChild(ov);
+}
+
+function saveDutyModal(btn){
+  var ov = document.getElementById('dutyOverlay');
+  if(!ov) return;
+  var tid = ov.getAttribute('data-tid');
+  var picked = WG_DUTIES.filter(function(d){
+    var el = document.getElementById('dk-' + d.key);
+    return el && el.checked;
+  }).map(function(d){ return d.key; });
+
+  if(btn){ btn.disabled = true; btn.textContent = '저장 중…'; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(btn){ btn.disabled = false; btn.textContent = '저장'; }
+      if(!r || !r.success){ alert((r && r.error) || "저장하지 못했어요."); return; }
+      ov.remove();
+      showToast("담당 업무를 저장했어요.");
+      initTeacherMgmtScreen();
+      if(typeof _badgeDirty === 'function') _badgeDirty();
+    })
+    .withFailureHandler(function(e){
+      if(btn){ btn.disabled = false; btn.textContent = '저장'; }
+      showToast("저장하지 못했어요: " + (e && e.message ? e.message : ''));
+    })
+    .saveTeacherDuties(tid, picked);
+}
+
 function initTeacherMgmtScreen(){
   var el = document.getElementById('teacherMgmtList');
   if(el) el.innerHTML = '<div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div>';
@@ -15743,8 +15955,31 @@ function renderTeacherList(){
       +   (out ? (t.retiredAt ? _esc(t.retiredAt) + ' 퇴사 · 로그인 차단됨' : '로그인 차단됨')
              : _esc(loginEmail))
       +'</div>'
+      + (!out && t.role === '마스터'
+        ? '<div style="margin-top:4px"><span style="font-size:10.5px;font-weight:700;'
+          + 'color:#7B1FA2;background:#F3E8FF;border-radius:6px;padding:2px 7px">'
+          + '모든 알림이 보입니다</span></div>'
+        : (!out && t.duties && t.duties.length
+          ? '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">'
+            + t.duties.map(function(k){
+                var d = WG_DUTIES.filter(function(x){ return x.key === k; })[0];
+                return '<span style="font-size:10.5px;font-weight:700;color:#3C5A8A;'
+                  + 'background:#EEF3FA;border-radius:6px;padding:2px 7px">'
+                  + (d ? d.icon + ' ' + d.label : k) + '</span>';
+              }).join('')
+            + '</div>'
+          : ''))
       +'</div>'
       +'<span style="font-size:11px;font-weight:700;color:'+rc+';background:'+rb+';border-radius:6px;padding:3px 8px;white-space:nowrap">'+_esc(rl)+'</span>'
+      + (out ? ''
+        : '<button onclick="openDutyModal(\''+t.id+'\')" title="맡은 업무 정하기" '
+          + 'style="background:#EEF3FA;color:#3C5A8A;border:none;border-radius:7px;'
+          + 'padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;'
+          + 'white-space:nowrap">'
+          + (t.role === '마스터'
+             ? '전체'
+             : ((t.duties && t.duties.length) ? '담당 ' + t.duties.length : '담당 —'))
+          + '</button>')
       + (out
           ? '<button onclick="toggleTeacherActive(\''+t.id+'\',true)" style="background:#E8F5E9;color:#2D6A4F;border:none;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">복직</button>'
           : '<button onclick="toggleTeacherActive(\''+t.id+'\',false)" style="background:#FFF4E5;color:#B26B00;border:none;border-radius:7px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">퇴사 처리</button>')
@@ -15761,7 +15996,30 @@ function renderTeacherList(){
   var working = _teacherList.filter(function(t){ return t.active !== false; }).sort(sortFn);
   var retired = _teacherList.filter(function(t){ return t.active === false; }).sort(sortFn);
 
-  var html = '<div style="background:white;border-radius:12px;overflow:hidden;'
+  // 업무별 담당자 한눈에
+  var sum = WG_DUTIES.map(function(d){
+    var who = working.filter(function(t){
+      return (t.duties || []).indexOf(d.key) >= 0; }).map(function(t){ return t.name; });
+    return '<div style="display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0">'
+      + '<span style="min-width:132px;font-weight:700;color:#5B6551;flex-shrink:0">'
+      +   d.icon + ' ' + d.label + '</span>'
+      + (who.length
+        ? '<span style="color:#2D3A28;font-weight:700">' + who.map(_esc).join(', ') + '</span>'
+        : '<span style="color:#C0392B">아직 없음 <span style="font-weight:400;color:#A8B09C">'
+          + '— 모두에게 알림이 갑니다</span></span>')
+      + (d.hint ? '<span style="color:#C3C9BB;font-size:10.5px;margin-left:auto">'
+                  + d.hint + '</span>' : '')
+      + '</div>';
+  }).join('');
+
+  var html = '<div style="background:#F7FAF6;border:1px solid #DCE6D2;border-radius:12px;'
+    + 'padding:13px 16px;margin-bottom:14px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:#2D3A28;margin-bottom:6px">'
+    +   '🔔 업무 담당자'
+    +   '<span style="font-size:10.5px;font-weight:600;color:#A8B09C;margin-left:8px">'
+    +     '담당자와 마스터에게만 빨간 동그라미가 뜹니다</span></div>'
+    + sum + '</div>'
+    + '<div style="background:white;border-radius:12px;overflow:hidden;'
     + 'box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)">'
     + working.map(row).join('') + '</div>';
 
