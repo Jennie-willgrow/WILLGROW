@@ -219,7 +219,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
 .appt-time {font-size:13px;color:#5A6350;margin-top:5px}
 .appt-phone {font-size:13px;color:#4A5240;margin-top:4px;font-weight:600}
 .appt-phone a {color:#4A5240;text-decoration:none}
-</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Cheolsan Campus</div><div id="appVerTag" style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:1px;margin-bottom:34px"></div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button><div style="margin-top:14px"><a href="#" onclick="location.replace(location.pathname+'?v='+Date.now());return false" style="color:rgba(255,255,255,0.35);font-size:11px;text-decoration:none;letter-spacing:.5px">🔄 최신으로 새로 받기</a></div></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><button class="snav-item" data-mode="schedule" onclick="navigateTo('schedule')"><span class="si-icon">📅</span> Schedule</button><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">Class Hub</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> Classes &amp; Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="weeklyhw" onclick="navigateTo('weeklyhw')"><span class="si-icon">📋</span> Weekly Homework</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><button class="snav-item" data-mode="lessonplan" onclick="navigateTo('lessonplan')"><span class="si-icon">📖</span> Lesson Plan</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규등록</button><button class="snav-item" data-mode="consultcal" onclick="navigateTo('consultcal')"><span class="si-icon">📅</span> 신규상담일정</button><button class="snav-item" data-mode="newstudent" onclick="navigateTo('newstudent')"><span class="si-icon">🙋</span> 신규학생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> Book Orders</button><button class="snav-item" data-mode="wgorder" onclick="navigateTo('wgorder')"><span class="si-icon">📗</span> WG 교재 주문</button><button class="snav-item" data-mode="extorder" onclick="navigateTo('extorder')"><span class="si-icon">📔</span> 외부 교재 주문</button><button class="snav-item" data-mode="extraorder" onclick="navigateTo('extraorder')"><span class="si-icon">➕</span> 부가자료 추가주문</button><button class="snav-item" data-mode="parentmsg" onclick="navigateTo('parentmsg')"><span class="si-icon">💬</span> 교재구입메세지</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button></nav><div id="sideVerTag" onclick="hardReloadApp()" title="눌러서 최신으로 새로 받기" style="padding:10px 14px 14px;font-size:9.5px;letter-spacing:.5px;color:rgba(255,255,255,0.28);cursor:pointer;text-align:center;line-height:1.5"></div></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
+</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Cheolsan Campus</div><div id="appVerTag" style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:1px;margin-bottom:34px"></div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button><div style="margin-top:14px"><a href="#" onclick="location.replace(location.pathname+'?v='+Date.now());return false" style="color:rgba(255,255,255,0.35);font-size:11px;text-decoration:none;letter-spacing:.5px">🔄 최신으로 새로 받기</a></div></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><button class="snav-item" data-mode="schedule" onclick="navigateTo('schedule')"><span class="si-icon">📅</span> Schedule</button><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">Class Hub</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> Classes &amp; Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="weeklyhw" onclick="navigateTo('weeklyhw')"><span class="si-icon">📋</span> Weekly Homework</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><button class="snav-item" data-mode="lessonplan" onclick="navigateTo('lessonplan')"><span class="si-icon">📖</span> Lesson Plan</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규등록</button><button class="snav-item" data-mode="consultcal" onclick="navigateTo('consultcal')"><span class="si-icon">📅</span> 신규상담일정</button><button class="snav-item" data-mode="newstudent" onclick="navigateTo('newstudent')"><span class="si-icon">🙋</span> 신규학생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> Book Orders</button><button class="snav-item" data-mode="wgorder" onclick="navigateTo('wgorder')"><span class="si-icon">📗</span> WG 교재 주문</button><button class="snav-item" data-mode="extorder" onclick="navigateTo('extorder')"><span class="si-icon">📔</span> 외부 교재 주문</button><button class="snav-item" data-mode="extraorder" onclick="navigateTo('extraorder')"><span class="si-icon">➕</span> 부가자료 추가주문</button><button class="snav-item" data-mode="parentmsg" onclick="navigateTo('parentmsg')"><span class="si-icon">💬</span> 교재구입메세지</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button><button class="snav-item" id="navTrash" data-mode="trash" onclick="navigateTo('trash')"><span class="si-icon">🗑️</span> 휴지통</button></nav><div id="sideVerTag" onclick="hardReloadApp()" title="눌러서 최신으로 새로 받기" style="padding:10px 14px 14px;font-size:9.5px;letter-spacing:.5px;color:rgba(255,255,255,0.28);cursor:pointer;text-align:center;line-height:1.5"></div></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
 
 <!-- ======= Weekly Homework Screen ======= -->
 <div id="weeklyHwScreen" style="display:none">
@@ -511,7 +511,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   <div id="monthGrid" style="overflow-x:auto"></div>
 </div>
 <div id="absenceList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">반을 선택해주세요</div></div></div><div id="absenceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">➕ 결석 추가</div><button onclick="closeAddAbsenceModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div style="font-size:13px;font-weight:600;color:#2D6A4F;margin-bottom:14px;padding:8px 12px;background:#f0fdf4;border-radius:8px">👤 <span id="absModalStudentName"></span></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 날짜 <span class="req">*</span></label><input type="date" id="absDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">사유</label><select id="absReason" onchange="onAbsReasonChange()" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white"><option value="">-- 선택 --</option><option value="병결">병결</option><option value="가족여행">가족여행</option><option value="가족행사">가족행사</option><option value="개인사정">개인사정</option><option value="미통보결석">미통보결석</option><option value="기타">기타</option></select><input type="text" id="absReasonEtc" placeholder="기타 사유 직접 입력..." style="display:none;width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충일 <span style="color:#999;font-weight:400">(선택)</span></label><input type="date" id="absMakeupDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="display:flex;gap:8px;margin-top:16px"><button onclick="closeAddAbsenceModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="absSubmitBtn" onclick="submitAbsence()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="consultModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,380px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">💬 상담 추가</div><button onclick="closeConsultModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">✕</button></div><div id="consultModalStudentName" style="font-size:13px;font-weight:600;color:#1565c0;margin-bottom:12px"></div><div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담일 <span style="color:#e53935">*</span></label><input type="date" id="consultDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담 내용</label><textarea id="consultContent" rows="4" placeholder="상담 내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea></div><div style="display:flex;gap:8px"><button onclick="submitConsult()" id="consultSubmitBtn" style="flex:1;padding:10px;background:#1565c0;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeConsultModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:10px;font-size:13px;cursor:pointer">취소</button></div></div></div>
-<div id="makeupModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">📖 보충일 입력/수정</div><button onclick="closeMakeupModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 날짜 <span class="req">*</span></label><input type="date" id="makeupDateInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 시간 <span style="color:#999;font-weight:400">(선택)</span></label><input type="time" id="makeupTimeInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><button onclick="resetMakeupDate()" style="width:100%;padding:8px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">🗑️ 보충일 초기화 (취소)</button><div style="display:flex;gap:8px;margin-top:4px"><button onclick="closeMakeupModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitMakeupDate()" style="flex:2;background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div></div><div id="meetingsScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:15px;font-weight:700;color:#363D2E;white-space:nowrap">📋 Meeting Notes</div><button onclick="openMeetingModal()" class="btn" style="padding:7px 14px;font-size:12px;width:auto;flex-shrink:0;white-space:nowrap">+ New</button></div><div id="meetingsList" style="padding-bottom:20px"><div class="loading">Loading...</div></div></div><div id="meetingModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px;width:90%;max-width:460px;max-height:88vh;overflow-y:auto"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:16px" id="meetingModalTitle">New Meeting</div><div class="ef"><label>Title <span class="req">*</span></label><input type="text" id="mtgTitle" placeholder="Meeting or event title"></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Date</label><input type="date" id="mtgDate" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>Type <span class="req">*</span></label><select id="mtgType" onchange="onMtgTypeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Staff Meeting">Staff Meeting</option><option value="Native Meeting">Native Meeting</option><option value="Emergency Meeting">Emergency Meeting</option><option value="Schedule/Event">📅 Schedule/Event</option></select></div></div><div id="mtgEventFields" style="display:none;background:#FFF8E7;border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:#92600A;margin-bottom:8px">📅 Calendar Info</div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Start Date <span class="req">*</span></label><input type="date" id="mtgEvtStart" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>End Date</label><input type="date" id="mtgEvtEnd" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div></div><div class="ef"><label>Category <span class="req">*</span></label><select id="mtgEvtCat" onchange="onMtgCatChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Exam">🔴 Exam</option><option value="Holiday">🔵 Holiday</option><option value="Event">🟢 Event</option><option value="Public Holiday">⚫ Public Holiday</option><option value="Etc">🟣 Etc</option></select></div><div class="ef" style="margin-bottom:0"><label>이 날 수업은요? <span style="font-weight:500;color:#999">(Lesson Plan 이 이걸 보고 진도를 건너뜁니다)</span></label><select id="mtgClassMode" onchange="onMtgModeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">🟢 평소대로 — 진도 그대로</option><option value="휴강">🔴 휴강 — 수업 없음</option><option value="특별수업">🟡 특별수업 — 프로젝트·행사 (진도 멈춤)</option></select></div><div id="mtgPeriodBox" style="display:none;margin-top:8px"><label style="font-size:12px;font-weight:600;color:#92600A;display:block;margin-bottom:5px">어느 시간에 걸리나요?</label><div id="mtgPeriodChips" style="display:flex;flex-wrap:wrap;gap:5px"></div><div style="font-size:10.5px;color:#A8872A;margin-top:5px">아무것도 안 고르면 <b>그날 전체</b>입니다. 하루 두 수업 중 하나만 프로젝트면 그 시간만 골라주세요.</div></div></div><div class="ef"><label>Notes</label><textarea id="mtgContent" rows="4" placeholder="Meeting notes..." style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical"></textarea></div><div class="ef"><label>Status</label><select id="mtgStatus" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="고민중">🤔 Discussing (고민중)</option><option value="확정">✅ Confirmed (확정)</option></select></div><input type="hidden" id="mtgEditId"><div style="display:flex;gap:8px;margin-top:4px"><button id="mtgDelBtn" onclick="deleteMeetingItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">삭제</button><div style="flex:1"></div><button onclick="closeMeetingModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="saveMeetingItem()" id="mtgSaveBtn" style="background:#4A5240;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">저장</button></div></div></div></div><div id="schoolCalScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 Meetings &amp; Events</div><div style="font-size:11px;color:#999;margin-top:2px">학사일정 달력 · 아래에 회의록이 이어집니다</div></div><span style="font-size:11px;color:#999">일정은 회의록에서 추가합니다</span></div><div id="schoolCalWrap"></div><div id="schoolEventListWrap" style="margin-top:18px"></div><hr style="border:none;border-top:1px solid #E7EAE3;margin:20px 0 0"></div></div><div id="lessonPlanScreen" style="display:none"><div id="lpAddModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:24px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:15px;font-weight:700;color:#363D2E">➕ 레슨플랜 추가</div><button onclick="closeLessonPlanModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><div style="display:flex;flex-direction:column;gap:12px"><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">반 선택</label><select id="lpFormClass" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">반 선택...</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">교재명 *</label><input id="lpFormTitle" type="text" placeholder="교재명 입력" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상태</label><select id="lpFormStatus" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="Not Started">Not Started</option><option value="In Progress" selected>In Progress</option><option value="Completed">Completed</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">PDF 파일 (선택)</label><label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px dashed #ccc;border-radius:8px;cursor:pointer;font-size:12px;color:#777">📎 <span id="lpFormFileLabel">파일 선택 (PDF)</span><input id="lpFormFile" type="file" accept=".pdf,application/pdf" onchange="lpFileChange(this)" style="display:none"></label></div><button id="lpFormSubmit" onclick="submitLessonPlan()" style="background:#363D2E;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">추가</button></div></div></div><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:#363D2E">📖 Lesson Plan</div><div style="display:flex;gap:6px"><button onclick="openLessonPlanModal()" style="background:#363D2E;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">➕ 추가</button><button onclick="initLessonPlanScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div style="margin-bottom:10px"><select id="lpClassFilter" onchange="filterLessonPlan()" style="width:100%;max-width:280px;padding:7px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"><option value="">All Classes</option></select></div><div id="lpStatusFilter" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"></div><div id="lessonPlanList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="newStudentScreen" style="display:none"><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">🙋 신규학생 관리</div><button onclick="initNewStudentScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄 새로고침</button></div><div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:11px;color:#2E7D32;line-height:1.5">📌 등록일 기준 <strong>30일 이내</strong> 신규 학생이 표시됩니다. 30일이 지나면 자동으로 목록에서 제외됩니다.</div><div id="newStudentList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="teacherMgmtScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">👩‍🏫 Teacher Management</div><div style="font-size:11px;color:#999;margin-top:2px">Manage teacher accounts and roles</div></div><div style="display:flex;gap:8px"><button onclick="openTeacherModal(null)" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Add Teacher</button><button onclick="initTeacherMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div>
+<div id="makeupModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">📖 보충일 입력/수정</div><button onclick="closeMakeupModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 날짜 <span class="req">*</span></label><input type="date" id="makeupDateInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 시간 <span style="color:#999;font-weight:400">(선택)</span></label><input type="time" id="makeupTimeInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><button onclick="resetMakeupDate()" style="width:100%;padding:8px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">🗑️ 보충일 초기화 (취소)</button><div style="display:flex;gap:8px;margin-top:4px"><button onclick="closeMakeupModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitMakeupDate()" style="flex:2;background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div></div><div id="meetingsScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E;white-space:nowrap">📋 회의록</div><div style="font-size:11px;color:#999;margin-top:2px">안건을 미리 올리고 · 이번 주 필수 확인을 보며 · 회의를 남깁니다</div></div><button onclick="openMeetingModal()" class="btn" style="padding:7px 14px;font-size:12px;width:auto;flex-shrink:0;white-space:nowrap">＋ 새 회의록</button></div><div class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="mgTab0" onclick="mgSwitch(0)">🇰🇷 한국인 회의</button><button class="etab" id="mgTab1" onclick="mgSwitch(1)">🌍 원어민 회의</button><button class="etab" id="mgTab2" onclick="mgSwitch(2)">📅 학사일정</button></div><div id="mgBrief" style="margin-bottom:14px"></div><div id="mgAgenda" style="margin-bottom:16px"></div><div id="meetingsList" style="padding-bottom:20px"><div class="loading">Loading...</div></div></div><div id="meetingModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px;width:90%;max-width:460px;max-height:88vh;overflow-y:auto"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:16px" id="meetingModalTitle">New Meeting</div><div class="ef"><label>Title <span class="req">*</span></label><input type="text" id="mtgTitle" placeholder="Meeting or event title"></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Date</label><input type="date" id="mtgDate" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>Type <span class="req">*</span></label><select id="mtgType" onchange="onMtgTypeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Staff Meeting">Staff Meeting</option><option value="Native Meeting">Native Meeting</option><option value="Emergency Meeting">Emergency Meeting</option><option value="Schedule/Event">📅 Schedule/Event</option></select></div></div><div id="mtgEventFields" style="display:none;background:#FFF8E7;border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:#92600A;margin-bottom:8px">📅 Calendar Info</div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Start Date <span class="req">*</span></label><input type="date" id="mtgEvtStart" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>End Date</label><input type="date" id="mtgEvtEnd" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div></div><div class="ef"><label>Category <span class="req">*</span></label><select id="mtgEvtCat" onchange="onMtgCatChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Exam">🔴 Exam</option><option value="Holiday">🔵 Holiday</option><option value="Event">🟢 Event</option><option value="Public Holiday">⚫ Public Holiday</option><option value="Etc">🟣 Etc</option></select></div><div class="ef" style="margin-bottom:0"><label>이 날 수업은요? <span style="font-weight:500;color:#999">(Lesson Plan 이 이걸 보고 진도를 건너뜁니다)</span></label><select id="mtgClassMode" onchange="onMtgModeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">🟢 평소대로 — 진도 그대로</option><option value="휴강">🔴 휴강 — 수업 없음</option><option value="특별수업">🟡 특별수업 — 프로젝트·행사 (진도 멈춤)</option></select></div><div id="mtgPeriodBox" style="display:none;margin-top:8px"><label style="font-size:12px;font-weight:600;color:#92600A;display:block;margin-bottom:5px">어느 시간에 걸리나요?</label><div id="mtgPeriodChips" style="display:flex;flex-wrap:wrap;gap:5px"></div><div style="font-size:10.5px;color:#A8872A;margin-top:5px">아무것도 안 고르면 <b>그날 전체</b>입니다. 하루 두 수업 중 하나만 프로젝트면 그 시간만 골라주세요.</div></div></div><div class="ef"><label>Notes</label><textarea id="mtgContent" rows="4" placeholder="Meeting notes..." style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical"></textarea></div><div class="ef"><label>Status</label><select id="mtgStatus" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="고민중">🤔 Discussing (고민중)</option><option value="확정">✅ Confirmed (확정)</option></select></div><input type="hidden" id="mtgEditId"><div style="display:flex;gap:8px;margin-top:4px"><button id="mtgDelBtn" onclick="deleteMeetingItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">삭제</button><div style="flex:1"></div><button onclick="closeMeetingModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="saveMeetingItem()" id="mtgSaveBtn" style="background:#4A5240;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">저장</button></div></div></div></div><div id="schoolCalScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 Meetings &amp; Events</div><div style="font-size:11px;color:#999;margin-top:2px">학사일정 달력 · 아래에 회의록이 이어집니다</div></div><span style="font-size:11px;color:#999">일정은 회의록에서 추가합니다</span></div><div id="schoolCalWrap"></div><div id="schoolEventListWrap" style="margin-top:18px"></div><hr style="border:none;border-top:1px solid #E7EAE3;margin:20px 0 0"></div></div><div id="lessonPlanScreen" style="display:none"><div id="lpAddModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:24px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:15px;font-weight:700;color:#363D2E">➕ 레슨플랜 추가</div><button onclick="closeLessonPlanModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><div style="display:flex;flex-direction:column;gap:12px"><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">반 선택</label><select id="lpFormClass" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">반 선택...</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">교재명 *</label><input id="lpFormTitle" type="text" placeholder="교재명 입력" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상태</label><select id="lpFormStatus" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="Not Started">Not Started</option><option value="In Progress" selected>In Progress</option><option value="Completed">Completed</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">PDF 파일 (선택)</label><label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px dashed #ccc;border-radius:8px;cursor:pointer;font-size:12px;color:#777">📎 <span id="lpFormFileLabel">파일 선택 (PDF)</span><input id="lpFormFile" type="file" accept=".pdf,application/pdf" onchange="lpFileChange(this)" style="display:none"></label></div><button id="lpFormSubmit" onclick="submitLessonPlan()" style="background:#363D2E;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">추가</button></div></div></div><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:#363D2E">📖 Lesson Plan</div><div style="display:flex;gap:6px"><button onclick="openLessonPlanModal()" style="background:#363D2E;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">➕ 추가</button><button onclick="initLessonPlanScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div style="margin-bottom:10px"><select id="lpClassFilter" onchange="filterLessonPlan()" style="width:100%;max-width:280px;padding:7px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"><option value="">All Classes</option></select></div><div id="lpStatusFilter" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"></div><div id="lessonPlanList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="newStudentScreen" style="display:none"><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">🙋 신규학생 관리</div><button onclick="initNewStudentScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄 새로고침</button></div><div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:11px;color:#2E7D32;line-height:1.5">📌 등록일 기준 <strong>30일 이내</strong> 신규 학생이 표시됩니다. 30일이 지나면 자동으로 목록에서 제외됩니다.</div><div id="newStudentList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="teacherMgmtScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">👩‍🏫 Teacher Management</div><div style="font-size:11px;color:#999;margin-top:2px">Manage teacher accounts and roles</div></div><div style="display:flex;gap:8px"><button onclick="openTeacherModal(null)" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Add Teacher</button><button onclick="initTeacherMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div>
 
 <!-- ── 신규 입사 체크리스트 ── -->
 <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;margin-bottom:10px;overflow:hidden">
@@ -590,7 +590,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-<div id="teacherMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div><div id="teacherModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px 20px;width:min(92%,380px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:14px;font-weight:700;color:#363D2E" id="teacherModalTitle">Add Teacher</div><button onclick="closeTeacherModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><input type="hidden" id="teacherEditId"><div style="margin-bottom:12px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Name <span style="color:#e53935">*</span></label><input id="teacherNameInput" type="text" placeholder="e.g. Jenny" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:6px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Role <span style="color:#e53935">*</span></label><select id="teacherRoleInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white"><option value="">-- Select Role --</option><option value="마스터">마스터 (Director)</option><option value="관리자">관리자 (Admin/Desk)</option><option value="풀타임">풀타임 (Full-time)</option><option value="파트">파트 (Part-time)</option><option value="원어민">원어민 (Native)</option></select></div><div id="teacherLoginHint" style="font-size:11px;color:#2D6A4F;background:#E8F5E9;border-radius:6px;padding:7px 10px;margin:10px 0;display:none">🔑 Login email: <b id="teacherLoginEmail"></b></div><div style="display:flex;gap:8px;margin-top:16px"><button id="teacherDeleteBtn" onclick="deleteTeacherItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer">Delete</button><div style="flex:1"></div><button onclick="closeTeacherModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button><button onclick="saveTeacherItem()" id="teacherSaveBtn" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;margin-left:8px">Save</button></div></div></div></div></div><div id="toast" class="toast"></div><script>
+<div id="teacherMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div><div id="teacherModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px 20px;width:min(92%,380px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:14px;font-weight:700;color:#363D2E" id="teacherModalTitle">Add Teacher</div><button onclick="closeTeacherModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><input type="hidden" id="teacherEditId"><div style="margin-bottom:12px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Name <span style="color:#e53935">*</span></label><input id="teacherNameInput" type="text" placeholder="e.g. Jenny" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:6px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Role <span style="color:#e53935">*</span></label><select id="teacherRoleInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white"><option value="">-- Select Role --</option><option value="마스터">마스터 (Director)</option><option value="관리자">관리자 (Admin/Desk)</option><option value="풀타임">풀타임 (Full-time)</option><option value="파트">파트 (Part-time)</option><option value="원어민">원어민 (Native)</option></select></div><div id="teacherLoginHint" style="font-size:11px;color:#2D6A4F;background:#E8F5E9;border-radius:6px;padding:7px 10px;margin:10px 0;display:none">🔑 Login email: <b id="teacherLoginEmail"></b></div><div style="display:flex;gap:8px;margin-top:16px"><button id="teacherDeleteBtn" onclick="deleteTeacherItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer">Delete</button><div style="flex:1"></div><button onclick="closeTeacherModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button><button onclick="saveTeacherItem()" id="teacherSaveBtn" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;margin-left:8px">Save</button></div></div></div></div><div id="trashScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🗑️ 휴지통</div><div style="font-size:11px;color:#999;margin-top:2px">지운 것을 되살리거나 완전히 지울 수 있습니다 · 마스터만</div></div><button onclick="loadTrash()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div id="trashList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div></div><div id="toast" class="toast"></div><script>
 // ============================================================
 // WILLGROW — Supabase 직접 연결 shim (google.script.run 대체)
 // ============================================================
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-28 10:00';
+var APP_VERSION = '2026-09-28 16:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -767,9 +767,10 @@ var WG_DUTIES = [
   { key:'supmat',    icon:'📎', label:'부가자료 제작',  hint:'Desk 에서 제작합니다' },
   { key:'wgorder',   icon:'📗', label:'WG 교재 주문',   hint:'' },
   { key:'extorder',  icon:'📔', label:'외부 교재 주문', hint:'' },
-  { key:'parentmsg', icon:'💬', label:'교재구입메세지', hint:'' },
-  { key:'bookorder', icon:'📦', label:'Book Orders',   hint:'곧 끝나는 교재 · 선생님 요청' }
+  { key:'parentmsg', icon:'💬', label:'교재구입메세지', hint:'' }
 ];
+//  ※ Book Orders 는 담당자를 정하지 않습니다.
+//    곧 끝나는 교재 알림은 그 반의 담임 선생님께만 갑니다.
 var WG_DUTY_KEYS = WG_DUTIES.map(function(d){ return d.key; });
 
 var _myDuties = [];          // 로그인한 사람이 맡은 업무
@@ -2502,8 +2503,13 @@ async function fetchBookOrderDue() {
     us.forEach(function(u){ uBook[u.id] = u.textbook_id; });
   }
 
-  var classes = await _sbGetSafe('classes', 'select=id,name') || [];
-  var cName = {}; classes.forEach(function(c){ cName[c.id] = c.name || ''; });
+  var classes = await _sbGetSafe('classes',
+    'select=id,name,teachers!teacher_id(name)') || [];
+  var cName = {}, cTeacher = {};
+  classes.forEach(function(c){
+    cName[c.id] = c.name || '';
+    cTeacher[c.id] = c.teachers ? (c.teachers.name || '') : '';
+  });
 
   var cat = await fetchTextbookCatalog(false);
   var bInfo = {};
@@ -2558,6 +2564,7 @@ async function fetchBookOrderDue() {
 
       out.push({
         classId: g.classId, className: cName[g.classId] || '(반 이름 없음)',
+        teacherName: cTeacher[g.classId] || '',
         nowBook: now.name, nowBookId: g.bookId,
         from: g.from, till: g.till, daysLeft: left,
         nextBook:   next ? next.name : '',
@@ -2606,6 +2613,7 @@ async function fetchBookOrderDue() {
       if(!txt) return;
       var item = {
         pageId: m.pageId,
+        teacherName: m.teacherName || '',
         className: m.className || m.title || '',
         date: (m.date || '').slice(0, 10),
         teacher: m.teacherName || '',
@@ -3833,11 +3841,113 @@ async function updateReportTitle(pageId, title) {
   return { success:true };
 }
 
-async function deleteReport(pageId) {
+// ════════════════════════════════════════════════════════════
+//  휴지통
+//    🗑️ 를 누르면 바로 지우지 않고 휴지통으로 옮깁니다.
+//    마스터만 되살리거나 완전히 지울 수 있습니다.
+// ════════════════════════════════════════════════════════════
+var WG_TRASH_SRC = {
+  korean_memos:         { label:'메모',            key:'content' },
+  native_memos:         { label:'원어민 메모',      key:'content' },
+  admin_memos:          { label:'관리자 메모',      key:'content' },
+  daily_reports:        { label:'Daily Report',   key:'title'   },
+  wg_book_orders:       { label:'WG 교재 주문',    key:'class_name' },
+  external_book_orders: { label:'외부 교재 주문',   key:'class_name' },
+  extra_orders:         { label:'부가자료 추가주문', key:'class_name' },
+  meetings:             { label:'회의록 · 일정',    key:'title'   },
+  meeting_agenda:       { label:'회의 안건',         key:'title'   }
+};
+
+// 지우기 전에 통째로 담아 둡니다
+async function moveToTrash(table, id, who) {
+  if(!table || !id) return { success:false, error:'무엇을 지울지 알 수 없어요.' };
+  var meta = WG_TRASH_SRC[table] || { label:table, key:'id' };
+
+  var rows = await _sbGetSafe(table, 'select=*&id=' + _eq(id) + '&limit=1') || [];
+  if(!rows.length) return { success:false, error:'이미 지워진 것 같아요.' };
+  var row = rows[0];
+
+  var main = String(row[meta.key] || '').trim();
+  if(main.length > 80) main = main.slice(0, 80) + '…';
+
   try {
-    var ok = await sbDelete('daily_reports','id='+_eq(pageId));
-    return ok ? { success:true } : { success:false, error:'Delete failed' };
-  } catch(e) { return { success:false, error:e.toString() }; }
+    await sbInsert('trash_bin', {
+      src_table:table, src_id:String(id),
+      payload:row,
+      label:meta.label,
+      sub_label:main || '(내용 없음)',
+      author:row.author || row.teacher_name || '',
+      deleted_by:who || _userName || '',
+      deleted_at:new Date().toISOString()
+    });
+  } catch(e){
+    if(/42P01|does not exist|PGRST/i.test(String(e && e.message))){
+      return { success:false,
+               error:'휴지통이 아직 없어요. RUN_ME_29_휴지통.sql 을 먼저 돌려주세요.' };
+    }
+    throw e;
+  }
+
+  await sbDelete(table, 'id=' + _eq(id), { allowZero:true });
+  return { success:true };
+}
+
+async function fetchTrash() {
+  if(!isMasterUser()) return { items:[], notMaster:true };
+  var rows = await _sbGetSafe('trash_bin',
+    'select=id,src_table,src_id,label,sub_label,author,deleted_by,deleted_at'
+    + '&order=deleted_at.desc&limit=300') || [];
+  return { items:rows.map(function(r){
+    return { id:r.id, srcTable:r.src_table, srcId:r.src_id,
+             label:r.label || r.src_table, subLabel:r.sub_label || '',
+             author:r.author || '', deletedBy:r.deleted_by || '',
+             deletedAt:r.deleted_at ? String(r.deleted_at).slice(0, 16).replace('T', ' ') : '' };
+  }) };
+}
+
+// 되살리기 — 담아 둔 그대로 다시 넣습니다
+async function restoreFromTrash(trashId) {
+  if(!isMasterUser()) return { success:false, error:'마스터만 되살릴 수 있어요.' };
+  var rows = await _sbGetSafe('trash_bin',
+    'select=src_table,payload&id=' + _eq(trashId) + '&limit=1') || [];
+  if(!rows.length) return { success:false, error:'휴지통에서 찾지 못했어요.' };
+
+  var tb = rows[0].src_table, body = rows[0].payload;
+  try {
+    var res = await fetch(SUPABASE_URL + '/rest/v1/' + tb, {
+      method:'POST',
+      headers:_sbH({ 'Prefer':'return=minimal' }),
+      body:JSON.stringify([body])
+    });
+    if(!res.ok){
+      var err = await res.text();
+      if(_handleAuthError(res.status)) throw new Error('AUTH');
+      return { success:false, error:'되살리지 못했어요: ' + err };
+    }
+  } catch(e){
+    if(String(e && e.message) === 'AUTH') throw e;
+    return { success:false, error:'되살리지 못했어요: ' + (e && e.message || '') };
+  }
+  await sbDelete('trash_bin', 'id=' + _eq(trashId), { allowZero:true });
+  return { success:true };
+}
+
+// 완전히 지우기 — 여기서 지우면 되돌릴 수 없습니다
+async function purgeFromTrash(trashId) {
+  if(!isMasterUser()) return { success:false, error:'마스터만 지울 수 있어요.' };
+  await sbDelete('trash_bin', 'id=' + _eq(trashId), { allowZero:true });
+  return { success:true };
+}
+
+// 내가 지울 수 있는 글인가 — 내가 쓴 것이거나 마스터
+function canDeleteMine(author){
+  if(isMasterUser()) return true;
+  var a = _bareName(author), me = _bareName(_userName);
+  return !!a && !!me && a === me;
+}
+
+async function deleteReport(pageId) {
+  return await moveToTrash('daily_reports', pageId);
 }
 
 async function createReportsForDate(targetDateStr, teacherId) {
@@ -4318,8 +4428,7 @@ async function saveAdminMemo(p) {
 
 async function deleteAdminMemo(id) {
   if(!isAdminMemoUser()) return { success:false, error:'원장님만 지울 수 있어요.' };
-  await sbDelete('admin_memos', 'id=' + _eq(id), { allowZero:true });
-  return { success:true };
+  return await moveToTrash('admin_memos', id);
 }
 
 // 읽음 표시 — 이미 읽었으면 그대로 둡니다
@@ -4365,7 +4474,8 @@ async function deleteMemo(pageId) {
     if (rows && rows.length) absenceId = rows[0].absence_id || null;
   } catch(e) { /* absence_id 컬럼이 아직 없으면 무시 */ }
 
-  await sbDelete('korean_memos', 'id='+_eq(pageId));
+  var r = await moveToTrash('korean_memos', pageId);
+  if(!r.success) return r;
 
   if (absenceId) {
     try { await sbDelete('absences','id='+_eq(absenceId), {allowZero:true}); }
@@ -4374,14 +4484,173 @@ async function deleteMemo(pageId) {
   return { success: true, absenceDeleted: !!absenceId };
 }
 async function deleteNativeMemo(pageId) {
-  await sbDelete('native_memos', 'id='+_eq(pageId));
-  return { success: true };
+  return await moveToTrash('native_memos', pageId);
 }
 
 // ── 회의록 + 학원 달력 ───────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  회의록 — 한국인 회의 · 원어민 회의 · 학사일정
+//    회의 전에 선생님들이 안건을 올리고, 그 안건으로 회의를 합니다.
+// ════════════════════════════════════════════════════════════
+var WG_MTG_GROUPS = [
+  { key:'korean', icon:'🇰🇷', label:'한국인 회의' },
+  { key:'native', icon:'🌍', label:'원어민 회의' }
+];
+
+// ── 안건 ──────────────────────────────────────────────────
+async function fetchAgenda(grp) {
+  var f = grp ? '&grp=' + _eq(grp) : '';
+  var rows = await _sbGetSafe('meeting_agenda',
+    'select=id,grp,meeting_id,title,detail,author,status,result,created_at'
+    + f + '&order=created_at.desc&limit=200') || [];
+  return rows.map(function(r){
+    return { id:r.id, grp:r.grp || 'korean', meetingId:r.meeting_id || '',
+             title:r.title || '', detail:r.detail || '', author:r.author || '',
+             status:r.status || 'open', result:r.result || '',
+             createdAt:r.created_at ? String(r.created_at).slice(0, 10) : '' };
+  });
+}
+
+async function addAgenda(data) {
+  data = data || {};
+  if(!String(data.title || '').trim()) return { success:false, error:'안건을 적어주세요.' };
+  try {
+    var r = await sbInsert('meeting_agenda', {
+      grp:data.grp || 'korean',
+      title:String(data.title).trim(),
+      detail:String(data.detail || '').trim() || null,
+      author:data.author || _userName || '',
+      status:'open',
+      created_at:new Date().toISOString()
+    });
+    return r ? { success:true, id:r.id } : { success:false, error:'올리지 못했어요.' };
+  } catch(e){
+    if(/42P01|does not exist|PGRST/i.test(String(e && e.message))){
+      return { success:false,
+               error:'안건 서랍이 아직 없어요. RUN_ME_30_회의록.sql 을 먼저 돌려주세요.' };
+    }
+    throw e;
+  }
+}
+
+async function updateAgenda(id, data) {
+  if(!id) return { success:false };
+  data = data || {};
+  var u = { updated_at:new Date().toISOString() };
+  if(data.title   !== undefined && String(data.title).trim()) u.title  = String(data.title).trim();
+  if(data.detail  !== undefined) u.detail = String(data.detail || '').trim() || null;
+  if(data.status  !== undefined) u.status = data.status;
+  if(data.result  !== undefined) u.result = String(data.result || '').trim() || null;
+  if(data.meetingId !== undefined) u.meeting_id = data.meetingId || null;
+  await sbPatch('meeting_agenda', 'id=' + _eq(id), u);
+  return { success:true };
+}
+
+async function deleteAgenda(id) {
+  return await moveToTrash('meeting_agenda', id);
+}
+
+// ── 이번 주 꼭 확인할 것 ──────────────────────────────────
+//   회의 때 빠뜨리면 안 되는 세 가지를 앱이 알아서 뽑습니다.
+//     📚 이번 주 새로 시작하는 교재
+//     🙋 새로 들어온 학생
+//     ⚠️ 학생별 특이사항 (재시험 · 숙제 미제출 · 결석)
+async function fetchWeeklyBrief(weekStart) {
+  var from = weekStart || _weekMonday(getTodayStr());
+  var till = _addDays(from, 6);
+
+  // ① 이번 주 시작하는 교재 — 레슨플랜에서 교재가 바뀌는 첫 칸
+  var newBooks = [];
+  try {
+    var ent = await sbGetSoft('lesson_plan_entries',
+      'select=class_id,date,period,book,part,label,unit_id&order=date.asc',
+      'select=class_id,date,period,part,label,unit_id&order=date.asc') || [];
+    var classes = await _sbGetSafe('classes',
+      'select=id,name,teachers!teacher_id(name)') || [];
+    var cName = {}, cTeach = {};
+    classes.forEach(function(c){
+      cName[c.id] = c.name || '';
+      cTeach[c.id] = c.teachers ? (c.teachers.name || '') : '';
+    });
+
+    var lines = {};
+    ent.forEach(function(r){
+      var k = r.class_id + '|' + r.period;
+      (lines[k] = lines[k] || []).push(r);
+    });
+    Object.keys(lines).forEach(function(k){
+      var list = lines[k];
+      var prev = null;
+      list.forEach(function(r){
+        var nm = r.book || r.part || '';
+        if(!nm) return;
+        if(prev && prev !== nm && r.date >= from && r.date <= till){
+          newBooks.push({ className:cName[r.class_id] || '', teacher:cTeach[r.class_id] || '',
+                          from:prev, to:nm, date:r.date });
+        }
+        prev = nm;
+      });
+    });
+  } catch(e){}
+
+  // ② 이번 주 새로 들어온 학생
+  var newStudents = [];
+  try {
+    var st = await _sbGetSafe('students',
+      'select=id,name,school,grade,enrolled_at,classes!class_id(name,teachers!teacher_id(name))'
+      + '&status=' + _eq('재원')
+      + '&enrolled_at=gte.' + from + '&enrolled_at=lte.' + till
+      + '&order=enrolled_at.asc') || [];
+    newStudents = st.map(function(r){
+      return { name:r.name || '', school:r.school || '', grade:r.grade || '',
+               enrollDate:r.enrolled_at || '',
+               className:r.classes ? (r.classes.name || '') : '',
+               teacher:(r.classes && r.classes.teachers) ? (r.classes.teachers.name || '') : '' };
+    });
+  } catch(e){}
+
+  // ③ 학생별 특이사항 — 이번 주 리포트에서
+  var flags = [];
+  try {
+    var reps = await _sbGetSafe('daily_reports',
+      'select=id,date,class_id,title,test,homework,comments'
+      + '&date=gte.' + from + '&date=lte.' + till + '&order=date.asc&limit=300') || [];
+    var cmap = await _buildClassInfoMap();
+    reps.forEach(function(r){
+      var bits = [];
+      if(r.test && String(r.test).trim() && String(r.test) !== '-')
+        bits.push('재시험 ' + String(r.test).trim());
+      if(r.comments && String(r.comments).trim())
+        bits.push(String(r.comments).trim());
+      if(!bits.length) return;
+      var info = cmap[r.class_id] || {};
+      flags.push({ date:r.date, className:info.className || r.title || '',
+                   teacher:info.teacherName || '', text:bits.join(' · ') });
+    });
+  } catch(e){}
+
+  return { from:from, till:till,
+           newBooks:newBooks, newStudents:newStudents, flags:flags.slice(0, 30) };
+}
+
+// 'YYYY-MM-DD' 를 받아 그 주 월요일을 'YYYY-MM-DD' 로 돌려줍니다
+//   (위쪽의 _mondayOf(Date) 와 이름이 겹치지 않게 따로 둡니다)
+function _weekMonday(ds){
+  var d = new Date(ds + 'T00:00:00');
+  d.setDate(d.getDate() - ((d.getDay() || 7) - 1));
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+       + '-' + String(d.getDate()).padStart(2,'0');
+}
+function _addDays(ds, n){
+  var d = new Date(ds + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+       + '-' + String(d.getDate()).padStart(2,'0');
+}
+
 async function fetchMeetings() {
   var rows = await sbGetSoft('meetings',
-    'select=id,title,meeting_date,meeting_type,content,author,is_done,event_start_date,event_end_date,event_category,class_mode,affect_periods&order=meeting_date.desc',
+    'select=id,title,meeting_date,meeting_type,content,author,is_done,event_start_date,event_end_date,event_category,class_mode,affect_periods,meeting_group,attendees,decisions&order=meeting_date.desc',
     'select=id,title,meeting_date,meeting_type,content,author,is_done,event_start_date,event_end_date,event_category&order=meeting_date.desc');
   return rows.map(function(r){
     return { id:r.id, title:r.title||'', meetingDate:r.meeting_date||'',
@@ -4389,7 +4658,10 @@ async function fetchMeetings() {
              author:r.author||'', status:r.is_done?'확정':'고민중',
              eventStartDate:r.event_start_date||'', eventEndDate:r.event_end_date||'',
              eventCategory:r.event_category||'',
-             classMode:r.class_mode||'', affectPeriods:r.affect_periods||[] };
+             classMode:r.class_mode||'', affectPeriods:r.affect_periods||[],
+             group:r.meeting_group || (r.meeting_type === 'Native Meeting' ? 'native'
+                    : (r.meeting_type === 'Schedule/Event' ? '' : 'korean')),
+             attendees:r.attendees || [], decisions:r.decisions || '' };
   });
 }
 async function fetchSchoolEvents() {
@@ -4410,7 +4682,10 @@ async function saveMeeting(data) {
     event_category: data.eventCategory||null,
     class_mode: data.classMode||null,
     affect_periods: (data.affectPeriods && data.affectPeriods.length)
-                      ? data.affectPeriods : null
+                      ? data.affectPeriods : null,
+    meeting_group: data.group || null,
+    attendees: (data.attendees && data.attendees.length) ? data.attendees : null,
+    decisions: data.decisions || null
   };
   try {
     if(data.id) { await sbPatch('meetings','id='+_eq(data.id), payload); }
@@ -4418,8 +4693,9 @@ async function saveMeeting(data) {
   } catch(e) {
     // class_mode 칸이 아직 없으면 그것만 빼고 저장합니다
     var m = String(e && e.message || '');
-    if(/42703|class_mode|affect_periods|column/i.test(m)){
+    if(/42703|class_mode|affect_periods|meeting_group|attendees|decisions|column|PGRST204/i.test(m)){
       delete payload.class_mode; delete payload.affect_periods;
+      delete payload.meeting_group; delete payload.attendees; delete payload.decisions;
       if(data.id) { await sbPatch('meetings','id='+_eq(data.id), payload); }
       else { await sbInsert('meetings', payload); }
     } else throw e;
@@ -4427,8 +4703,7 @@ async function saveMeeting(data) {
   return { success: true };
 }
 async function deleteMeeting(id) {
-  await sbDelete('meetings','id='+_eq(id));
-  return { success: true };
+  return await moveToTrash('meetings', id);
 }
 async function toggleMeetingField(id, field, value) {
   var payload = {};
@@ -4651,13 +4926,13 @@ async function updateExtraNote(pageId, note) {
 }
 
 async function deleteOrder(pageId) {
-  // 주문 id 가 둘 중 한 테이블에만 있으므로 각각은 0행이어도 정상입니다.
-  var a = await sbDelete('wg_book_orders','id='+_eq(pageId), {allowZero:true});
-  var b = await sbDelete('external_book_orders','id='+_eq(pageId), {allowZero:true});
-  if (a + b === 0) {
-    throw new Error('삭제된 주문이 없습니다.\nSupabase RLS 정책을 확인해 주세요 — fix_delete_rls.sql 참고');
+  // 주문 id 가 셋 중 한 표에만 있으므로 차례로 찾아 휴지통으로 보냅니다
+  var tables = ['wg_book_orders', 'external_book_orders', 'extra_orders'];
+  for(var i = 0; i < tables.length; i++){
+    var hit = await _sbGetSafe(tables[i], 'select=id&id=' + _eq(pageId) + '&limit=1') || [];
+    if(hit.length) return await moveToTrash(tables[i], pageId);
   }
-  return { success:true };
+  return { success:false, error:'그 주문을 찾지 못했어요.' };
 }
 
 // ── 수업계획서 ──────────────────────────────────────────────
@@ -4852,6 +5127,8 @@ var _serverFunctions = {
   createPaymentDayChange, fetchMonthlyCollectionSummary, fetchStudentPaymentHistory,
   fetchTodayReports, submitReport, createBlankReport, updateReportTitle,
   deleteReport, createReportsForDate, saveTeacherDuties,
+  moveToTrash, fetchTrash, restoreFromTrash, purgeFromTrash,
+  fetchAgenda, addAgenda, updateAgenda, deleteAgenda, fetchWeeklyBrief,
   fetchInquiries, saveInquiry, quickAddInquiry, enrollInquiry,
   fetchUpcomingConsults, searchConsultRecords,
   fetchCommentsBoard, fetchBookOrdersBoard, toggleBookOrderConfirmed,
@@ -4975,6 +5252,7 @@ function applyRoleVisibility(){
   secVis('divNewInquiry','secNewInquiry', showNewInquiry);
   vis('enrollment',  isDirector);
   vis('consultcal',  isDirector);
+  vis('trash',       role === '마스터');      // 휴지통은 원장님만
   vis('newstudent',  showNewInquiry); // 담임/원장님
 
   // ── Desk 업무 ──
@@ -5323,7 +5601,8 @@ function renderCard(r, c){
   html += "<div style='display:flex;gap:6px;align-items:center'>" + badge;
   if(!isPast){
     html += "<button onclick='toggleTitleEdit(\"" + r.pageId + "\")' title='Edit Title' style='background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>✏️</button>";
-    html += "<button onclick='confirmDeleteReport(\"" + r.pageId + "\")' title='Delete Report' style='background:rgba(200,50,50,0.7);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>🗑️</button>";
+    if(canDeleteMine(r.teacherName))
+      html += "<button onclick='confirmDeleteReport(\"" + r.pageId + "\")' title='휴지통으로 보내기' style='background:rgba(200,50,50,0.7);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>🗑️</button>";
   }
   html += "</div></div>";
   // ── Inline title edit box (hidden by default, not shown for past) ──
@@ -6721,7 +7000,7 @@ function setActiveNav(mode){
     if(active) active.classList.add("active");
   }
 }
-var ALL_SCREEN_IDS = ["modeScreen","mainScreen","hwScreen","weeklyHwScreen","rosterScreen","enrollScreen","consultCalScreen","withdrawScreen","bookOrderScreen","extraOrderScreen","supmatScreen","parentMsgScreen","memoBoardScreen","commentsScreen","bookOrderBoardScreen","scheduleScreen","nativeBoardScreen","studentListScreen","tuitionScreen","lessonPlanScreen","newStudentScreen","schoolCalScreen","meetingsScreen","teacherMgmtScreen","absenceScreen","classMgmtScreen"];
+var ALL_SCREEN_IDS = ["modeScreen","mainScreen","hwScreen","weeklyHwScreen","rosterScreen","enrollScreen","consultCalScreen","withdrawScreen","bookOrderScreen","extraOrderScreen","supmatScreen","parentMsgScreen","memoBoardScreen","commentsScreen","bookOrderBoardScreen","scheduleScreen","nativeBoardScreen","studentListScreen","tuitionScreen","lessonPlanScreen","newStudentScreen","schoolCalScreen","meetingsScreen","teacherMgmtScreen","trashScreen","absenceScreen","classMgmtScreen"];
 function navigateTo(mode){
   // 1) 모든 화면 숨기기
   ALL_SCREEN_IDS.forEach(function(id){
@@ -6761,6 +7040,10 @@ function navigateTo(mode){
   else if(mode==="teachermgmt"){
     if(_userRole !== '마스터'){ showToast("접근 권한이 없습니다."); return; }
     currentMode="teachermgmt"; screenId="teacherMgmtScreen";
+  }
+  else if(mode==="trash"){
+    if(_userRole !== '마스터'){ showToast("휴지통은 원장님만 볼 수 있어요."); return; }
+    currentMode="trash"; screenId="trashScreen";
   }
   else { currentMode=null; screenId="modeScreen"; }
   // 3) 화면 먼저 보여주기
@@ -6840,6 +7123,7 @@ function navigateTo(mode){
     else if(mode==="lessonplan"){ initLessonPlanScreen(); }
     else if(mode==="newstudent"){ initNewStudentScreen(); }
     else if(mode==="teachermgmt"){ initTeacherMgmtScreen(); }
+    else if(mode==="trash"){ loadTrash(); }
     else if(mode==="schoolcal"){ initSchoolCalScreen(); }
     else if(mode==="classmgmt"){ initClassMgmtScreen(); }
     else if(mode==="meetings" || mode==="schoolcal"){
@@ -8131,9 +8415,9 @@ function _bokBookBox(name, tag){
 function renderWGCard(o){
   var ordCls  = o.orderStatus === "Yes" ? "stat-yes" : "stat-no";
   var reqName = getRequesterName(o.requesterId);
-  var delBtn  = o.orderStatus !== "Yes"
-    ? "<button class='bok-stat-btn stat-del' onclick='deleteOrderCard(\"" + o.id
-      + "\",\"wg\")'>🗑️ 삭제</button>" : "";
+  var delBtn  = (o.orderStatus !== "Yes" && canDeleteMine(getRequesterName(o.requesterId)))
+    ? "<button class='bok-stat-btn stat-del' title='휴지통으로 보내기' "
+      + "onclick='deleteOrderCard(\"" + o.id + "\",\"wg\")'>🗑️ 휴지통</button>" : "";
   return "<div class='bok-card'>"
     + "<div class='bok-row'><div style='flex:1;min-width:0'>"
     +   "<div class='bok-name'>" + _plEsc(o.className || '') + "</div></div></div>"
@@ -8159,9 +8443,9 @@ function renderWGCard(o){
 function renderExtCard(o){
   var ordCls  = o.orderStatus === "Yes" ? "stat-yes" : "stat-no";
   var reqName = getRequesterName(o.requesterId);
-  var delBtn  = o.orderStatus !== "Yes"
-    ? "<button class='bok-stat-btn stat-del' onclick='deleteOrderCard(\"" + o.id
-      + "\",\"ext\")'>🗑️ 삭제</button>" : "";
+  var delBtn  = (o.orderStatus !== "Yes" && canDeleteMine(getRequesterName(o.requesterId)))
+    ? "<button class='bok-stat-btn stat-del' title='휴지통으로 보내기' "
+      + "onclick='deleteOrderCard(\"" + o.id + "\",\"ext\")'>🗑️ 휴지통</button>" : "";
   return "<div class='bok-card'>"
     + "<div class='bok-row'><div style='flex:1;min-width:0'>"
     +   "<div class='bok-name'>" + _plEsc(o.className || '') + "</div></div></div>"
@@ -8264,7 +8548,8 @@ function toggleWGOrder(pid, current, bookName, qty){
   .updateWGOrderStatus(pid, current==="Yes"?"No":"Yes", null);
 }
 function deleteOrderCard(pid, type){
-  if(!confirm("이 주문을 삭제하시겠습니까?")) return;
+  if(!confirm("이 주문을 휴지통으로 보낼까요?\n\n"
+    + "바로 지워지지 않습니다. 원장님이 휴지통에서 되살릴 수 있어요.")) return;
   google.script.run
   .withSuccessHandler(function(){ showToast("삭제됨!"); type==="wg"?loadWGOrders():loadExtOrders(); })
   .withFailureHandler(function(){ showToast("Error."); })
@@ -8665,16 +8950,17 @@ function triggerCreateReports(){
 function confirmDeleteReport(pageId){
   var titleEl = document.getElementById("rtitle-"+pageId);
   var title   = titleEl ? titleEl.textContent : "이 리포트";
-  if(!confirm(title + " — Delete this report?\nThis cannot be undone.")){ return; }
-  showToast("Deleting...");
+  if(!confirm(title + " — 휴지통으로 보낼까요?\n\n"
+    + "바로 지워지지 않습니다. 원장님이 휴지통에서 되살릴 수 있어요.")){ return; }
+  showToast("휴지통으로 보내는 중…");
   google.script.run
   .withSuccessHandler(function(r){
     if(r && r.success){
       var card = document.getElementById("card-"+pageId);
       if(card){ card.style.transition="opacity 0.3s"; card.style.opacity="0"; setTimeout(function(){ card.remove(); },300); }
-      showToast("🗑️ Deleted");
+      showToast("🗑️ 휴지통으로 보냈어요");
     } else {
-      showToast("❌ Delete failed: " + (r && r.error ? r.error : "Unknown error"));
+      showToast("보내지 못했어요: " + (r && r.error ? r.error : ""));
     }
   })
   .withFailureHandler(function(){ showToast("❌ Error. Please try again."); })
@@ -10081,7 +10367,8 @@ function renderMemoCard(m){
     + "<div style='display:flex;align-items:flex-start;justify-content:space-between;gap:8px'>"
     +   "<div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0'>"
     +     "<span style='background:#2D3A28;color:#fff;border-radius:9px;padding:3px 10px;"
-    +       "font-size:11.5px;font-weight:800'>✍️ " + _esc(m.author || '이름 없음') + "</span>"
+    +       "font-size:11.5px;font-weight:800'>작성자 "
+    +       _esc(m.author || '이름 없음') + "</span>"
     +     "<span style='font-size:11px;color:#A8B09C'>" + dateStr + " " + timeStr + "</span>"
     +     typeBadge
     +     (mineWaiting
@@ -10101,9 +10388,12 @@ function renderMemoCard(m){
     +       ";border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;"
     +       "cursor:pointer;white-space:nowrap'>확인 ✓"
     +       (confirmed.length ? " (" + confirmed.length + ")" : "") + "</button>"
-    +     "<button onclick='deleteMemoCard(\"" + m.id + "\")' style='background:#fdecea;"
-    +       "border:none;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700;"
-    +       "cursor:pointer;color:#c62828;white-space:nowrap'>🗑️</button>"
+    +     (canDeleteMine(m.author)
+          ? "<button onclick='deleteMemoCard(\"" + m.id + "\")' title='휴지통으로 보내기' "
+            + "style='background:#fdecea;border:none;border-radius:7px;padding:4px 9px;"
+            + "font-size:11px;font-weight:700;cursor:pointer;color:#c62828;"
+            + "white-space:nowrap'>🗑️</button>"
+          : "")
     +   "</div>"
     + "</div>"
 
@@ -10601,7 +10891,7 @@ function filterVisibleMemos(list){
 //    📎 부가자료 제작   제작완료가 아닌 것 (WG + 외부 + 추가주문)
 //    📗 WG 교재 주문    아직 주문 안 한 것 (주문 No)
 //    📔 외부 교재 주문  아직 주문 안 한 것 (주문 No)
-//    📦 Book Orders    내가 아직 확인 안 한 교재주문 메모
+//    📦 Book Orders    내 반의 곧 끝나는 교재 · 선생님 요청 (마스터는 전체)
 //    💬 교재구입메세지  아직 학부모께 안 보낸 것
 //    📅 신규상담일정    오늘부터 앞으로 잡힌 신규 상담
 //    🙋 신규학생        등록 체크리스트가 아직 안 끝난 학생
@@ -10667,7 +10957,11 @@ async function refreshNavBadges(){
       safe(fetchNativeMemos),
       safe(async function(){
         var r = await fetchBookOrderDue();
-        return [].concat((r && r.items) || [], (r && r.asked) || []);
+        var all = [].concat((r && r.items) || [], (r && r.asked) || []);
+        if(isMasterUser()) return all;
+        // 담임 선생님께는 내 반 것만
+        var me = _bareName(_userName);
+        return all.filter(function(x){ return _bareName(x.teacherName) === me; });
       }),
       safe(async function(){
         var r = await fetchUpcomingConsults();
@@ -10704,8 +10998,8 @@ async function refreshNavBadges(){
     dutyBadge('wgorder',  wg.filter(function(o){  return o.orderStatus !== 'Yes'; }).length);
     dutyBadge('extorder', ext.filter(function(o){ return o.orderStatus !== 'Yes'; }).length);
 
-    // 📦 Book Orders — 곧 끝나는 교재 + 아직 아무도 확인 안 한 선생님 요청
-    setNavBadge('bookorderboard', canSeeDuty('bookorder') ? due.length : 0);
+    // 📦 Book Orders — 그 반의 담임 선생님께만 (마스터는 전체)
+    setNavBadge('bookorderboard', due.length);
 
     // 📅 신규상담일정 — 오늘부터 앞으로 잡힌 상담
     setNavBadge('consultcal', consults.length);
@@ -15913,6 +16207,106 @@ function saveDutyModal(btn){
     .saveTeacherDuties(tid, picked);
 }
 
+// ── 휴지통 화면 (마스터만) ──────────────────────────────────
+var _trash = [];
+
+function loadTrash(){
+  var el = document.getElementById('trashList');
+  if(el) el.innerHTML = "<div style='text-align:center;color:#bbb;padding:28px;"
+    + "font-size:13px'>불러오는 중…</div>";
+  google.script.run
+    .withSuccessHandler(function(r){ _trash = (r && r.items) || []; renderTrash(r || {}); })
+    .withFailureHandler(function(e){
+      if(el) el.innerHTML = "<div style='color:#c62828;padding:20px'>불러오지 못했어요: "
+        + (e && e.message ? e.message : '') + "</div>";
+    })
+    .fetchTrash();
+}
+
+function renderTrash(res){
+  var el = document.getElementById('trashList');
+  if(!el) return;
+  if(res && res.notMaster){
+    el.innerHTML = "<div style='color:#c62828;padding:20px;font-size:13px'>"
+      + "휴지통은 원장님만 볼 수 있어요.</div>";
+    return;
+  }
+  if(!_trash.length){
+    el.innerHTML = "<div style='background:#F1F6EE;border:1px solid #BBD3BE;border-radius:11px;"
+      + "padding:14px 16px;font-size:13px;color:#2D6A4F;font-weight:700'>"
+      + "✓ 휴지통이 비어 있어요.</div>";
+    return;
+  }
+
+  // 무엇이 버려졌는지 묶어서
+  var byKind = {};
+  _trash.forEach(function(t){ byKind[t.label] = (byKind[t.label] || 0) + 1; });
+  var sum = Object.keys(byKind).map(function(k){
+    return "<span style='background:#F1F3EE;color:#5B6551;border-radius:8px;padding:3px 9px;"
+      + "font-size:11.5px;font-weight:700'>" + _esc(k) + " " + byKind[k] + "</span>";
+  }).join(' ');
+
+  el.innerHTML =
+      "<div style='display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px'>"
+    +   "<span style='font-size:12.5px;font-weight:800;color:#2D3A28'>버려진 것 "
+    +     _trash.length + "개</span>" + sum
+    + "</div>"
+    + _trash.map(function(t){
+      return "<div style='background:#fff;border:1px solid #E7EAE3;border-radius:12px;"
+        +   "padding:12px 15px;margin-bottom:9px;display:flex;align-items:center;gap:11px'>"
+        +   "<div style='flex:1;min-width:0'>"
+        +     "<div style='display:flex;align-items:center;gap:7px;flex-wrap:wrap'>"
+        +       "<span style='background:#EEF3FA;color:#3C5A8A;border-radius:6px;padding:2px 8px;"
+        +         "font-size:10.5px;font-weight:800'>" + _esc(t.label) + "</span>"
+        +       (t.author ? "<span style='font-size:11px;color:#8A9178'>작성 "
+                            + _esc(t.author) + "</span>" : "")
+        +     "</div>"
+        +     "<div style='font-size:12.5px;color:#2D3A28;margin-top:5px;line-height:1.5;"
+        +       "word-break:break-word'>" + _esc(t.subLabel) + "</div>"
+        +     "<div style='font-size:10.5px;color:#B3BAA9;margin-top:4px'>"
+        +       _esc(t.deletedBy || '?') + " 가 " + _esc(t.deletedAt) + " 에 버림</div>"
+        +   "</div>"
+        +   "<div style='display:flex;flex-direction:column;gap:6px;flex-shrink:0'>"
+        +     "<button onclick='trashRestore(\"" + t.id + "\")' style='background:#2D6A4F;"
+        +       "color:#fff;border:none;border-radius:9px;padding:7px 13px;font-size:12px;"
+        +       "font-weight:700;cursor:pointer;white-space:nowrap'>되살리기</button>"
+        +     "<button onclick='trashPurge(\"" + t.id + "\")' style='background:#FFF0F0;"
+        +       "color:#C0392B;border:1px solid #FFCDD2;border-radius:9px;padding:6px 11px;"
+        +       "font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap'>"
+        +       "완전 삭제</button>"
+        +   "</div>"
+        + "</div>";
+    }).join('');
+}
+
+function trashRestore(id){
+  var t = _trash.filter(function(x){ return x.id === id; })[0] || {};
+  if(!confirm("되살릴까요?\n\n" + (t.label || '') + " — " + (t.subLabel || ''))) return;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.success){ alert((r && r.error) || "되살리지 못했어요."); return; }
+      showToast("되살렸어요.");
+      loadTrash();
+      if(typeof _badgeDirty === 'function') _badgeDirty();
+    })
+    .withFailureHandler(function(){ showToast("되살리지 못했어요."); })
+    .restoreFromTrash(id);
+}
+
+function trashPurge(id){
+  var t = _trash.filter(function(x){ return x.id === id; })[0] || {};
+  if(!confirm("완전히 지울까요?\n\n" + (t.label || '') + " — " + (t.subLabel || '')
+    + "\n\n⚠️ 이건 되돌릴 수 없습니다.")) return;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.success){ alert((r && r.error) || "지우지 못했어요."); return; }
+      showToast("완전히 지웠어요.");
+      loadTrash();
+    })
+    .withFailureHandler(function(){ showToast("지우지 못했어요."); })
+    .purgeFromTrash(id);
+}
+
 function initTeacherMgmtScreen(){
   var el = document.getElementById('teacherMgmtList');
   if(el) el.innerHTML = '<div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div>';
@@ -16154,21 +16548,286 @@ function deleteTeacherItem(){
   }).deleteTeacher(_teacherEditId);
 }
 
+// ── 회의록 화면 ────────────────────────────────────────────
+var _mgTab = 0, _mgAgendaList = [], _mgBrief = null;
+
+function mgGroupKey(){ return _mgTab === 0 ? 'korean' : (_mgTab === 1 ? 'native' : ''); }
+
+function mgSwitch(n){
+  _mgTab = n;
+  [0,1,2].forEach(function(i){
+    var b = document.getElementById('mgTab' + i);
+    if(b) b.classList.toggle('active', i === n);
+  });
+  renderMeetingsList(_meetingsAll);
+  var brief  = document.getElementById('mgBrief');
+  var agenda = document.getElementById('mgAgenda');
+  if(n === 2){                                   // 학사일정은 달력만
+    if(brief)  brief.innerHTML = '';
+    if(agenda) agenda.innerHTML = '';
+    return;
+  }
+  loadAgenda();
+  loadWeeklyBrief();
+}
+
 function initMeetingsScreen(){
   var el = document.getElementById('meetingsList');
   if(el) el.innerHTML = "<div class='loading'>Loading...</div>";
   google.script.run
   .withSuccessHandler(function(data){
-    _meetingsAll = data||[];
+    _meetingsAll = data || [];
     renderMeetingsList(_meetingsAll);
   })
-  .withFailureHandler(function(e){ var el=document.getElementById('meetingsList'); if(el) el.innerHTML="<div class='empty'>로드 실패: "+e.message+"</div>"; })
+  .withFailureHandler(function(e){
+    var el2 = document.getElementById('meetingsList');
+    if(el2) el2.innerHTML = "<div class='empty'>로드 실패: " + e.message + "</div>";
+  })
   .fetchMeetings();
+  loadAgenda();
+  loadWeeklyBrief();
+}
+
+// ── ① 이번 주 꼭 확인 ─────────────────────────────────────
+function loadWeeklyBrief(){
+  var el = document.getElementById('mgBrief');
+  if(el) el.innerHTML = "<div style='color:#bbb;font-size:12px;padding:8px 2px'>"
+    + "이번 주 확인할 것을 모으는 중…</div>";
+  google.script.run
+    .withSuccessHandler(function(b){ _mgBrief = b || {}; renderWeeklyBrief(); })
+    .withFailureHandler(function(){ if(el) el.innerHTML = ''; })
+    .fetchWeeklyBrief('');
+}
+
+function renderWeeklyBrief(){
+  var el = document.getElementById('mgBrief');
+  if(!el || !_mgBrief) return;
+  var b = _mgBrief;
+
+  function block(icon, title, n, body, tint, line){
+    return "<div style='background:" + tint + ";border:1px solid " + line + ";"
+      +   "border-radius:11px;padding:11px 13px;margin-bottom:8px'>"
+      +   "<div style='font-size:11.5px;font-weight:800;color:#5B6551;margin-bottom:"
+      +     (n ? "7px" : "0") + "'>" + icon + " " + title
+      +     (n ? "<span style='background:#E5484D;color:#fff;border-radius:9px;"
+                  + "min-width:17px;height:17px;padding:0 6px;font-size:10px;font-weight:800;"
+                  + "line-height:17px;text-align:center;margin-left:6px;"
+                  + "display:inline-block'>" + n + "</span>"
+                : "<span style='font-weight:600;color:#B3BAA9;margin-left:6px'>없음</span>")
+      +   "</div>" + (n ? body : "") + "</div>";
+  }
+  function line(a, b2){
+    return "<div style='display:flex;gap:9px;font-size:12px;padding:3px 0;line-height:1.5'>"
+      + "<span style='color:#8A9178;min-width:86px;flex-shrink:0;font-weight:700'>"
+      + _esc(a) + "</span><span style='color:#2D3A28'>" + b2 + "</span></div>";
+  }
+
+  var books = (b.newBooks || []).map(function(x){
+    return line(x.className + (x.teacher ? ' · ' + x.teacher : ''),
+      "<b style='color:#2D6A4F'>" + _esc(x.to) + "</b> 시작 "
+      + "<span style='color:#A8B09C'>(" + _esc(x.date) + " · " + _esc(x.from) + " 마침)</span>");
+  }).join('');
+
+  var studs = (b.newStudents || []).map(function(x){
+    return line(x.className + (x.teacher ? ' · ' + x.teacher : ''),
+      "<b>" + _esc(x.name) + "</b> "
+      + "<span style='color:#A8B09C'>" + _esc([x.school, x.grade && x.grade + '학년']
+          .filter(Boolean).join(' ')) + " · " + _esc(x.enrollDate) + " 등록</span>");
+  }).join('');
+
+  var flags = (b.flags || []).map(function(x){
+    return line(String(x.date || '').slice(5) + ' ' + x.className,
+      _esc(x.text) + (x.teacher ? "<span style='color:#A8B09C'> — "
+                                  + _esc(x.teacher) + "</span>" : ""));
+  }).join('');
+
+  el.innerHTML =
+      "<div style='display:flex;align-items:center;gap:8px;margin-bottom:9px'>"
+    +   "<span style='font-size:13.5px;font-weight:800;color:#2D3A28'>"
+    +     "① 이번 주 꼭 확인</span>"
+    +   "<span style='font-size:11px;color:#A8B09C'>"
+    +     _esc(b.from || '') + " ~ " + _esc(b.till || '') + "</span>"
+    +   "<span style='font-size:10.5px;color:#C3C9BB;margin-left:auto'>자동으로 모읍니다</span>"
+    + "</div>"
+    + block("📚", "이번 주 새로 시작하는 교재", (b.newBooks || []).length, books,
+            "#F7FAF6", "#DCE6D2")
+    + block("🙋", "이번 주 새로 들어온 학생", (b.newStudents || []).length, studs,
+            "#F4F8FC", "#D4E0F0")
+    + block("⚠️", "학생별 특이사항", (b.flags || []).length, flags,
+            "#FFFBEF", "#EADFC0");
+}
+
+// ── ② 회의 안건 ──────────────────────────────────────────
+function loadAgenda(){
+  var el = document.getElementById('mgAgenda');
+  if(el) el.innerHTML = "<div style='color:#bbb;font-size:12px;padding:8px 2px'>"
+    + "안건을 불러오는 중…</div>";
+  google.script.run
+    .withSuccessHandler(function(list){ _mgAgendaList = list || []; renderAgenda(); })
+    .withFailureHandler(function(){ if(el) el.innerHTML = ''; })
+    .fetchAgenda(mgGroupKey());
+}
+
+function renderAgenda(){
+  var el = document.getElementById('mgAgenda');
+  if(!el) return;
+  var open = _mgAgendaList.filter(function(a){ return a.status === 'open'; });
+  var done = _mgAgendaList.filter(function(a){ return a.status !== 'open'; });
+
+  function card(a){
+    var isOpen = a.status === 'open';
+    var col = isOpen ? '#3C5A8A' : (a.status === 'hold' ? '#B4651A' : '#2D6A4F');
+    return "<div style='background:#fff;border:1px solid " + (isOpen ? "#CFDCEC" : "#E7EAE3")
+      +   ";border-radius:11px;padding:11px 13px;margin-bottom:7px'>"
+      + "<div style='display:flex;align-items:flex-start;gap:9px'>"
+      +   "<span style='background:" + col + ";color:#fff;border-radius:7px;padding:2px 8px;"
+      +     "font-size:10px;font-weight:800;white-space:nowrap;flex-shrink:0;margin-top:1px'>"
+      +     (isOpen ? '안건' : (a.status === 'hold' ? '다음에' : '다룸')) + "</span>"
+      +   "<div style='flex:1;min-width:0'>"
+      +     "<div style='font-size:13px;font-weight:700;color:" + (isOpen ? "#2D3A28" : "#7B8474")
+      +       "'>" + _esc(a.title) + "</div>"
+      +     (a.detail ? "<div style='font-size:12px;color:#5B6551;line-height:1.6;margin-top:3px;"
+                        + "white-space:pre-wrap'>" + _esc(a.detail) + "</div>" : "")
+      +     "<div style='font-size:10.5px;color:#A8B09C;margin-top:4px'>"
+      +       _esc(a.author || '') + " · " + _esc(a.createdAt) + "</div>"
+      +     (a.result ? "<div style='background:#EAF3EC;border-radius:7px;padding:6px 9px;"
+                        + "margin-top:6px;font-size:11.5px;color:#2D6A4F;line-height:1.55;"
+                        + "white-space:pre-wrap'>→ " + _esc(a.result) + "</div>" : "")
+      +   "</div>"
+      +   "<div style='display:flex;flex-direction:column;gap:5px;flex-shrink:0'>"
+      +     (isOpen
+          ? "<button onclick='agendaDone(\"" + a.id + "\")' style='background:#F1F6EE;"
+            + "color:#2D6A4F;border:1px solid #BBD3BE;border-radius:8px;padding:5px 10px;"
+            + "font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>✓ 다룸</button>"
+            + "<button onclick='agendaHold(\"" + a.id + "\")' style='background:#FFF8EF;"
+            + "color:#B4651A;border:1px solid #F0D3A8;border-radius:8px;padding:5px 10px;"
+            + "font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>다음에</button>"
+          : "<button onclick='agendaReopen(\"" + a.id + "\")' style='background:#F1F3EE;"
+            + "color:#7B8474;border:none;border-radius:8px;padding:5px 10px;font-size:11px;"
+            + "font-weight:700;cursor:pointer;white-space:nowrap'>되돌리기</button>")
+      +     (canDeleteMine(a.author)
+          ? "<button onclick='agendaDelete(\"" + a.id + "\")' title='휴지통으로' "
+            + "style='background:#fdecea;color:#c62828;border:none;border-radius:8px;"
+            + "padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer'>🗑️</button>" : "")
+      +   "</div>"
+      + "</div></div>";
+  }
+
+  el.innerHTML =
+      "<div style='display:flex;align-items:center;gap:8px;margin-bottom:9px'>"
+    +   "<span style='font-size:13.5px;font-weight:800;color:#2D3A28'>② 올라온 안건</span>"
+    +   (open.length
+        ? "<span style='background:#3C5A8A;color:#fff;border-radius:9px;min-width:18px;"
+          + "height:18px;padding:0 6px;font-size:10.5px;font-weight:800;line-height:18px;"
+          + "text-align:center'>" + open.length + "</span>" : "")
+    +   "<button onclick='agendaAddBox()' style='margin-left:auto;background:#2D6A4F;"
+    +     "color:#fff;border:none;border-radius:9px;padding:6px 13px;font-size:12px;"
+    +     "font-weight:700;cursor:pointer'>＋ 안건 올리기</button>"
+    + "</div>"
+    + "<div id='mgAddBox'></div>"
+    + (open.length ? open.map(card).join('')
+       : "<div style='background:#F4F6F1;border:1px solid #E2E8D8;border-radius:11px;"
+         + "padding:11px 14px;font-size:12px;color:#7B8474'>"
+         + "아직 올라온 안건이 없어요. 회의 전에 미리 올려 주세요.</div>")
+    + (done.length
+      ? "<div onclick='agendaToggleDone()' id='mgDoneHead' style='margin-top:9px;"
+        + "font-size:11.5px;font-weight:700;color:#7B8474;cursor:pointer;padding:4px 2px'>"
+        + (_mgShowDone ? "▾" : "▸") + " 지난 안건 " + done.length + "건</div>"
+        + "<div id='mgDoneBox' style='display:" + (_mgShowDone ? "block" : "none") + "'>"
+        + done.map(card).join('') + "</div>"
+      : "");
+}
+
+var _mgShowDone = false;
+function agendaToggleDone(){ _mgShowDone = !_mgShowDone; renderAgenda(); }
+
+function agendaAddBox(){
+  var box = document.getElementById('mgAddBox');
+  if(!box) return;
+  if(box.innerHTML){ box.innerHTML = ''; return; }
+  var f = "width:100%;padding:9px 11px;border:1.5px solid #CFE0D3;border-radius:9px;"
+        + "font-size:13px;box-sizing:border-box;outline:none";
+  box.innerHTML =
+      "<div style='background:#F1F6EE;border:1.5px solid #BBD3BE;border-radius:11px;"
+    +   "padding:12px 14px;margin-bottom:9px'>"
+    +   "<input id='agTitle' placeholder='안건 한 줄 *' style='" + f + ";margin-bottom:7px'>"
+    +   "<textarea id='agDetail' rows='2' placeholder='자세한 내용 (선택)' style='"
+    +     f + ";resize:vertical;font-family:inherit;margin-bottom:9px'></textarea>"
+    +   "<div style='display:flex;gap:7px'>"
+    +     "<button onclick=\"document.getElementById('mgAddBox').innerHTML=''\" "
+    +       "style='flex:1;background:#fff;color:#5B6551;border:1px solid #DDE3D6;"
+    +       "border-radius:9px;padding:9px;font-size:12.5px;font-weight:700;"
+    +       "cursor:pointer'>취소</button>"
+    +     "<button onclick='agendaSubmit(this)' style='flex:2;background:#2D6A4F;color:#fff;"
+    +       "border:none;border-radius:9px;padding:9px;font-size:12.5px;font-weight:700;"
+    +       "cursor:pointer'>올리기</button>"
+    +   "</div></div>";
+  setTimeout(function(){ var t = document.getElementById('agTitle'); if(t) t.focus(); }, 40);
+}
+
+function agendaSubmit(btn){
+  var title  = (document.getElementById('agTitle')  || {}).value || '';
+  var detail = (document.getElementById('agDetail') || {}).value || '';
+  if(!title.trim()){ showToast("안건을 적어주세요."); return; }
+  if(btn){ btn.disabled = true; btn.textContent = '올리는 중…'; }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(btn){ btn.disabled = false; btn.textContent = '올리기'; }
+      if(!r || !r.success){ alert((r && r.error) || "올리지 못했어요."); return; }
+      showToast("안건을 올렸어요.");
+      var box = document.getElementById('mgAddBox'); if(box) box.innerHTML = '';
+      loadAgenda();
+    })
+    .withFailureHandler(function(){
+      if(btn){ btn.disabled = false; btn.textContent = '올리기'; }
+      showToast("올리지 못했어요.");
+    })
+    .addAgenda({ grp:mgGroupKey(), title:title, detail:detail, author:_userName || '' });
+}
+
+function _agendaSet(id, patch, msg){
+  google.script.run
+    .withSuccessHandler(function(){ showToast(msg); loadAgenda(); })
+    .withFailureHandler(function(){ showToast("바꾸지 못했어요."); })
+    .updateAgenda(id, patch);
+}
+function agendaDone(id){
+  var r = prompt("회의에서 정한 것을 적어주세요. (비워도 됩니다)", "");
+  if(r === null) return;
+  _agendaSet(id, { status:'done', result:r }, "다룬 안건으로 옮겼어요.");
+}
+function agendaHold(id){ _agendaSet(id, { status:'hold' }, "다음 회의로 미뤘어요."); }
+function agendaReopen(id){ _agendaSet(id, { status:'open', result:'' }, "다시 올렸어요."); }
+function agendaDelete(id){
+  if(!confirm("이 안건을 휴지통으로 보낼까요?\n원장님이 되살릴 수 있어요.")) return;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.success){ alert((r && r.error) || "보내지 못했어요."); return; }
+      showToast("휴지통으로 보냈어요."); loadAgenda();
+    })
+    .withFailureHandler(function(){ showToast("보내지 못했어요."); })
+    .deleteAgenda(id);
 }
 function renderMeetingsList(meetings){
   var el = document.getElementById('meetingsList');
   if(!el) return;
-  if(!meetings.length){ el.innerHTML="<div class='empty'>No meetings yet.</div>"; return; }
+
+  // 탭에 맞는 것만 — 한국인 회의 · 원어민 회의 · 학사일정
+  var want = mgGroupKey();
+  meetings = (meetings || []).filter(function(m){
+    var isEvent = m.meetingType === 'Schedule/Event';
+    if(want === '') return isEvent;                 // 학사일정 탭
+    if(isEvent) return false;
+    return (m.group || 'korean') === want;
+  });
+
+  if(!meetings.length){
+    el.innerHTML = "<div class='empty'>"
+      + (want === '' ? "아직 학사일정이 없어요."
+         : (want === 'native' ? "원어민 회의록이 아직 없어요." : "한국인 회의록이 아직 없어요."))
+      + "</div>";
+    return;
+  }
   var evtColors = _schoolEventTypeColors||{};
   function meetingCard(m){
     var tc = _meetingTypeColors[m.meetingType]||{bg:'#f5f5f5',text:'#555'};
@@ -16219,6 +16878,13 @@ function openMeetingModal(id){
   _mtgPeriods = [];
   renderMtgPeriodChips();
   onMtgModeChange();
+  // 지금 보고 있는 탭에 맞춰 종류를 미리 골라 둡니다
+  if(typeof _mgTab !== 'undefined' && !id){
+    var pre = (_mgTab === 1) ? 'Native Meeting'
+            : (_mgTab === 2) ? 'Schedule/Event' : 'Staff Meeting';
+    var ts = document.getElementById('mtgType');
+    if(ts){ ts.value = pre; if(typeof onMtgTypeChange === 'function') onMtgTypeChange(); }
+  }
   document.getElementById('mtgEditId').value='';
   document.getElementById('mtgEventFields').style.display='none';
   document.getElementById('meetingModalTitle').textContent='New Meeting';
@@ -16318,7 +16984,9 @@ function saveMeetingItem(){
     eventEndDate:isEvent?document.getElementById('mtgEvtEnd').value:null,
     eventCategory:isEvent?document.getElementById('mtgEvtCat').value:null,
     classMode:     isEvent ? (classMode || null) : null,
-    affectPeriods: (isEvent && classMode && _mtgPeriods.length) ? _mtgPeriods.slice() : null
+    affectPeriods: (isEvent && classMode && _mtgPeriods.length) ? _mtgPeriods.slice() : null,
+    // 갈래 — 학사일정은 달력 전용이라 비워 둡니다
+    group: isEvent ? '' : (type === 'Native Meeting' ? 'native' : 'korean')
   });
 }
 function deleteMeetingItem(){
@@ -17689,11 +18357,22 @@ function loadBookOrderDue(){
     + "곧 끝나는 교재를 살펴보는 중…</div>";
   google.script.run
     .withSuccessHandler(function(res){
-      _boDue       = (res && res.items) || [];
-      _boDone      = (res && res.doneItems) || [];
-      _boAsked     = (res && res.asked) || [];
-      _boAskedDone = (res && res.askedDone) || [];
-      renderBookOrderDue(res || {});
+      // 담임 선생님은 내 반 것만, 마스터는 전체
+      function mineOnly(list){
+        if(isMasterUser()) return list || [];
+        var me = _bareName(_userName);
+        return (list || []).filter(function(x){ return _bareName(x.teacherName) === me; });
+      }
+      res = res || {};
+      res.items     = mineOnly(res.items);
+      res.doneItems = mineOnly(res.doneItems);
+      res.asked     = mineOnly(res.asked);
+      res.askedDone = mineOnly(res.askedDone);
+      _boDue       = res.items;
+      _boDone      = res.doneItems;
+      _boAsked     = res.asked;
+      _boAskedDone = res.askedDone;
+      renderBookOrderDue(res);
       if(typeof setNavBadge === 'function')
         setNavBadge('bookorderboard', _boDue.length + _boAsked.length);
     })
@@ -18330,11 +19009,15 @@ function submitLessonPlan(){
 
 <script>
 function deleteMemoCard(pageId){
-  if(!confirm("이 메모를 삭제할까요?\n결석 메모라면 출석부 기록도 함께 지워집니다.")) return;
+  if(!confirm("이 메모를 휴지통으로 보낼까요?\n\n"
+    + "바로 지워지지 않습니다. 원장님이 휴지통에서 되살릴 수 있어요.\n"
+    + "결석 메모라면 출석부 기록은 같이 지워집니다.")) return;
   google.script.run
   .withSuccessHandler(function(r){
+    if(r && r.success === false){ alert(r.error || "보내지 못했어요."); return; }
     loadMemoList();
-    showToast(r && r.absenceDeleted ? "메모와 결석 기록을 삭제했어요." : "삭제했어요.");
+    showToast(r && r.absenceDeleted ? "휴지통으로 보냈어요. (결석 기록도 정리)"
+                                    : "휴지통으로 보냈어요.");
   })
   .withFailureHandler(function(e){ showToast("삭제 실패: "+(e&&e.message?e.message:"다시 시도해 주세요")); })
   .deleteMemo(pageId);
