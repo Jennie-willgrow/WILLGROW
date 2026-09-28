@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-29 07:25';
+var APP_VERSION = '2026-09-29 08:10';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2187,8 +2187,12 @@ function _lpBuildLines(lines, opts) {
       var wd = d.getDay() === 0 ? 7 : d.getDay();
       L.forEach(function(l){
         if(l.weekdays.indexOf(wd) < 0) return;
+        //  🔴 휴강만 칸을 비웁니다.
+        //  🟡 학원 행사(특별수업)는 반마다 들어가는 날이 달라서
+        //     선생님이 계획표에서 직접 끌어다 놓으시게 두었습니다.
         var nc = nonClass[key];
-        var off = (nc && (nc.periods === null || nc.periods.indexOf(l.no) >= 0)) ? nc : null;
+        var hit = (nc && (nc.periods === null || nc.periods.indexOf(l.no) >= 0)) ? nc : null;
+        var off = (hit && hit.mode === '휴강') ? hit : null;
         cells.push({ date:key, line:l, off:off });
       });
     }
@@ -2891,6 +2895,32 @@ async function fetchNextTermDraft(classId, prevTerm) {
 }
 
 // ── 읽기 · 고치기 ────────────────────────────────────────────
+// 계획표에 끌어다 놓을 "학원 행사" 목록입니다.
+//   🟡 특별수업 으로 표시한 학사일정만 가져옵니다.
+//   (🔴 휴강은 자동으로 빠지니 여기 안 나옵니다)
+async function fetchPlanEvents(fromDate, toDate) {
+  if(!fromDate || !toDate) return { events:[] };
+  var rows = await sbGetSoft('meetings',
+    'select=id,title,event_start_date,event_end_date,class_mode,event_category'
+    + '&meeting_type=eq.Schedule/Event&event_start_date=lte.' + toDate
+    + '&order=event_start_date.asc',
+    'select=id,title,event_start_date,event_end_date,event_category'
+    + '&meeting_type=eq.Schedule/Event&event_start_date=lte.' + toDate
+    + '&order=event_start_date.asc')
+    .catch(function(){ return []; }) || [];
+
+  var out = [];
+  rows.forEach(function(r){
+    var mode = r.class_mode;
+    if(mode === undefined) mode = (r.event_category === 'Event') ? '특별수업' : '';
+    if(mode !== '특별수업') return;
+    var s2 = r.event_start_date, e2 = r.event_end_date || r.event_start_date;
+    if(!s2 || e2 < fromDate) return;
+    out.push({ id:r.id, title:r.title || '행사', from:s2, till:e2 });
+  });
+  return { events: out };
+}
+
 async function fetchClassLessonPlan(classId, termNo) {
   if(!classId) return { entries:[] };
   var tf = (termNo === undefined || termNo === null || termNo === '')
@@ -5410,7 +5440,7 @@ var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
-  fetchMasterTimetable, fetchNonClassDays,
+  fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents,
   fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
   fetchLessonPlanSetup, fetchBookUnits, saveLessonPlanLines,
   fetchLessonPlanTerms, fetchNextTermDraft,
@@ -13915,7 +13945,12 @@ function _lpGrid(forImage){
         h += "<td style='border:1px solid #EEF0EA;" + top + "background:" + bg + ";"
           +    "padding:" + pad + ";text-align:center;position:relative"
           +    (forImage ? "" : ";cursor:pointer") + "'"
-          + (forImage ? "" : " onclick='lpEditCell(\"" + e.id + "\")' title='눌러서 고치기'")
+          + (forImage ? ""
+             : " onclick='lpCellClick(\"" + e.id + "\")' title='눌러서 고치기 · 행사를 끌어다 놓을 수 있어요'"
+               + " ondragover='event.preventDefault()'"
+               + " ondragenter='this.style.outline=\"2px dashed #B4651A\"'"
+               + " ondragleave='this.style.outline=\"\"'"
+               + " ondrop='this.style.outline=\"\";lpDropEvent(event,\"" + e.id + "\")'")
           + ">"
           +   (e.part
               ? "<span style='display:block;font-size:8.5px;color:#B3BAA9;line-height:1.25;"
@@ -13976,9 +14011,133 @@ function renderLessonPlan(problem){
     +   "white-space:nowrap'>🖼 사진으로 보기</button>"
     + "<button onclick='closeLessonPlan()' style='background:none;border:none;font-size:20px;"
     +   "cursor:pointer;color:#A8B09C'>✕</button></div>"
-    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:14px'>"
+    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:10px'>"
     +   "칸을 눌러 고칠 수 있어요 · 고친 칸(✎)은 다시 만들어도 그대로 남습니다</div>"
+    + "<div id='lpEvtTray'></div>"
     + "<div style='overflow-x:auto'>" + _lpGrid(false) + "</div>";
+  lpLoadEvents();
+}
+
+// ════════════════════════════════════════════════════════════
+//  학원 행사 끌어다 놓기
+//
+//  🔴 휴강은 학원이 쉬는 날이라 자동으로 빠집니다.
+//  🟡 학원 행사(할로윈 같은)는 반마다 들어가는 날이 달라서
+//     선생님이 이 계획표에서 원하는 칸에 직접 놓으시게 했습니다.
+//     놓으면 그 뒤 회차는 알아서 한 칸씩 밀립니다.
+// ════════════════════════════════════════════════════════════
+var _lpEvents = [];
+var _lpHeld   = null;          // 손에 든 행사 (눌러서 놓기용)
+
+function lpLoadEvents(){
+  var tray = document.getElementById('lpEvtTray');
+  if(!tray || !_lpPlan.length) return;
+  var from = _lpPlan[0].date, till = _lpPlan[_lpPlan.length - 1].date;
+  google.script.run
+    .withSuccessHandler(function(r){
+      _lpEvents = (r && r.events) || [];
+      renderLpTray();
+    })
+    .withFailureHandler(function(){ _lpEvents = []; renderLpTray(); })
+    .fetchPlanEvents(from, till);
+}
+
+function renderLpTray(){
+  var tray = document.getElementById('lpEvtTray');
+  if(!tray) return;
+  if(!_lpEvents.length){ tray.innerHTML = ''; return; }
+
+  tray.innerHTML =
+      "<div style='background:#FFF8EC;border:1px solid #F0DFB0;border-radius:10px;"
+    +   "padding:10px 12px;margin-bottom:12px'>"
+    + "<div style='font-size:11.5px;font-weight:800;color:#8A6A22;margin-bottom:7px'>"
+    +   "🟡 학원 행사 — 넣고 싶은 칸으로 끌어다 놓으세요"
+    +   "<span style='font-weight:600;color:#B59A55;margin-left:6px'>"
+    +   "(누르고 칸을 눌러도 됩니다 · 뒤 회차는 알아서 밀립니다)</span></div>"
+    + "<div style='display:flex;flex-wrap:wrap;gap:6px'>"
+    + _lpEvents.map(function(v, i){
+        var on = _lpHeld === i;
+        var when = v.from.slice(5).replace('-', '/')
+                 + (v.till !== v.from ? ' ~ ' + v.till.slice(5).replace('-', '/') : '');
+        return "<div draggable='true' onclick='lpHoldEvent(" + i + ")' "
+          + "ondragstart='lpDragStart(event," + i + ")' ondragend='lpDragEnd()' "
+          + "style='background:" + (on ? '#B4651A' : '#fff') + ";"
+          +   "color:" + (on ? '#fff' : '#8A6A22') + ";"
+          +   "border:1.5px solid " + (on ? '#B4651A' : '#E8D9A8') + ";border-radius:20px;"
+          +   "padding:5px 12px;font-size:12px;font-weight:700;cursor:grab;user-select:none'>"
+          +   "🎈 " + _plEsc(v.title)
+          +   "<span style='font-weight:600;opacity:.75;margin-left:6px;font-size:10.5px'>"
+          +   when + "</span></div>";
+      }).join('')
+    + "</div>"
+    + (_lpHeld !== null
+      ? "<div style='font-size:11.5px;color:#B4651A;font-weight:700;margin-top:7px'>"
+        + "들고 계신 행사를 놓을 칸을 눌러 주세요 · "
+        + "<span onclick='lpHoldEvent(null)' style='text-decoration:underline;cursor:pointer'>"
+        + "취소</span></div>" : "")
+    + "</div>";
+}
+
+function lpHoldEvent(i){
+  _lpHeld = (i === null || _lpHeld === i) ? null : i;
+  renderLpTray();
+}
+
+function lpDragStart(ev, i){
+  _lpHeld = i;
+  try { ev.dataTransfer.setData('text/plain', _lpEvents[i].title); } catch(e){}
+  if(ev.dataTransfer) ev.dataTransfer.effectAllowed = 'copy';
+  renderLpTray();
+}
+function lpDragEnd(){ /* 놓지 않고 놓친 경우에도 손에는 그대로 둡니다 */ }
+
+function lpDropEvent(ev, id){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  var title = '';
+  try { title = ev.dataTransfer.getData('text/plain') || ''; } catch(e){}
+  if(!title && _lpHeld !== null && _lpEvents[_lpHeld]) title = _lpEvents[_lpHeld].title;
+  if(!title) return;
+  lpPutEvent(id, title);
+}
+
+//  칸에 행사를 넣고 뒤 회차를 다시 맞춥니다 (끼워 넣기와 같은 방식)
+function lpPutEvent(id, title){
+  var e = _lpPlan.filter(function(x){ return x.id === id; })[0];
+  if(!e) return;
+  if(!confirm(e.date + ' 칸에 [' + title + '] 을 넣을까요?\n\n'
+            + '이 칸의 진도와 그 뒤 회차가 한 칸씩 밀립니다.')) return;
+
+  _lpHeld = null; renderLpTray();
+  showToast("넣는 중…");
+  google.script.run
+    .withSuccessHandler(function(){
+      google.script.run
+        .withSuccessHandler(function(r2){
+          if(!r2 || !r2.success){ showToast((r2 && r2.error) || "다시 맞추지 못했어요."); return; }
+          google.script.run
+            .withSuccessHandler(function(r3){
+              _lpPlan = (r3 && r3.entries) || [];
+              renderLessonPlan();
+              showToast("넣었어요. 뒤 회차를 한 칸씩 밀었습니다.");
+            })
+            .fetchClassLessonPlan(_lpCid, _lpTerm);
+        })
+        .withFailureHandler(function(){ showToast("다시 맞추지 못했어요."); })
+        .generateClassLessonPlan(_lpCid, { termNo:_lpTerm, keepEdits:true });
+    })
+    .withFailureHandler(function(err){
+      showToast("넣지 못했어요: " + (err && err.message ? err.message : ''));
+    })
+    .updateLessonPlanEntry(id, title, 'insert');
+}
+
+// 칸을 누르면 — 행사를 들고 계시면 그 칸에 놓고, 아니면 고치기 창을 엽니다
+function lpCellClick(id){
+  if(_lpHeld !== null && _lpEvents[_lpHeld]){
+    lpPutEvent(id, _lpEvents[_lpHeld].title);
+    return;
+  }
+  lpEditCell(id);
 }
 
 function lpEditCell(id){
