@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-29 05:20';
+var APP_VERSION = '2026-09-29 06:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1641,11 +1641,9 @@ async function fetchClassManage() {
   var out = classes.map(function(cls){
     var rows = repBy[cls.id] || [];
     var stus = (stuBy[cls.id] || []).map(function(s){
-      // "김민준 (Leo)" → 한글 이름 + 영어 이름으로 나눕니다
-      var raw = String(s.name || '').trim();
-      var m   = raw.match(/^(.*?)\s*[（(]\s*([^）)]*)\s*[）)]\s*$/);
+      // 한글 이름 · 영어 이름을 따로 씁니다
       return { id: s.id,
-               name:  m ? m[1].trim() : raw,
+               name:  _stuKo(s),
                eng:   _stuEn(s),
                grade: String(s.grade || '').trim() };
     }).filter(function(s){ return s.name; });
@@ -3704,7 +3702,8 @@ async function _classPeriodsOn(classId, dateStr) {
 async function fetchClassRoster(classId, dateStr, reportId) {
   if(!classId) return { students:[], absent:{}, missed:{}, periods:[] };
 
-  var students = await _sbGetSafe('students',
+  var students = await sbGetSoft('students',
+    'select=id,name,english_name&class_id='+_eq(classId)+'&status=eq.재원&order=name.asc',
     'select=id,name&class_id='+_eq(classId)+'&status=eq.재원&order=name.asc') || [];
 
   var ids = students.map(function(s){ return s.id; });
@@ -6434,10 +6433,8 @@ function loadReportStudents(pageId, classId){
       }
 
       list.innerHTML = rows.map(function(s){
-        var raw = String(s.name || '').trim();
-        var m   = raw.match(/^(.*?)\s*[（(]\s*([^）)]*)\s*[）)]\s*$/);
-        var ko  = m ? m[1].trim() : raw;
-        var en  = m ? m[2].trim() : '';
+        var ko  = _stuKo(s);
+        var en  = _stuEn(s);
         var ab  = absent[s.id];
         var r   = rec[s.id] || {};
 
@@ -6537,9 +6534,7 @@ function loadReportStudents(pageId, classId){
              +   "</div>";
           t +=   "<table style='width:100%;border-collapse:collapse;font-size:11.5px'>";
           hit.forEach(function(s){
-            var raw = String(s.name||'').trim();
-            var mm  = raw.match(/^(.*?)\s*[（(]\s*([^）)]*)\s*[）)]\s*$/);
-            var nm  = mm ? mm[1].trim() : raw;
+            var nm  = _stuKo(s) + (_stuEn(s) ? ' ' + _stuEn(s) : '');
             var r   = rec[s.id];
             var bits = [];
             if(r.note)     bits.push("<span style='color:#8A6A22'>No HW · " + _plEsc(r.note) + "</span>");
