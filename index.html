@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-29 04:35';
+var APP_VERSION = '2026-09-29 05:20';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1679,7 +1679,33 @@ async function fetchClassManage() {
   var programs = await _sbGetSafe('programs',
     'select=id,name,tuition,weeks&order=name.asc') || [];
 
-  return { classes: _classSort(out), teachers: teachers,
+  // 보이는 차례 — Phonics → Star/Galaxy → Junior → TEMS → 그 밖
+  function progRank(nm){
+    var n = String(nm || '').toUpperCase();
+    if(n.indexOf('PHONIC') >= 0) return 1;
+    if(n.indexOf('STAR') >= 0 || n.indexOf('GALAXY') >= 0) return 2;
+    if(n.indexOf('JUNIOR') >= 0) return 3;
+    if(n.indexOf('TEMS') >= 0 || n.indexOf('TEAMS') >= 0) return 4;
+    return 5;
+  }
+  programs.sort(function(a, b){
+    return progRank(a.name) - progRank(b.name)
+        || String(a.name || '').localeCompare(String(b.name || ''));
+  });
+
+  // 단어장 목록 — RUN_ME_33 을 돌리셨으면 표에서, 아니면 앱에 적힌 목록에서
+  var vbRows = await _sbGetSafe('vocab_books',
+    'select=name,sort_order,is_special,is_active&order=sort_order.asc') || [];
+  var vocabBooks = vbRows
+    .filter(function(v){ return v.is_active !== false; })
+    .map(function(v){ return { name:v.name || '', special:!!v.is_special }; })
+    .filter(function(v){ return v.name; });
+  if(!vocabBooks.length){
+    vocabBooks = WG_VOCAB_BOOKS.map(function(n){ return { name:n, special:false }; })
+      .concat(WG_VOCAB_SPECIAL.map(function(n){ return { name:n, special:true }; }));
+  }
+
+  return { classes: _classSort(out), teachers: teachers, vocabBooks: vocabBooks,
            programs: programs.map(function(pg){
              return { id:pg.id, name:pg.name || '',
                       tuition:pg.tuition || null, weeks:pg.weeks || '' }; }),
@@ -14070,8 +14096,9 @@ function _classGroup(name){
   return { key:'9-' + word.toLowerCase(), label:word };
 }
 
-// ── 단어장 ─────────────────────────────────────────────
-//   쉬운 것부터 차례대로. 맨 아래 NE 숙어는 따로 쓰는 책입니다.
+// ── 단어장 (예비 목록) ──────────────────────────────────
+//   진짜 목록은 vocab_books 표에 있습니다 (RUN_ME_33).
+//   표를 아직 안 만드셨을 때만 이 목록을 씁니다.
 var WG_VOCAB_BOOKS = [
   'NE 입문',
   'WM 중등 실력',
@@ -14146,29 +14173,29 @@ function renderClassMgmt(){
                + _plEsc(t.name) + (t.active === false ? " (퇴사)" : "") + "</option>";
         }).join("");
 
-    // 단어장 고르기 — 난이도 순서대로
+    // 단어장 고르기 — 쉬운 것부터 차례대로 (목록은 vocab_books 표에서 옵니다)
     var vb = String(c.vocabBook || '');
+    var vbList = _cmData.vocabBooks || [];
     var vocabOpts = "<option value=''>— 없음 —</option>";
-    WG_VOCAB_BOOKS.forEach(function(v, vi){
-      vocabOpts += "<option value='" + _plEsc(v) + "'" + (v === vb ? " selected" : "") + ">"
-                 + (vi + 1) + ". " + _plEsc(v) + "</option>";
-    });
-    WG_VOCAB_SPECIAL.forEach(function(v){
-      vocabOpts += "<option value='" + _plEsc(v) + "'" + (v === vb ? " selected" : "") + ">"
-                 + "★ " + _plEsc(v) + "</option>";
+    var no = 0;
+    vbList.forEach(function(v){
+      var mark = v.special ? "★ " : (++no) + ". ";
+      vocabOpts += "<option value='" + _plEsc(v.name) + "'"
+                 + (v.name === vb ? " selected" : "") + ">"
+                 + mark + _plEsc(v.name) + "</option>";
     });
     // 목록에 없는 것을 이미 써 두셨으면 그대로 남겨 둡니다
-    if(vb && WG_VOCAB_BOOKS.indexOf(vb) < 0 && WG_VOCAB_SPECIAL.indexOf(vb) < 0){
+    if(vb && !vbList.some(function(v){ return v.name === vb; })){
       vocabOpts += "<option value='" + _plEsc(vb) + "' selected>" + _plEsc(vb) + "</option>";
     }
 
     // 프로그램 고르기 — 반의 수강료가 여기서 나옵니다
+    //  원비는 보여 주지 않습니다 — 수납관리에서 확인하시면 됩니다.
+    //  여기서는 반에 맞는 프로그램이 제대로 걸려 있는지만 봅니다.
     var progOpts = "<option value=''>— 없음 —</option>"
       + (_cmData.programs || []).map(function(pg){
           return "<option value='" + pg.id + "'" + (pg.id === c.programId ? " selected" : "") + ">"
-               + _plEsc(pg.name)
-               + (pg.tuition ? " (" + Number(pg.tuition).toLocaleString() + "원)" : "")
-               + "</option>";
+               + _plEsc(pg.name) + "</option>";
         }).join("");
 
     // 원어민 선생님 고르기 — 역할이 '원어민' 인 분만 보여 줍니다
@@ -14240,7 +14267,7 @@ function renderClassMgmt(){
       // 프로그램 — 수강료의 바탕이 됩니다
       + "<div style='display:flex;align-items:center;gap:7px;margin-bottom:9px'>"
       +   "<span style='font-size:10.5px;font-weight:700;color:#8A9178;white-space:nowrap'>프로그램</span>"
-      +   "<select id='cmP-" + c.id + "' onchange='saveClassExtra(\"" + c.id + "\")' "
+      +   "<select id='cmP-" + c.id + "' onchange='askChangeProgram(\"" + c.id + "\")' "
       +     "style='flex:1;min-width:0;padding:6px 9px;border:1.5px solid #E2E8D8;border-radius:8px;"
       +     "font-size:12.5px;background:#fff;box-sizing:border-box'>" + progOpts + "</select>"
       + "</div>"
@@ -16233,6 +16260,107 @@ function saveClassExtra(classId){
       if(ps) ps.value = c.programId || '';
     })
     .setClassExtra(classId, nid, vb, pid);
+}
+
+// 프로그램을 바꾸면 원비가 따라 바뀝니다.
+//   학부모님께 안내가 나갔는지 먼저 확인합니다.
+var _pgPending = null;
+
+function askChangeProgram(classId){
+  var sel = document.getElementById("cmP-" + classId);
+  if(!sel) return;
+  var c = (_cmData.classes || []).filter(function(x){ return x.id === classId; })[0];
+  if(!c) return;
+
+  var toId = sel.value || '', fromId = c.programId || '';
+  if(toId === fromId) return;
+
+  function nameOf(id){
+    if(!id) return '없음';
+    var pg = (_cmData.programs || []).filter(function(x){ return x.id === id; })[0];
+    return pg ? pg.name : '(알 수 없음)';
+  }
+
+  sel.value = fromId;                       // 아직 확정 아닙니다
+  _pgPending = { classId:classId, toId:toId };
+
+  var old = document.getElementById("pgOverlay");
+  if(old) old.remove();
+
+  var ov = document.createElement("div");
+  ov.id = "pgOverlay";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9200;"
+    + "display:flex;align-items:center;justify-content:center;padding:16px";
+  ov.onclick = function(e){ if(e.target === ov) closeProgramAsk(); };
+
+  var box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:16px;padding:22px 20px;width:min(94%,400px);"
+    + "max-height:88vh;overflow-y:auto;box-shadow:0 10px 36px rgba(0,0,0,0.22)";
+  box.innerHTML =
+      "<div style='font-size:15px;font-weight:800;color:#363D2E;margin-bottom:4px'>"
+    +   "프로그램 변경 확인</div>"
+    + "<div style='font-size:11.5px;color:#A8B09C;margin-bottom:14px'>"
+    +   "프로그램이 바뀌면 이 반 학생들의 원비도 따라 바뀝니다.</div>"
+
+    + "<div style='background:#FAFBF8;border-radius:10px;padding:12px 14px;margin-bottom:14px'>"
+    +   "<div style='font-size:12px;color:#8A9178;margin-bottom:6px'>" + _plEsc(c.name) + "</div>"
+    +   "<div style='display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700'>"
+    +     "<span style='color:#9AA391'>" + _plEsc(nameOf(fromId)) + "</span>"
+    +     "<span style='color:#C3C9BB'>→</span>"
+    +     "<span style='color:#2D6A4F'>" + _plEsc(nameOf(toId)) + "</span>"
+    +   "</div>"
+    + "</div>"
+
+    + "<label style='display:flex;gap:9px;align-items:flex-start;background:#FFF8E9;"
+    +   "border:1.5px solid #E8D9A8;border-radius:10px;padding:11px 13px;margin-bottom:14px;"
+    +   "cursor:pointer'>"
+    +   "<input type='checkbox' id='pgAgreed' onchange='pgValidate()' "
+    +     "style='width:17px;height:17px;margin-top:1px;cursor:pointer;flex-shrink:0'>"
+    +   "<span style='font-size:12.5px;color:#6B5A22;line-height:1.5;font-weight:600'>"
+    +     "학부모님께 안내문이 나갔습니다</span></label>"
+
+    + "<div style='display:flex;gap:8px'>"
+    +   "<button onclick='closeProgramAsk()' style='flex:1;background:#F1F3EE;color:#5B6551;"
+    +     "border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;"
+    +     "cursor:pointer'>취소</button>"
+    +   "<button id='pgOk' onclick='confirmChangeProgram()' disabled "
+    +     "style='flex:2;background:#C9CEC2;color:#fff;border:none;border-radius:10px;padding:11px;"
+    +     "font-size:13px;font-weight:700;cursor:not-allowed'>프로그램 변경</button>"
+    + "</div>";
+
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+}
+
+function pgValidate(){
+  var ok  = (document.getElementById('pgAgreed') || {}).checked;
+  var btn = document.getElementById('pgOk');
+  if(!btn) return;
+  btn.disabled = !ok;
+  btn.style.background = ok ? '#2D6A4F' : '#C9CEC2';
+  btn.style.cursor     = ok ? 'pointer' : 'not-allowed';
+}
+
+function closeProgramAsk(){
+  var ov = document.getElementById('pgOverlay');
+  if(ov) ov.remove();
+  if(_pgPending){
+    var c  = (_cmData.classes || []).filter(function(x){ return x.id === _pgPending.classId; })[0];
+    var el = document.getElementById('cmP-' + _pgPending.classId);
+    if(el && c) el.value = c.programId || '';   // 원래대로 돌려놓습니다
+  }
+  _pgPending = null;
+}
+
+function confirmChangeProgram(){
+  if(!_pgPending) return;
+  var id = _pgPending.classId, to = _pgPending.toId;
+  var el = document.getElementById('cmP-' + id);
+  _pgPending = null;
+  var ov = document.getElementById('pgOverlay');
+  if(ov) ov.remove();
+  if(el) el.value = to;
+  saveClassExtra(id);
 }
 
 function askChangeHomeroom(classId){
