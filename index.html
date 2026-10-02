@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-09-29 08:45';
+var APP_VERSION = '2026-10-02 10:10';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2093,6 +2093,36 @@ async function saveLessonPlanLines(classId, lines, termNo) {
 
 // ── 생성기 ──────────────────────────────────────────────────
 //   lines[i] = { key, units[], weekdays[], startDate, reviewEvery, isMain, label }
+// ════════════════════════════════════════════════════════════
+//  중간고사를 언제 보나요? — 영역마다 정해진 레슨이 끝난 뒤입니다.
+//
+//    Star · Galaxy
+//      Play House  Lesson 4 까지 → Mid-term      Lesson 8 까지 → Final
+//      Story Club  Lesson 2 까지 → Mid-term      Lesson 4 까지 → Final
+//      Talk Time   Lesson 2 까지 → Mid-term      Lesson 4 까지 → Final
+//
+//    여기 없는 영역(Junior 등)은 "차시의 절반" 을 지난 때로 봅니다.
+// ════════════════════════════════════════════════════════════
+var WG_MID_LESSON = [
+  { match:'playhouse', lesson:4 },
+  { match:'storyclub', lesson:2 },
+  { match:'talktime',  lesson:2 }
+];
+
+function _lpMidLesson(key){
+  var n = String(key || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  for(var i = 0; i < WG_MID_LESSON.length; i++){
+    if(n.indexOf(WG_MID_LESSON[i].match) >= 0) return WG_MID_LESSON[i].lesson;
+  }
+  return 0;
+}
+
+// "Play House 4" · "Story Club 2 [1/2]" → 4 · 2
+function _lpLessonNo(label){
+  var m = String(label || '').match(/(\d+)\s*(?:\[\s*\d+\s*\/\s*\d+\s*\])?\s*$/);
+  return m ? Number(m[1]) : null;
+}
+
 function _lpBuildLines(lines, opts) {
   opts = opts || {};
   var nonClass = opts.nonClass || {}, maxWeeks = opts.maxWeeks || 40;
@@ -2140,6 +2170,7 @@ function _lpBuildLines(lines, opts) {
     }
     return { no:i + 1, key:l.key, label:l.label || '', reviewLabel:l.reviewLabel || '',
              book:l.book || '',
+             midLesson:_lpMidLesson(l.key || l.label || l.book || ''),
              weekdays:(l.weekdays || []).map(Number),
              from:l.startDate || '', isMain:!!l.isMain, testHost:!!l.testHost,
              oneShot:!!l.oneShot,
@@ -2155,13 +2186,26 @@ function _lpBuildLines(lines, opts) {
   var lastBook = {};                    // 줄마다 지금 쓰고 있는 책
   var lastPart = {};                    // 줄마다 칸 위에 뜰 이름
   var midDone = false, finalDone = false, midNo = null;
+  //  그 줄이 "중간고사 보는 레슨" 을 다 끝냈나요?
+  function lineMidReached(l){
+    if(!l.total) return true;
+    if(l.midLesson){
+      // 정해진 레슨(예: Play House 4)의 마지막 회차까지 다 나갔으면 끝난 것입니다
+      var left = l.queue.some(function(u){
+        var n = _lpLessonNo(u.label);
+        return n !== null && n <= l.midLesson;
+      });
+      return !left;
+    }
+    // 정해진 게 없는 영역은 절반을 지난 때로 봅니다
+    return (l.total - l.queue.length) >= Math.floor(l.total / 2);
+  }
+
   function midReady(){
     if(midDone) return false;
     var m = mainLines();
     if(!m.length) return false;
-    return m.every(function(l){
-      return !l.total || (l.total - l.queue.length) >= Math.floor(l.total / 2);
-    });
+    return m.every(lineMidReached);
   }
 
   function _ymd(d){
@@ -2946,6 +2990,30 @@ async function fetchClassLessonPlan(classId, termNo) {
     if(/42P01|does not exist/i.test(m)) return { entries:[], noTable:true };
     throw e;
   }
+}
+
+// 빈 칸에 새로 적습니다 (계획에 없던 날 · 자리)
+async function addLessonPlanEntry(classId, termNo, date, period, label, part) {
+  if(!classId || !date) return { success:false, error:'어느 칸인지 모르겠어요.' };
+  var txt = String(label || '').trim();
+  if(!txt) return { success:false, error:'적을 내용을 넣어주세요.' };
+  var kind = _lpKindOf(txt, '') || '수업';
+  var row = { class_id:classId, term_no:Number(termNo) || 1,
+              date:date, period:Number(period) || 1,
+              part:String(part || ''), label:txt, kind:kind,
+              locked:true, note:'추가' };
+  try {
+    await sbInsert('lesson_plan_entries', row);
+  } catch(e){
+    var m = String(e && e.message || '');
+    if(/PGRST204|42703/i.test(m) && /term_no/.test(m)){
+      delete row.term_no;
+      await sbInsert('lesson_plan_entries', row);
+    } else if(/23505|duplicate/i.test(m)){
+      return { success:false, error:'그 자리에는 이미 수업이 있어요.' };
+    } else throw e;
+  }
+  return { success:true };
 }
 
 async function updateLessonPlanEntry(id, label, mode) {
@@ -5444,7 +5512,7 @@ var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
-  fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents,
+  fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents, addLessonPlanEntry,
   fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
   fetchLessonPlanSetup, fetchBookUnits, saveLessonPlanLines,
   fetchLessonPlanTerms, fetchNextTermDraft,
@@ -5940,9 +6008,10 @@ function renderCard(r, c){
   html += "<div style='display:flex;gap:6px;align-items:center'>" + badge;
   if(!isPast){
     html += "<button onclick='toggleTitleEdit(\"" + r.pageId + "\")' title='Edit Title' style='background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>✏️</button>";
-    if(canDeleteMine(r.teacherName))
-      html += "<button onclick='confirmDeleteReport(\"" + r.pageId + "\")' title='휴지통으로 보내기' style='background:rgba(200,50,50,0.7);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>🗑️</button>";
   }
+  // 리포트 삭제는 선생님 모두가 할 수 있습니다.
+  //   바로 지워지지 않고 휴지통으로 갑니다 (마스터가 되살릴 수 있어요).
+  html += "<button onclick='confirmDeleteReport(\"" + r.pageId + "\")' title='휴지통으로 보내기' style='background:rgba(200,50,50,0.7);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>🗑️</button>";
   html += "</div></div>";
   // ── Inline title edit box (hidden by default, not shown for past) ──
   if(!isPast){
@@ -13849,6 +13918,25 @@ function _lpGrid(forImage){
     wdName[wd] = names.slice(0, 2).join(' · ');
   });
 
+  // 줄(아래로 내려가는 칸)마다 교시 번호 — 빈 칸에 새로 적을 때 씁니다
+  var rowPeriod = {};
+  (function(){
+    var tally = {};
+    wkList.forEach(function(mk){
+      wdList.forEach(function(wd){
+        (weeks[mk][wd] || []).forEach(function(e, r){
+          (tally[r] = tally[r] || {});
+          tally[r][e.period] = (tally[r][e.period] || 0) + 1;
+        });
+      });
+    });
+    Object.keys(tally).forEach(function(r){
+      var ps = Object.keys(tally[r]).sort(function(a, b){
+        return tally[r][b] - tally[r][a]; });
+      rowPeriod[r] = Number(ps[0]);
+    });
+  })();
+
   var online = _lpOnlineIds(_lpPlan);
 
   var fs  = forImage ? '12px' : '11.5px';
@@ -13934,8 +14022,23 @@ function _lpGrid(forImage){
       wdList.forEach(function(wd){
         var e = (weeks[mk][wd] || [])[r];
         if(!e){
+          // 빈 칸 — 눌러서 새로 적을 수 있습니다
+          var dd = new Date(mk + 'T00:00:00');
+          dd.setDate(dd.getDate() + (wd - 1));
+          var dkey = dd.getFullYear() + '-'
+                   + String(dd.getMonth()+1).padStart(2,'0') + '-'
+                   + String(dd.getDate()).padStart(2,'0');
+          var pno = rowPeriod[r] || (r + 1);
           h += "<td style='border:1px solid #EEF0EA;" + top
-            +    "background:#FCFCFA;padding:" + pad + "'></td>";
+            +    "background:#FCFCFA;padding:" + pad + ";text-align:center;color:#D8DDD2"
+            +    (forImage ? "" : ";cursor:pointer") + "'"
+            + (forImage ? ""
+               : " onclick='lpNewCell(\"" + dkey + "\"," + pno + ")' title='눌러서 적기'"
+                 + " ondragover='event.preventDefault()'"
+                 + " ondragenter='this.style.outline=\"2px dashed #B4651A\"'"
+                 + " ondragleave='this.style.outline=\"\"'"
+                 + " ondrop='this.style.outline=\"\";lpDropNew(event,\"" + dkey + "\"," + pno + ")'")
+            + ">" + (forImage ? "" : "＋") + "</td>";
           return;
         }
         var kind = _lpKindOf(e.label, e.kind);
@@ -14133,6 +14236,93 @@ function lpPutEvent(id, title){
       showToast("넣지 못했어요: " + (err && err.message ? err.message : ''));
     })
     .updateLessonPlanEntry(id, title, 'insert');
+}
+
+// 빈 칸에 행사를 끌어다 놓기
+function lpDropNew(ev, date, period){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  var title = '';
+  try { title = ev.dataTransfer.getData('text/plain') || ''; } catch(e){}
+  if(!title && _lpHeld !== null && _lpEvents[_lpHeld]) title = _lpEvents[_lpHeld].title;
+  if(!title) return;
+  _lpHeld = null; renderLpTray();
+  lpSaveNewCell(date, period, title);
+}
+
+// 빈 칸을 눌렀을 때 — 적을 내용을 물어봅니다
+function lpNewCell(date, period){
+  if(_lpHeld !== null && _lpEvents[_lpHeld]){
+    var t0 = _lpEvents[_lpHeld].title;
+    _lpHeld = null; renderLpTray();
+    lpSaveNewCell(date, period, t0);
+    return;
+  }
+  var old = document.getElementById('lpCellBox');
+  if(old) old.remove();
+
+  var d = new Date(date + 'T00:00:00');
+  var when = (d.getMonth()+1) + '/' + d.getDate()
+           + ' ' + ['일','월','화','수','목','금','토'][d.getDay()] + '요일';
+
+  var ov = document.createElement('div');
+  ov.id = 'lpCellBox';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9600;"
+    + "display:flex;align-items:center;justify-content:center;padding:18px";
+  ov.addEventListener('click', function(ev){ if(ev.target === ov) ov.remove(); });
+  ov.innerHTML =
+      "<div style='background:#fff;border-radius:16px;padding:20px;width:100%;max-width:380px;"
+    +   "box-shadow:0 10px 36px rgba(0,0,0,0.24)'>"
+    +   "<div style='font-size:14.5px;font-weight:800;color:#2D3A28'>" + _plEsc(when)
+    +     " <span style='font-size:11px;font-weight:600;color:#A8B09C'>빈 칸에 적기</span></div>"
+    +   "<input type='text' id='lpCellVal' placeholder='예) Project 수업, Mid-term Test' "
+    +     "style='width:100%;padding:10px 12px;border:1.5px solid #E2E8D8;border-radius:9px;"
+    +     "font-size:14px;box-sizing:border-box;margin:12px 0 4px'>"
+    +   "<div style='font-size:10.5px;color:#A8B09C;line-height:1.6;margin-bottom:13px'>"
+    +     "Mid-term Test · Final Test 라고 적으면 시험 칸(빨강)이 됩니다<br>"
+    +     "진도는 건드리지 않고 이 칸에만 들어갑니다</div>"
+    +   "<button onclick='lpNewCellSave()' style='width:100%;background:#2D6A4F;"
+    +     "color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;"
+    +     "font-weight:700;cursor:pointer'>이 칸에 넣기</button>"
+    +   "<button onclick=\"document.getElementById('lpCellBox').remove()\" "
+    +     "style='width:100%;background:none;border:none;color:#A8B09C;font-size:12px;"
+    +     "cursor:pointer;margin-top:10px'>취소</button>"
+    + "</div>";
+  document.body.appendChild(ov);
+  ov.setAttribute('data-date', date);
+  ov.setAttribute('data-period', period);
+  setTimeout(function(){
+    var i = document.getElementById('lpCellVal'); if(i) i.focus();
+  }, 40);
+}
+
+function lpNewCellSave(){
+  var ov = document.getElementById('lpCellBox');
+  if(!ov) return;
+  var date = ov.getAttribute('data-date');
+  var per  = ov.getAttribute('data-period');
+  var v    = (document.getElementById('lpCellVal') || {}).value || '';
+  if(!String(v).trim()){ showToast("적을 내용을 넣어주세요."); return; }
+  ov.remove();
+  lpSaveNewCell(date, per, String(v).trim());
+}
+
+function lpSaveNewCell(date, period, label){
+  showToast("넣는 중…");
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r || !r.success){ showToast((r && r.error) || "넣지 못했어요."); return; }
+      google.script.run
+        .withSuccessHandler(function(r2){
+          _lpPlan = (r2 && r2.entries) || [];
+          renderLessonPlan();
+          showToast("넣었어요.");
+        })
+        .fetchClassLessonPlan(_lpCid, _lpTerm);
+    })
+    .withFailureHandler(function(e){
+      showToast("넣지 못했어요: " + ((e && e.message) || ''));
+    })
+    .addLessonPlanEntry(_lpCid, _lpTerm, date, period, label, '');
 }
 
 // 칸을 누르면 — 행사를 들고 계시면 그 칸에 놓고, 아니면 고치기 창을 엽니다
