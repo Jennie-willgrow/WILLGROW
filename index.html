@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-06 12:00';
+var APP_VERSION = '2026-10-06 12:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -5522,6 +5522,7 @@ var _serverFunctions = {
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
   fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents, addLessonPlanEntry,
+  saveTeacher, deleteTeacher,
   fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
   fetchLessonPlanSetup, fetchBookUnits, saveLessonPlanLines,
   fetchLessonPlanTerms, fetchNextTermDraft,
@@ -5699,19 +5700,27 @@ async function _doLogin(){
   if(!name || !pw){ if(errEl) errEl.textContent='이름과 비밀번호를 입력하세요.'; return; }
   // 이름을 소문자 + @willgrow.local 형식 이메일로 변환 (내부용)
   var email = name.toLowerCase().replace(/\s+/g,'') + '@willgrow.local';
-  // PIN 은 4자리인데 Supabase 는 6자리부터 받습니다.
-  //   짧으면 뒤에 'wg' 를 붙여서 보냅니다 — 선생님은 그대로 4자리만 누르시면 됩니다.
-  //   (6자리 이상 쓰시던 분들은 그대로 갑니다)
-  pw = _wgPin(pw);
+  //  비밀번호는 적으신 그대로 먼저 보냅니다.
+  //  (예전에 만든 4자리 계정이 그대로 쓰이고 있어서입니다)
   var btn = document.getElementById('loginBtn');
   if(btn){ btn.disabled=true; btn.textContent='Logging in...'; }
   try {
-    var res = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password', {
-      method:'POST',
-      headers:{ 'apikey':SUPABASE_KEY, 'Content-Type':'application/json' },
-      body:JSON.stringify({ email:email, password:pw })
-    });
-    var data = await res.json();
+    async function _tryLogin(pass){
+      var r = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password', {
+        method:'POST',
+        headers:{ 'apikey':SUPABASE_KEY, 'Content-Type':'application/json' },
+        body:JSON.stringify({ email:email, password:pass })
+      });
+      return { res:r, data: await r.json() };
+    }
+    var out = await _tryLogin(pw);
+    //  Supabase 는 6자리부터 받기 때문에, 새로 만든 계정은
+    //  4자리 PIN 뒤에 'wg' 를 붙여 두었습니다. 그 경우도 되게 합니다.
+    if((!out.res.ok || !out.data.access_token) && pw.length < 6){
+      var out2 = await _tryLogin(_wgPin(pw));
+      if(out2.res.ok && out2.data.access_token) out = out2;
+    }
+    var res = out.res, data = out.data;
     if(!res.ok || !data.access_token){
       var raw = data.error_description || data.msg || data.error || '';
       var msg;
