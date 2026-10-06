@@ -590,7 +590,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-<div id="teacherMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div><div id="teacherModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px 20px;width:min(92%,380px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:14px;font-weight:700;color:#363D2E" id="teacherModalTitle">Add Teacher</div><button onclick="closeTeacherModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><input type="hidden" id="teacherEditId"><div style="margin-bottom:12px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Name <span style="color:#e53935">*</span></label><input id="teacherNameInput" type="text" placeholder="e.g. Jenny" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:6px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Role <span style="color:#e53935">*</span></label><select id="teacherRoleInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white"><option value="">-- Select Role --</option><option value="마스터">마스터 (Director)</option><option value="관리자">관리자 (Admin/Desk)</option><option value="풀타임">풀타임 (Full-time)</option><option value="파트">파트 (Part-time)</option><option value="원어민">원어민 (Native)</option></select></div><div id="teacherLoginHint" style="font-size:11px;color:#2D6A4F;background:#E8F5E9;border-radius:6px;padding:7px 10px;margin:10px 0;display:none">🔑 Login email: <b id="teacherLoginEmail"></b></div><div style="display:flex;gap:8px;margin-top:16px"><button id="teacherDeleteBtn" onclick="deleteTeacherItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer">Delete</button><div style="flex:1"></div><button onclick="closeTeacherModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button><button onclick="saveTeacherItem()" id="teacherSaveBtn" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;margin-left:8px">Save</button></div></div></div></div><div id="trashScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🗑️ 휴지통</div><div style="font-size:11px;color:#999;margin-top:2px">지운 것을 되살리거나 완전히 지울 수 있습니다 · 마스터만</div></div><button onclick="loadTrash()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div id="trashList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div></div><div id="toast" class="toast"></div><script>
+<div id="teacherMgmtList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div><div id="teacherModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px 20px;width:min(92%,380px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:14px;font-weight:700;color:#363D2E" id="teacherModalTitle">Add Teacher</div><button onclick="closeTeacherModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><input type="hidden" id="teacherEditId"><div style="margin-bottom:12px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Name <span style="color:#e53935">*</span></label><input id="teacherNameInput" type="text" placeholder="e.g. Jenny" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:6px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Role <span style="color:#e53935">*</span></label><select id="teacherRoleInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white"><option value="">-- Select Role --</option><option value="마스터">마스터 (Director)</option><option value="관리자">관리자 (Admin/Desk)</option><option value="풀타임">풀타임 (Full-time)</option><option value="파트">파트 (Part-time)</option><option value="원어민">원어민 (Native)</option></select></div><div style="margin-bottom:6px;margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">PIN <span style="font-weight:500;color:#999">(4자리 · 안 적으셔도 됩니다)</span></label><input id="teacherPinInput" type="text" inputmode="numeric" maxlength="6" placeholder="예) 1234" oninput="updateTeacherLoginHint((document.getElementById('teacherNameInput')||{}).value||'')" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div id="teacherLoginHint" style="font-size:11px;color:#2D6A4F;background:#E8F5E9;border-radius:6px;padding:7px 10px;margin:10px 0;display:none;line-height:1.7">🔑 Login email: <b id="teacherLoginEmail"></b><div id="teacherPinTip" style="margin-top:3px"></div></div><div style="display:flex;gap:8px;margin-top:16px"><button id="teacherDeleteBtn" onclick="deleteTeacherItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer">Delete</button><div style="flex:1"></div><button onclick="closeTeacherModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button><button onclick="saveTeacherItem()" id="teacherSaveBtn" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;margin-left:8px">Save</button></div></div></div></div><div id="trashScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🗑️ 휴지통</div><div style="font-size:11px;color:#999;margin-top:2px">지운 것을 되살리거나 완전히 지울 수 있습니다 · 마스터만</div></div><button onclick="loadTrash()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div id="trashList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div></div><div id="toast" class="toast"></div><script>
 // ============================================================
 // WILLGROW — Supabase 직접 연결 shim (google.script.run 대체)
 // ============================================================
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-02 11:00';
+var APP_VERSION = '2026-10-06 12:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -989,6 +989,14 @@ async function adminSetPassword(teacherName, newPassword) {
   if(!res2.ok){ var e = await res2.json(); throw new Error(e.message || '변경 실패'); }
   return { success: true };
 }
+// 4자리 PIN → Supabase 에 저장된 6자리 비밀번호
+//   1234 → 1234wg
+function _wgPin(pin){
+  var p = String(pin || '');
+  if(p.length >= 6) return p;
+  return (p + 'wgwgwg').slice(0, 6);
+}
+
 async function saveTeacher(data) {
   if(data.id) {
     await sbPatch('teachers','id='+_eq(data.id),{ name:data.name, role:data.role });
@@ -5691,6 +5699,10 @@ async function _doLogin(){
   if(!name || !pw){ if(errEl) errEl.textContent='이름과 비밀번호를 입력하세요.'; return; }
   // 이름을 소문자 + @willgrow.local 형식 이메일로 변환 (내부용)
   var email = name.toLowerCase().replace(/\s+/g,'') + '@willgrow.local';
+  // PIN 은 4자리인데 Supabase 는 6자리부터 받습니다.
+  //   짧으면 뒤에 'wg' 를 붙여서 보냅니다 — 선생님은 그대로 4자리만 누르시면 됩니다.
+  //   (6자리 이상 쓰시던 분들은 그대로 갑니다)
+  pw = _wgPin(pw);
   var btn = document.getElementById('loginBtn');
   if(btn){ btn.disabled=true; btn.textContent='Logging in...'; }
   try {
@@ -17879,6 +17891,8 @@ function openTeacherModal(id){
     titleEl.textContent = 'Add Teacher';
     nameInput.value = '';
     roleInput.value = '';
+    var _pin = document.getElementById('teacherPinInput');
+    if(_pin) _pin.value = '';
     delBtn.style.display = 'none';
     hint.style.display = 'none';
   }
@@ -17893,6 +17907,16 @@ function updateTeacherLoginHint(name){
   var email = name.trim().toLowerCase().replace(/\s+/g,'') + '@willgrow.local';
   emailEl.textContent = email;
   hint.style.display = 'block';
+  var tip = document.getElementById('teacherPinTip');
+  if(tip){
+    var pinEl = document.getElementById('teacherPinInput');
+    var pin = pinEl ? String(pinEl.value || '').trim() : '';
+    tip.innerHTML = pin
+      ? "Supabase 비밀번호 칸에는 <b>" + _plEsc(_wgPin(pin)) + "</b> 를 넣어 주세요"
+        + " <span style='color:#8A9178'>(선생님은 앱에서 " + _plEsc(pin) + " 만 누르시면 됩니다)</span>"
+      : "PIN 을 적으시면 Supabase 에 넣을 비밀번호를 알려 드립니다"
+        + " <span style='color:#8A9178'>(Supabase 는 6자리부터 받습니다)</span>";
+  }
 }
 
 function closeTeacherModal(){
