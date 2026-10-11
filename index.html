@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-11 14:00';
+var APP_VERSION = '2026-10-11 15:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -3650,7 +3650,9 @@ async function fetchTodayReports(teacherId, dateStr) {
     return { pageId:r.id, title:r.title||'', book:r.book||'', classId:r.class_id||'',
              lastLesson:r.last_lesson||'', lastHW:r.last_hw||'',
              todayLesson:r.todays_lesson||'', homework:r.homework||'',
-             test:r.test||'', attitude:r.attitude||'' };
+             test:r.test||'', attitude:r.attitude||'',
+             // 적어 두신 코멘트 · 교재주문도 같이 가져옵니다 (창에서 다시 보이게)
+             comments:r.comments||'', bookOrders:r.book_orders||'' };
   });
 }
 
@@ -6063,8 +6065,10 @@ function renderCard(r, c){
         +       "<div style='font-size:10px;color:#A8B09C;margin-top:3px'>"
         +         "시간표에 짜 둔 교재 목록에서 고릅니다</div></div>";
   html +=   "</div>";
-  //  학생 명단 (반을 고르면 채워집니다)
-  html +=   "<div id='stubox-" + r.pageId + "' style='display:none;flex:1 1 290px;min-width:250px;"
+  html += "</div>";
+
+  //  학생 명단 — 버튼을 눌러야 펴집니다 (출결 · 숙제 · 재시험 · 태도)
+  html +=   "<div id='stubox-" + r.pageId + "' style='display:none;margin-bottom:12px;"
         +     "border:1px solid #E3E8DE;border-radius:9px;overflow:hidden;background:#FCFDFB'>"
         +     "<div style='display:flex;align-items:center;justify-content:space-between;gap:6px;"
         +       "padding:7px 11px;background:#F2F5EE;border-bottom:1px solid #E3E8DE'>"
@@ -6074,7 +6078,6 @@ function renderCard(r, c){
         +     "<div id='stulist-" + r.pageId + "' style='padding:7px 11px'></div>"
         +     "<div id='misstbl-" + r.pageId + "' style='display:none'></div>"
         +   "</div>";
-  html += "</div>";
 
   // ── 묶음 1. 지난 수업 ──
   html += prev;
@@ -6118,16 +6121,27 @@ function renderCard(r, c){
 
   html += "</div></div>";
 
-  html += "<div class='fg'><label>Attitude</label><select id='attitude-" + r.pageId + "'" + dis + ">" + attitudeHtml + "</select></div>";
+  //  태도 · 코멘트 · 교재주문은 창에서 적습니다 (값은 여기 숨겨 둡니다)
+  html += "<div id='rxtra-" + r.pageId + "' style='display:none'>"
+        +   "<select id='attitude-" + r.pageId + "'>" + attitudeHtml + "</select>"
+        +   "<textarea id='comments-" + r.pageId + "'>" + _plEsc(r.comments || '') + "</textarea>"
+        +   "<input type='text' id='bookorders-" + r.pageId + "' value='"
+        +     _mgAttr(r.bookOrders || '') + "'>"
+        + "</div>";
 
   if(!isPast){
-    html += "<span class='opt-toggle' onclick='toggleOpt(\"" + r.pageId + "\")'>"
-          + "💬 Comments · 📦 Book Orders</span>";
-    html += "<div class='opt-fields' id='opt-" + r.pageId + "'>";
-    html += "<div class='fg'><label>Comments</label><textarea id='comments-" + r.pageId + "' placeholder='Class comments'></textarea></div>";
-    html += "<div class='fg'><label>📦 Book Orders</label><input type='text' id='bookorders-"
-          + r.pageId + "' placeholder='예) Bricks Reading 3 으로 넘어갑니다 — 주문 부탁드려요'></div>";
-    html += "</div>";
+    //  ── 버튼 줄 — 눌러서 펴거나 창에서 적습니다 ──
+    html += "<div style='display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:4px 0 10px'>"
+          +   "<button type='button' onclick='toggleStuBox(\"" + r.pageId + "\")' "
+          +     "id='stubtn-" + r.pageId + "' style='background:#F2F5EE;color:#3F5233;"
+          +     "border:1.5px solid #DDE5D6;border-radius:20px;padding:6px 13px;font-size:12px;"
+          +     "font-weight:700;cursor:pointer'>👥 학생 (출결 · 재시험)</button>"
+          +   "<button type='button' onclick='openReportExtra(\"" + r.pageId + "\")' "
+          +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
+          +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
+          +     "cursor:pointer'>＋ 태도 · 코멘트 · 교재주문</button>"
+          +   "<span id='rxsum-" + r.pageId + "' style='font-size:11.5px;color:#8A9178'></span>"
+          + "</div>";
     html += "<button class='btn' id='btn-" + r.pageId + "' onclick='doSubmit(\"" + r.pageId + "\")' >" + (r.todayLesson ? "Update" : "Submit") + "</button>";
   } else {
     html += "<div style='text-align:center;padding:10px 0;color:#aaa;font-size:12px;border-top:1px solid #f0f0f0;margin-top:8px'>🔒 Reports from past dates cannot be edited.</div>";
@@ -6135,7 +6149,69 @@ function renderCard(r, c){
   html += "</div>";
   div.innerHTML = html;
   c.appendChild(div);
+  var _at = document.getElementById('attitude-' + r.pageId);
+  if(_at) _at.value = r.attitude || '';
+  rxSummary(r.pageId);
   initReportPlanner(r);
+}
+
+// 학생 칸 펴기 · 접기
+function toggleStuBox(pageId){
+  var box = document.getElementById('stubox-' + pageId);
+  var btn = document.getElementById('stubtn-' + pageId);
+  if(!box) return;
+  var open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  if(btn){
+    btn.style.background = open ? '#F2F5EE' : '#2D6A4F';
+    btn.style.color      = open ? '#3F5233' : '#fff';
+    btn.style.borderColor= open ? '#DDE5D6' : '#2D6A4F';
+  }
+}
+
+// 적어 둔 것을 한 줄로 보여 줍니다
+function rxSummary(pageId){
+  var sum = document.getElementById('rxsum-' + pageId);
+  if(!sum) return;
+  function v(id){ var e = document.getElementById(id + '-' + pageId); return e ? String(e.value || '').trim() : ''; }
+  var bits = [];
+  if(v('attitude'))   bits.push('🙂 ' + v('attitude'));
+  if(v('comments'))   bits.push('💬 코멘트');
+  if(v('bookorders')) bits.push('📦 교재주문');
+  sum.textContent = bits.length ? bits.join(' · ') : '';
+}
+
+// 태도 · 코멘트 · 교재주문 — 같은 모양의 창에서 적습니다
+function openReportExtra(pageId){
+  function el(id){ return document.getElementById(id + '-' + pageId); }
+  var title = (document.getElementById('rtitle-' + pageId) || {}).textContent || '';
+  var atEl = el('attitude');
+  var opts = [{ value:'', label:'— 고르지 않음 —' }];
+  if(atEl) Array.prototype.forEach.call(atEl.options, function(o){
+    if(o.value) opts.push({ value:o.value, label:o.value });
+  });
+  wgModal({
+    title: '태도 · 코멘트 · 교재주문',
+    sub: title,
+    fields: [
+      { key:'attitude', label:'수업 태도', type:'select',
+        value:(atEl ? atEl.value : ''), options:opts },
+      { key:'comments', label:'코멘트', type:'textarea', rows:3,
+        value:(el('comments') ? el('comments').value : ''),
+        placeholder:'반 전체에 남길 말' },
+      { key:'bookorders', label:'📦 교재 주문', type:'text',
+        value:(el('bookorders') ? el('bookorders').value : ''),
+        placeholder:'예) Bricks Reading 3 으로 넘어갑니다 — 주문 부탁드려요',
+        hint:'적어 두시면 Book Orders 화면에 메세지로 올라갑니다' }
+    ],
+    onSave: function(v){
+      if(el('attitude'))   el('attitude').value   = v.attitude;
+      if(el('comments'))   el('comments').value   = v.comments;
+      if(el('bookorders')) el('bookorders').value = v.bookorders;
+      rxSummary(pageId);
+      showToast('적었어요 — 아래 Submit 을 누르면 저장됩니다');
+    }
+  });
 }
 function toggleOpt(id){ document.getElementById("opt-"+id).classList.toggle("open"); }
 
@@ -6526,8 +6602,14 @@ function loadReportStudents(pageId, classId){
   var cnt  = document.getElementById('stucnt-'+pageId);
   if(!box || !list) return;
 
-  if(!classId){ box.style.display='none'; return; }
-  box.style.display = '';
+  var btn = document.getElementById('stubtn-' + pageId);
+  if(!classId){
+    box.style.display = 'none';
+    if(btn) btn.style.display = 'none';
+    return;
+  }
+  //  칸은 접어 둡니다 — 버튼을 눌러야 펴집니다
+  if(btn) btn.style.display = '';
   list.innerHTML = "<div style='font-size:11.5px;color:#BDBDBD;padding:4px 0'>Loading…</div>";
   if(cnt) cnt.textContent = '';
 
@@ -6559,6 +6641,22 @@ function loadReportStudents(pageId, classId){
         if(nRt)  parts.push(nRt + ' retest');
         if(nBh)  parts.push(nBh + ' note');
         cnt.textContent = parts.join(' · ');
+      }
+      //  버튼에도 한눈에 보이게
+      var sbtn = document.getElementById('stubtn-' + pageId);
+      if(sbtn){
+        var mark = [];
+        if(nAbs) mark.push('결 ' + nAbs);
+        if(nHw)  mark.push('숙 ' + nHw);
+        if(nRt)  mark.push('재 ' + nRt);
+        if(nBh)  mark.push('태 ' + nBh);
+        sbtn.textContent = '👥 학생 ' + rows.length
+          + (mark.length ? ' · ' + mark.join(' · ') : '');
+        if(mark.length){
+          sbtn.style.background = '#FDECEC';
+          sbtn.style.borderColor = '#E8C4C4';
+          sbtn.style.color = '#A7362B';
+        }
       }
 
       function pill(on, label, bd, bg, fg, cb, title){
@@ -8661,6 +8759,122 @@ function loadRoster(){
   .withFailureHandler(function(){ body.innerHTML = "<div class='empty'>Something went wrong.</div>"; })
   .fetchStudentsByClass(cid);
 }
+// ════════════════════════════════════════════════════════════
+//  어디서나 같은 모양으로 쓰는 "적는 창"
+//
+//    wgModal({
+//      title: '태도 · 코멘트',
+//      sub:   '3A · 10/11',
+//      fields:[
+//        { key:'attitude', label:'태도', type:'select', value:'Good',
+//          options:['Excellent','Good'] },
+//        { key:'memo', label:'코멘트', type:'textarea', placeholder:'…' }
+//      ],
+//      saveLabel:'저장',
+//      onSave: function(v){ ... }      // v.attitude · v.memo
+//    });
+//
+//  새로 넣을 때도, 고칠 때도 같은 창을 씁니다.
+// ════════════════════════════════════════════════════════════
+var _wgModalOpts = null;
+
+function wgModal(opts){
+  opts = opts || {};
+  _wgModalOpts = opts;
+  var old = document.getElementById('wgModal');
+  if(old) old.remove();
+
+  var fields = opts.fields || [];
+  var body = fields.map(function(f, i){
+    var id = 'wgm-' + i;
+    var head = "<div style='font-size:11.5px;font-weight:700;color:#5B6551;margin-bottom:4px'>"
+             + _plEsc(f.label || '')
+             + (f.required ? " <span style='color:#C0392B'>*</span>" : "")
+             + "</div>";
+    var box = '';
+    var st = "width:100%;padding:9px 11px;border:1.5px solid #E2E8D8;border-radius:9px;"
+           + "font-size:13.5px;font-family:inherit;box-sizing:border-box;background:#fff";
+    if(f.type === 'textarea'){
+      box = "<textarea id='" + id + "' rows='" + (f.rows || 3) + "' placeholder='"
+          + _mgAttr(f.placeholder || '') + "' style='" + st + ";resize:vertical'>"
+          + _plEsc(f.value || '') + "</textarea>";
+    } else if(f.type === 'select'){
+      box = "<select id='" + id + "' style='" + st + "'>"
+          + (f.options || []).map(function(o){
+              var val = (o && o.value !== undefined) ? o.value : o;
+              var lab = (o && o.label !== undefined) ? o.label : o;
+              return "<option value='" + _mgAttr(String(val)) + "'"
+                   + (String(val) === String(f.value || '') ? ' selected' : '') + ">"
+                   + _plEsc(String(lab)) + "</option>";
+            }).join('')
+          + "</select>";
+    } else {
+      box = "<input id='" + id + "' type='" + (f.type || 'text') + "' value='"
+          + _mgAttr(f.value || '') + "' placeholder='" + _mgAttr(f.placeholder || '')
+          + "' style='" + st + "'>";
+    }
+    var hint = f.hint
+      ? "<div style='font-size:10.5px;color:#A8B09C;margin-top:4px;line-height:1.5'>"
+        + f.hint + "</div>" : '';
+    return "<div style='margin-bottom:13px'>" + head + box + hint + "</div>";
+  }).join('');
+
+  var ov = document.createElement('div');
+  ov.id = 'wgModal';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(24,28,22,.52);z-index:9700;"
+    + "display:flex;align-items:center;justify-content:center;padding:18px";
+  ov.addEventListener('click', function(e){ if(e.target === ov) wgModalClose(); });
+  ov.innerHTML =
+      "<div style='background:#fff;border-radius:16px;width:100%;max-width:"
+    +   (opts.wide ? '560px' : '420px') + ";max-height:88vh;overflow-y:auto;"
+    +   "box-shadow:0 14px 42px rgba(0,0,0,.26)'>"
+    + "<div style='display:flex;align-items:center;gap:9px;padding:16px 18px 12px;"
+    +   "border-bottom:1px solid #EEF1EA'>"
+    +   "<div style='width:4px;height:20px;background:#2D6A4F;border-radius:3px'></div>"
+    +   "<div style='flex:1'>"
+    +     "<div style='font-size:14.5px;font-weight:800;color:#2D3A28'>"
+    +       _plEsc(opts.title || '') + "</div>"
+    +     (opts.sub ? "<div style='font-size:11px;color:#A8B09C;margin-top:2px'>"
+                      + _plEsc(opts.sub) + "</div>" : "")
+    +   "</div>"
+    +   "<button onclick='wgModalClose()' style='background:none;border:none;font-size:19px;"
+    +     "color:#A8B09C;cursor:pointer;line-height:1'>✕</button>"
+    + "</div>"
+    + "<div style='padding:16px 18px 4px'>" + (opts.html || '') + body + "</div>"
+    + "<div style='display:flex;gap:8px;padding:6px 18px 18px'>"
+    +   "<button onclick='wgModalClose()' style='flex:1;background:#F1F3EE;color:#5B6551;"
+    +     "border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;"
+    +     "cursor:pointer'>취소</button>"
+    +   "<button onclick='wgModalSave()' style='flex:2;background:#2D6A4F;color:#fff;"
+    +     "border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;"
+    +     "cursor:pointer'>" + _plEsc(opts.saveLabel || '저장') + "</button>"
+    + "</div></div>";
+  document.body.appendChild(ov);
+  setTimeout(function(){
+    var first = document.getElementById('wgm-0');
+    if(first && first.focus) first.focus();
+  }, 40);
+}
+
+function wgModalClose(){
+  var ov = document.getElementById('wgModal');
+  if(ov) ov.remove();
+  _wgModalOpts = null;
+}
+
+function wgModalSave(){
+  if(!_wgModalOpts) return;
+  var opts = _wgModalOpts, vals = {};
+  (opts.fields || []).forEach(function(f, i){
+    var el = document.getElementById('wgm-' + i);
+    vals[f.key] = el ? String(el.value || '').trim() : '';
+  });
+  var bad = (opts.fields || []).filter(function(f){ return f.required && !vals[f.key]; })[0];
+  if(bad){ showToast(bad.label + ' 을(를) 적어주세요.'); return; }
+  wgModalClose();
+  if(opts.onSave) opts.onSave(vals);
+}
+
 function showToast(msg, duration){
   var t = document.getElementById("toast");
   t.textContent = msg; t.classList.add("show");
