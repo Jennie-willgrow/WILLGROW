@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-12 01:10';
+var APP_VERSION = '2026-10-12 01:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -6308,6 +6308,16 @@ function renderReportView(pageId){
     +   "background:#fff;margin-bottom:12px'>" + head + body + "</div>";
 }
 
+// 선생님 고르기 목록 — 수업을 대신 하신 분 것도 불러올 수 있게
+function _teacherOpts(selId){
+  var sel = document.getElementById('tsel');
+  var out = [];
+  if(sel) Array.prototype.forEach.call(sel.options, function(o){
+    if(o.value) out.push({ value:o.value, label:o.textContent });
+  });
+  return out;
+}
+
 // ── 지난 수업 불러오기 ──────────────────────────────────
 //   다른 날 리포트를 골라, 그 날의 진도·숙제를 이 리포트의 "Last class" 로 넣습니다.
 var _llCache = { pageId:'', list:[] };
@@ -6322,18 +6332,21 @@ function openLoadLast(pageId){
 
   wgModal({
     title: 'Load last class',
-    sub: 'Pick the day you taught this class before',
+    sub: 'Pick the day and whose class it was',
     saveLabel: 'Find',
     fields: [
       { key:'date', label:'Date', type:'date', value:ago, required:true,
-        hint:'Last week, same weekday is filled in for you' }
+        hint:'Last week, same weekday is filled in for you' },
+      { key:'teacherId', label:'Teacher', type:'select', value:tid, required:true,
+        options:_teacherOpts(tid),
+        hint:'Someone else may have taught that day' }
     ],
     onSave: function(v){
       showToast('Looking…');
       google.script.run
         .withSuccessHandler(function(list){ _llShow(pageId, v.date, list || []); })
         .withFailureHandler(function(){ showToast('Could not load.'); })
-        .fetchTodayReports(tid, v.date);
+        .fetchTodayReports(v.teacherId, v.date);
     }
   });
 }
@@ -21442,18 +21455,21 @@ function nrLoadLast(){
 
   wgModal({
     title: 'Load last class',
-    sub: 'Pick the day you taught this class before',
+    sub: 'Pick the day and whose class it was',
     saveLabel: 'Find',
     fields: [
       { key:'date', label:'Date', type:'date', value:ago, required:true,
-        hint:'Last week, same weekday is filled in for you' }
+        hint:'Last week, same weekday is filled in for you' },
+      { key:'teacherId', label:'Teacher', type:'select', value:tid, required:true,
+        options:_teacherOpts(tid),
+        hint:'Someone else may have taught that day' }
     ],
     onSave: function(v){
       showToast('Looking…');
       google.script.run
         .withSuccessHandler(function(list){ _nrShowList(v.date, list || []); })
         .withFailureHandler(function(){ showToast('Could not load.'); })
-        .fetchTodayReports(tid, v.date);
+        .fetchTodayReports(v.teacherId, v.date);
     }
   });
 }
