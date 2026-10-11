@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-11 18:30';
+var APP_VERSION = '2026-10-11 19:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -6047,9 +6047,6 @@ function renderCard(r, c){
   // ── Card body ──
   html += "<div class='card-body'>";
 
-  //  ── 보기 화면 — 적어 둔 내용을 그냥 보여 줍니다 ──
-  html += "<div id='rview-" + r.pageId + "' style='display:none'></div>";
-
   //  학생 명단 — 머리글을 누르면 접히고 펴집니다 (출결 · 숙제 · 재시험 · 태도)
   html +=   "<div id='stubox-" + r.pageId + "' style='display:none;margin-bottom:12px;"
         +     "border:1px solid #E3E8DE;border-radius:9px;overflow:hidden;background:#FCFDFB'>"
@@ -6069,7 +6066,10 @@ function renderCard(r, c){
   // ── 지난 수업 (보기 · 수정 어느 쪽이든 늘 보입니다) ──
   html += prev;
 
-  //  ── 수정 화면 — [✏️ 수정] 을 눌러야 열립니다 ──
+  //  ── 보기 화면 — 적어 둔 내용을 그냥 보여 줍니다 ──
+  html += "<div id='rview-" + r.pageId + "' style='display:none'></div>";
+
+  //  ── 수정 화면 — [✏️ Edit] 을 눌러야 열립니다 ──
   html += "<div id='redit-" + r.pageId + "'>";
 
   // ── 상단: 반 / 교재 ──
@@ -6118,6 +6118,11 @@ function renderCard(r, c){
         +           "onPlFormChange(\"" + r.pageId + "\")'" + dis
         +           " style='flex:1;min-width:130px;padding:5px 8px;border:1.5px solid #C9D9BE;border-radius:6px;font-size:12.5px;background:white'>"
         +           plFormOptions() + "</select>"
+        +         "<button type='button' onclick='openPlannerGuide(\"" + r.pageId + "\")' "
+        +           "title='Where do I write it?' style='background:#fff;color:#3F5233;"
+        +           "border:1.5px solid #C9D9BE;border-radius:20px;padding:4px 11px;"
+        +           "font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>"
+        +           "❓ Guide</button>"
         +       "</div>";
   html +=       "<div style='padding:6px 11px;font-size:10px;color:#8A9178;border-bottom:1px solid #F0F3EC'>"
         +         "Just type the pages — the check turns on by itself.</div>";
@@ -6215,21 +6220,14 @@ function renderReportView(pageId){
   function v(id){ var e = document.getElementById(id + '-' + pageId); return e ? String(e.value || '').trim() : ''; }
   var isPast = isDateLocked(selectedDate);
 
-  //  줄마다 오른쪽 끝에 작은 ✏️ — 그 자리를 바로 고칠 수 있게
-  function editBtn(){
-    if(isPast) return '';
-    return "<button type='button' onclick='toggleReportEdit(\"" + pageId + "\", true)' "
-      + "title='Edit' style='background:none;border:none;color:#B4BCA8;font-size:12px;"
-      + "cursor:pointer;padding:0 2px;flex-shrink:0'>✏️</button>";
-  }
   function row(label, body, extra){
     return "<div style='display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F2F4EF'>"
-      +   "<div style='width:86px;flex-shrink:0;font-size:11px;font-weight:700;color:#8A9178;"
+      +   "<div style='width:96px;flex-shrink:0;font-size:11px;font-weight:700;color:#8A9178;"
       +     "padding-top:2px'>" + label + "</div>"
       +   "<div style='flex:1;font-size:13px;line-height:1.55;color:#2D3A28;word-break:break-word'>"
       +     (body || "<span style='color:#C7CCC0'>—</span>")
       +     (extra || '')
-      +   "</div>" + editBtn() + "</div>";
+      +   "</div></div>";
   }
 
   var hwTxt = v('hw');
@@ -6243,7 +6241,7 @@ function renderReportView(pageId){
   var book = v('book'), test = v('test'), lesson = v('lesson');
   var at = v('attitude'), cm = v('comments'), bo = v('bookorders');
 
-  //  숙제 바로 아래에 붙는 버튼 — 수업 중 크게 띄우기
+  //  숙제 바로 아래 — 수업 중 크게 띄우기
   var hwBtn = "<div style='margin-top:8px'>"
     + "<button type='button' onclick='openHwFromReport(\"" + pageId + "\")' "
     +   "style='background:#2D6A4F;color:#fff;border:none;border-radius:20px;"
@@ -6260,24 +6258,35 @@ function renderReportView(pageId){
   if(cm) chips += chip('💬 ' + cm, '#F4F6F1', '#5B6551');
   if(bo) chips += chip('📦 ' + bo, '#FFF4E5', '#B4651A');
 
+  //  맨 윗줄 — 제목 + [Edit this report]
+  var head =
+      "<div style='display:flex;align-items:center;gap:8px;padding:9px 0 10px;"
+    +   "border-bottom:2px solid #E3EDDA'>"
+    +   "<span style='font-size:12.5px;font-weight:800;color:#3F5233'>✏️ Today's Class</span>"
+    +   "<span style='margin-left:auto'>"
+    +   (isPast ? "<span style='font-size:11px;color:#BDBDBD'>🔒 Closed</span>"
+        : "<button type='button' onclick='toggleReportEdit(\"" + pageId + "\", true)' "
+          + "style='background:#2D6A4F;color:#fff;border:none;border-radius:20px;"
+          + "padding:6px 15px;font-size:12px;font-weight:700;cursor:pointer'>"
+          + "✏️ Edit this report</button>")
+    +   "</span></div>";
+
   var body = '';
-  body += row('Book · Test', _plEsc(book)
+  //  시험은 Today's Lesson 줄에 같이 적습니다
+  body += row('Book', _plEsc(book));
+  body += row("Today's Lesson", _plEsc(lesson).replace(/\n/g, '<br>')
             + (test && test !== 'No Test'
-               ? " <span style='color:#C0392B;font-weight:700'>· " + _plEsc(test) + "</span>" : ''));
-  body += row("Today's Lesson", _plEsc(lesson).replace(/\n/g, '<br>'));
+               ? "<div style='margin-top:4px'><span style='display:inline-block;"
+                 + "background:#FDECEC;color:#C0392B;border-radius:20px;padding:2px 10px;"
+                 + "font-size:11.5px;font-weight:700'>📝 " + _plEsc(test) + "</span></div>"
+               : ''));
   body += row('Homework', hwView || (hwTxt ? _plEsc(hwTxt).replace(/\n/g, '<br>') : ''),
               hwTxt ? hwBtn : '');
   body += row('More', chips);
 
   view.innerHTML =
-      "<div style='border:1px solid #DDE5D6;border-radius:11px;padding:4px 14px 10px;"
-    +   "background:#fff;margin-bottom:12px'>" + body + "</div>"
-    + (isPast ? ""
-      : "<div style='margin-bottom:10px'>"
-        + "<button type='button' onclick='toggleReportEdit(\"" + pageId + "\", true)' "
-        + "style='background:#2D6A4F;color:#fff;border:none;border-radius:20px;"
-        + "padding:7px 18px;font-size:12.5px;font-weight:700;cursor:pointer'>"
-        + "✏️ Edit this report</button></div>");
+      "<div style='border:1px solid #DDE5D6;border-radius:11px;padding:0 14px 10px;"
+    +   "background:#fff;margin-bottom:12px'>" + head + body + "</div>";
 }
 
 // 숙제 체크 — 이 수업의 숙제를 크게 띄웁니다 (수업 중 보여 주기용)
@@ -6363,6 +6372,76 @@ function plFormOptions(){
     h += "</optgroup>";
   });
   return h;
+}
+
+// ════════════════════════════════════════════════════════════
+//  "이 칸에 뭘 적나요?" — 학부모 알림장과 같은 차례로 보여 줍니다
+// ════════════════════════════════════════════════════════════
+var PL_HINT = {
+  t1:   'Test range — tick Spelling / Meaning',
+  t2:   'Second test, if there is one',
+  sb:   'Student Book pages',
+  wb:   'Workbook pages',
+  wba:  'Workbook A pages',
+  wbb:  'Workbook B pages',
+  wf:   'Writing Factory pages',
+  story:'Storybook pages',
+  sg:   'Study Guide — lesson or pages',
+  hb:   'Handybook — what to write in the notebook',
+  tr:   'Translation',
+  aw:   'Alphabet Writing (always goes out)',
+  on:   'Online homework — lesson number',
+  etc:  'Anything else',
+  f1:'Write the name yourself', f2:'Write the name yourself',
+  f3:'Write the name yourself', f4:'Write the name yourself',
+  f5:'Write the name yourself'
+};
+
+function openPlannerGuide(pageId){
+  var sel = document.getElementById('plform-' + pageId);
+  var v = sel ? sel.value : '';
+  if(!v){ showToast('Pick a form first.'); return; }
+  var parts = v.split('|'), fk = parts[0], ln = parts[1];
+  var f = PLANNER_FORMS[fk];
+  if(!f){ showToast('Form not found.'); return; }
+  var ac = f.accent || '#CC2B2B';
+
+  var rows = f.items.map(function(it, i){
+    return "<div style='display:flex;gap:9px;align-items:flex-start;padding:7px 11px;"
+      +   "border-bottom:1px solid #F0F3EC'>"
+      +   "<span style='width:16px;flex-shrink:0;font-size:10.5px;color:#C3C9BB;"
+      +     "font-weight:700;padding-top:2px'>" + (i + 1) + "</span>"
+      +   "<span style='width:108px;flex-shrink:0;font-size:12.5px;font-weight:700;"
+      +     "color:#2D3A28'>" + _plEsc(it.free ? '(빈 줄)' : it.label)
+      +     (it.fixed ? " <span style='font-size:9px;font-weight:700;color:#CC2B2B'>fixed</span>" : "")
+      +     "</span>"
+      +   "<span style='flex:1;font-size:11.5px;color:#8A9178;line-height:1.5'>"
+      +     _plEsc(PL_HINT[it.key] || '')
+      +     (it.subs ? " <span style='color:#B4BCA8'>(" + it.subs.join(' / ') + ")</span>" : "")
+      +     "</span></div>";
+  }).join('');
+
+  wgModal({
+    title: 'Where do I write it?',
+    sub: f.category + ' · ' + ln,
+    wide: true,
+    saveLabel: 'Got it',
+    html:
+        "<div style='font-size:11.5px;color:#8A9178;line-height:1.6;margin-bottom:11px'>"
+      +   "This is the same order the parents see on the planner.<br>"
+      +   "Leave a row empty if there is no homework for it."
+      + "</div>"
+      + "<div style='border:1px solid #DDE5D6;border-radius:10px;overflow:hidden;background:#fff'>"
+      +   "<div style='padding:9px 12px;border-bottom:2px solid " + ac + ";"
+      +     "display:flex;align-items:center;justify-content:space-between'>"
+      +     "<b style='font-size:14px'>" + _plEsc(ln) + "</b>"
+      +     "<span style='font-size:9.5px;color:#9AA391;letter-spacing:.2px'>"
+      +       _plEsc(f.course) + "</span>"
+      +   "</div>" + rows
+      + "</div>",
+    fields: [],
+    onSave: function(){}
+  });
 }
 
 // 폼을 고르면 항목 행을 그립니다. preset 이 있으면 기존 값을 채웁니다.
