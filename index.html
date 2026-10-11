@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-11 20:30';
+var APP_VERSION = '2026-10-11 22:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -6036,20 +6036,15 @@ function renderCard(r, c){
   html += "<div class='cname' id='rtitle-" + r.pageId + "'>" + r.title + "</div>";
   html += "<div style='display:flex;gap:6px;align-items:center'>" + badge;
   if(!isPast){
-    html += "<button onclick='toggleTitleEdit(\"" + r.pageId + "\")' title='Edit Title' style='background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>✏️</button>";
+    html += "<button onclick='openReportHead(\"" + r.pageId + "\")' title='Time · Class' "
+          + "style='background:rgba(255,255,255,0.2);border:none;border-radius:6px;color:white;"
+          + "cursor:pointer;padding:3px 9px;font-size:11.5px;font-weight:700'>✏️ Time · Class</button>";
   }
   // 리포트 삭제는 선생님 모두가 할 수 있습니다.
   //   바로 지워지지 않고 휴지통으로 갑니다 (마스터가 되살릴 수 있어요).
   html += "<button onclick='confirmDeleteReport(\"" + r.pageId + "\")' title='휴지통으로 보내기' style='background:rgba(200,50,50,0.7);border:none;border-radius:4px;color:white;cursor:pointer;padding:2px 7px;font-size:12px'>🗑️</button>";
   html += "</div></div>";
-  // ── Inline title edit box (hidden by default, not shown for past) ──
-  if(!isPast){
-    html += "<div id='titleEditBox-" + r.pageId + "' style='display:none;padding:10px 16px;background:#f5f5f5;border-bottom:1px solid #ddd'>";
-    html += "<div style='display:flex;gap:6px'>";
-    html += "<input type='text' id='titleInput-" + r.pageId + "' value='" + r.title.replace(/'/g,"&#39;") + "' style='flex:1;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px'>";
-    html += "<button onclick='saveReportTitle(\"" + r.pageId + "\")' style='padding:8px 12px;background:#363D2E;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap'>Save</button>";
-    html += "</div></div>";
-  }
+
   // ── Card body ──
   html += "<div class='card-body'>";
 
@@ -6075,110 +6070,116 @@ function renderCard(r, c){
   //  ── 보기 화면 — 적어 둔 내용을 그냥 보여 줍니다 ──
   html += "<div id='rview-" + r.pageId + "' style='display:none'></div>";
 
-  //  ── 수정 화면 — [✏️ Edit] 을 눌러야 열립니다 ──
+  //  ── 수정 화면 — 보기와 같은 줄 모양으로 (Edit 을 눌러야 열립니다) ──
   html += "<div id='redit-" + r.pageId + "'>";
+  html += "<div style='border:1px solid #DDE5D6;border-radius:11px;padding:0 14px 12px;"
+        +   "background:#fff;margin-bottom:12px'>";
 
-  // ── 상단: 반 / 교재 ──
-  html += "<div style='display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start'>";
-  html +=   "<div style='flex:1 1 260px;min-width:220px'>";
-  html +=     "<div class='fg'><label>Class</label><select id='class-" + r.pageId + "' onchange='onReportClassChange(\"" + r.pageId + "\")'" + dis + ">" + classOpts + "</select></div>";
-  html +=     "<div class='fg' style='margin-bottom:0'><label>Book <span class='req'>*</span></label>"
-        +       "<input type='hidden' id='book-" + r.pageId + "' value=\"" + _mgAttr(r.book || '') + "\">"
-        +       "<button type='button' id='bookpick-" + r.pageId + "'"
-        +         (dis ? " disabled" : "")
-        +         " onclick='openBookPickerForReport(\"" + r.pageId + "\")'"
-        +         " style='width:100%;text-align:left;padding:9px 12px;border:1.5px solid #E2E8D8;"
-        +           "border-radius:8px;font-size:13px;background:#fff;cursor:"
-        +           (dis ? "default" : "pointer") + ";font-family:inherit;color:"
-        +           (r.book ? "#2D3A28" : "#BDBDBD") + ";box-sizing:border-box;"
-        +           "overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"
-        +         (r.book ? _plEsc(r.book) : '교재 고르기') + "</button>"
-        +       "<div style='font-size:10px;color:#A8B09C;margin-top:3px'>"
-        +         "시간표에 짜 둔 교재 목록에서 고릅니다</div></div>";
-  html +=   "</div>";
-  html += "</div>";
+  //  맨 윗줄 — 제목 + [Cancel] [Save]
+  html += "<div style='display:flex;align-items:center;gap:8px;padding:9px 0 10px;"
+        +   "border-bottom:2px solid #E3EDDA'>"
+        +   "<span style='font-size:12.5px;font-weight:800;color:#3F5233'>"
+        +     "✏️ Today's Class</span>"
+        +   "<span style='margin-left:auto;display:flex;gap:6px'>"
+        +     "<button type='button' onclick='toggleReportEdit(\"" + r.pageId + "\", false)' "
+        +       "id='rcancel-" + r.pageId + "' style='background:#F1F3EE;color:#5B6551;"
+        +       "border:none;border-radius:20px;padding:6px 14px;font-size:12px;"
+        +       "font-weight:600;cursor:pointer'>Cancel</button>"
+        +     "<button type='button' id='btn-" + r.pageId + "' "
+        +       "onclick='doSubmit(\"" + r.pageId + "\")' style='background:#2D6A4F;color:#fff;"
+        +       "border:none;border-radius:20px;padding:6px 18px;font-size:12px;"
+        +       "font-weight:700;cursor:pointer'>Save</button>"
+        +   "</span></div>";
 
-  // ── 묶음 2. 오늘 수업: Test -> Today's Lesson -> Homework ──
-  html += "<div style='border:1px solid #C9D9BE;border-radius:11px;overflow:hidden;margin-bottom:12px;background:#FCFDFB'>";
-  html += "<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;"
-        +   "padding:8px 13px;background:#E3EDDA;border-bottom:1px solid #C9D9BE'>"
-        +   "<span style='font-size:12px;font-weight:700;color:#3F5233'>&#9998; Today's Class</span>"
-        +   "<span style='font-size:10.5px;color:#7E9070'>What you taught and assigned today</span>"
-        + "</div>";
-  html += "<div style='display:flex;gap:13px;flex-wrap:wrap;padding:13px'>";
-
-  //  왼쪽 — 시험 / 진도
-  html +=   "<div style='flex:1 1 190px;min-width:170px'>";
-  html +=     "<div class='fg'><label>Test <span class='req'>*</span></label><select id='test-" + r.pageId + "'" + dis + ">" + testHtml + "</select></div>";
-  html +=     "<div class='fg' style='margin-bottom:0'><label>Today's Lesson <span class='req'>*</span></label>"
-        +       "<textarea id='lesson-" + r.pageId + "' style='min-height:150px'" + dis + ">" + (r.todayLesson || "") + "</textarea></div>";
-  html +=   "</div>";
-
-  //  오른쪽 — 숙제(알림장 폼)
-  html +=   "<div style='flex:2 1 380px;min-width:300px'>";
-  html +=     "<div class='fg' style='margin-bottom:0'><label>Homework <span class='req'>*</span></label>";
-  html +=     "<div style='border:1px solid #DDE5D6;border-radius:9px;overflow:hidden;background:white'>";
-  html +=       "<div style='display:flex;align-items:center;gap:8px;padding:7px 11px;background:#F2F5EE;border-bottom:1px solid #DDE5D6;flex-wrap:wrap'>"
-        +         "<span style='font-size:11px;font-weight:700;color:#3F5233;white-space:nowrap'>Form</span>"
-        +         "<select id='plform-" + r.pageId + "' onchange='plTouch(\"" + r.pageId + "\");"
-        +           "onPlFormChange(\"" + r.pageId + "\")'" + dis
-        +           " style='flex:1;min-width:130px;padding:5px 8px;border:1.5px solid #C9D9BE;border-radius:6px;font-size:12.5px;background:white'>"
-        +           plFormOptions() + "</select>"
-        +         "<button type='button' onclick='openPlannerGuide(\"" + r.pageId + "\")' "
-        +           "title='Where do I write it?' style='background:#fff;color:#3F5233;"
-        +           "border:1.5px solid #C9D9BE;border-radius:20px;padding:4px 11px;"
-        +           "font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>"
-        +           "❓ Guide</button>"
-        +       "</div>";
-  html +=       "<div style='padding:6px 11px;font-size:10px;color:#8A9178;border-bottom:1px solid #F0F3EC'>"
-        +         "Just type the pages — the check turns on by itself.</div>";
-  html +=       "<div id='plbox-" + r.pageId + "'></div>";
-  html +=       "<div id='plfree-" + r.pageId + "' style='display:none;padding:9px 11px'>"
-        +         "<textarea id='hw-" + r.pageId + "' placeholder='Write homework freely'"
-        +           " oninput='plTouch(\"" + r.pageId + "\")'" + dis + ">"
-        +         (r.homework || "") + "</textarea></div>";
-  html +=     "</div></div>";
-  html +=   "</div>";
-
-  html += "</div></div>";
-
-  //  태도 · 코멘트 · 교재주문은 창에서 적습니다 (값은 여기 숨겨 둡니다)
-  html += "<div id='rxtra-" + r.pageId + "' style='display:none'>"
-        +   "<select id='attitude-" + r.pageId + "'>" + attitudeHtml + "</select>"
-        +   "<textarea id='comments-" + r.pageId + "'>" + _plEsc(r.comments || '') + "</textarea>"
-        +   "<input type='text' id='bookorders-" + r.pageId + "' value='"
-        +     _mgAttr(r.bookOrders || '') + "'>"
-        + "</div>";
-
-  if(!isPast){
-    //  ── 버튼 줄 — 눌러서 펴거나 창에서 적습니다 ──
-    html += "<div style='display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin:4px 0 10px'>"
-          +   "<button type='button' onclick='openReportExtra(\"" + r.pageId + "\")' "
-          +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
-          +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
-          +     "cursor:pointer'>＋ Attitude · Comments · Book order</button>"
-          +   "<button type='button' onclick='openHwFromReport(\"" + r.pageId + "\")' "
-          +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
-          +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
-          +     "cursor:pointer'>📚 Show homework</button>"
-          +   "<button type='button' onclick='toggleReportEdit(\"" + r.pageId + "\", false)' "
-          +     "style='background:#fff;color:#8A9178;border:1.5px solid #E2E8D8;"
-          +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
-          +     "cursor:pointer'>👁 View</button>"
-          +   "<span id='rxsum-" + r.pageId + "' style='font-size:11.5px;color:#8A9178'></span>"
-          + "</div>";
-    html += "<div style='display:flex;gap:8px'>"
-          +   "<button type='button' onclick='toggleReportEdit(\"" + r.pageId + "\", false)' "
-          +     "id='rcancel-" + r.pageId + "' style='display:none;flex:1;background:#F1F3EE;"
-          +     "color:#5B6551;border:none;border-radius:10px;padding:12px;font-size:13px;"
-          +     "font-weight:600;cursor:pointer'>Cancel</button>"
-          +   "<button class='btn' id='btn-" + r.pageId + "' style='flex:2;margin:0' "
-          +     "onclick='doSubmit(\"" + r.pageId + "\")'>Save</button>"
-          + "</div>";
-  } else {
-    html += "<div style='text-align:center;padding:10px 0;color:#aaa;font-size:12px;border-top:1px solid #f0f0f0;margin-top:8px'>🔒 Reports from past dates cannot be edited.</div>";
+  //  줄 하나를 그리는 틀 — 보기 화면과 자리가 똑같습니다
+  function erow(label, inner){
+    return "<div style='display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #F2F4EF'>"
+      +   "<div style='width:96px;flex-shrink:0;font-size:11px;font-weight:700;color:#8A9178;"
+      +     "padding-top:7px'>" + label + "</div>"
+      +   "<div style='flex:1;min-width:0'>" + inner + "</div></div>";
   }
-  html += "</div>";
+
+  //  Book
+  html += erow('Book',
+      "<input type='hidden' id='book-" + r.pageId + "' value=\"" + _mgAttr(r.book || '') + "\">"
+    + "<button type='button' id='bookpick-" + r.pageId + "'" + (dis ? " disabled" : "")
+    +   " onclick='openBookPickerForReport(\"" + r.pageId + "\")'"
+    +   " style='width:100%;text-align:left;padding:9px 12px;border:1.5px solid #E2E8D8;"
+    +     "border-radius:8px;font-size:13px;background:#fff;cursor:"
+    +     (dis ? "default" : "pointer") + ";font-family:inherit;color:"
+    +     (r.book ? "#2D3A28" : "#BDBDBD") + ";box-sizing:border-box;"
+    +     "overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"
+    +   (r.book ? _plEsc(r.book) : 'Pick a book') + "</button>");
+
+  //  Today's Lesson  +  Test
+  html += erow("Today's Lesson",
+      "<textarea id='lesson-" + r.pageId + "' placeholder='What you taught today' "
+    +   "style='width:100%;min-height:62px;padding:9px 12px;border:1.5px solid #E2E8D8;"
+    +   "border-radius:8px;font-size:13px;font-family:inherit;box-sizing:border-box;"
+    +   "resize:vertical'" + dis + ">" + _plEsc(r.todayLesson || "") + "</textarea>"
+    + "<div style='display:flex;align-items:center;gap:7px;margin-top:7px'>"
+    +   "<span style='font-size:11px;font-weight:700;color:#8A9178'>📝 Test</span>"
+    +   "<select id='test-" + r.pageId + "'" + dis
+    +     " style='flex:1;padding:7px 10px;border:1.5px solid #E2E8D8;border-radius:8px;"
+    +     "font-size:12.5px;background:#fff;font-family:inherit'>" + testHtml + "</select>"
+    + "</div>");
+
+  //  Homework
+  html += erow('Homework',
+      "<div style='border:1px solid #DDE5D6;border-radius:9px;overflow:hidden;background:#fff'>"
+    +   "<div style='display:flex;align-items:center;gap:7px;padding:7px 11px;"
+    +     "background:#F2F5EE;border-bottom:1px solid #DDE5D6;flex-wrap:wrap'>"
+    +     "<span style='font-size:11px;font-weight:700;color:#3F5233;white-space:nowrap'>Form</span>"
+    +     "<select id='plform-" + r.pageId + "' onchange='plTouch(\"" + r.pageId + "\");"
+    +       "onPlFormChange(\"" + r.pageId + "\")'" + dis
+    +       " style='flex:1;min-width:120px;padding:5px 8px;border:1.5px solid #C9D9BE;"
+    +       "border-radius:6px;font-size:12.5px;background:white'>"
+    +       plFormOptions() + "</select>"
+    +     "<button type='button' onclick='openPlannerGuide(\"" + r.pageId + "\")' "
+    +       "title='Where do I write it?' style='background:#fff;color:#3F5233;"
+    +       "border:1.5px solid #C9D9BE;border-radius:20px;padding:4px 11px;"
+    +       "font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>"
+    +       "❓ Guide</button>"
+    +   "</div>"
+    +   "<div id='plbox-" + r.pageId + "'></div>"
+    +   "<div id='plfree-" + r.pageId + "' style='display:none;padding:9px 11px'>"
+    +     "<textarea id='hw-" + r.pageId + "' placeholder='Write homework freely'"
+    +       " oninput='plTouch(\"" + r.pageId + "\")'" + dis + ">"
+    +     _plEsc(r.homework || "") + "</textarea></div>"
+    + "</div>"
+    + "<div style='margin-top:7px'>"
+    +   "<button type='button' onclick='openHwFromReport(\"" + r.pageId + "\")' "
+    +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
+    +     "border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:700;"
+    +     "cursor:pointer'>📚 Show homework</button></div>");
+
+  //  More — 태도 · 코멘트 · 교재주문 (값은 숨겨 두고 창에서 적습니다)
+  html += erow('More',
+      "<div id='rxtra-" + r.pageId + "' style='display:none'>"
+    +   "<select id='attitude-" + r.pageId + "'>" + attitudeHtml + "</select>"
+    +   "<textarea id='comments-" + r.pageId + "'>" + _plEsc(r.comments || '') + "</textarea>"
+    +   "<input type='text' id='bookorders-" + r.pageId + "' value='"
+    +     _mgAttr(r.bookOrders || '') + "'>"
+    + "</div>"
+    + "<div style='display:flex;gap:7px;align-items:center;flex-wrap:wrap'>"
+    +   "<button type='button' onclick='openReportExtra(\"" + r.pageId + "\")' "
+    +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
+    +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
+    +     "cursor:pointer'>＋ Attitude · Comments · Book order</button>"
+    +   "<span id='rxsum-" + r.pageId + "' style='font-size:11.5px;color:#8A9178'></span>"
+    + "</div>");
+
+  //  반은 숨겨 둡니다 — 제목 줄에서 고릅니다
+  html += "<select id='class-" + r.pageId + "' style='display:none' "
+        +   "onchange='onReportClassChange(\"" + r.pageId + "\")'>" + classOpts + "</select>";
+
+  html += "</div>";   // 수정 상자 끝
+
+  if(isPast){
+    html += "<div style='text-align:center;padding:10px 0;color:#aaa;font-size:12px;"
+          +   "border-top:1px solid #f0f0f0;margin-top:8px'>"
+          +   "🔒 Reports from past dates cannot be edited.</div>";
+  }
   html += "</div>";   // 수정 화면 끝
   div.innerHTML = html;
   c.appendChild(div);
@@ -6470,18 +6471,19 @@ function _pgBookOf(classId, lessonName){
   return 'reading';
 }
 
-// 지금 쓰는 수업이 알림장의 몇 번째 칸인가요?
-function _pgCellOf(book, lessonName){
+// 지금 쓰는 수업이 알림장의 몇 번째 칸인가요? (같은 칸이 둘이면 둘 다)
+function _pgCellsOf(book, lessonName){
   var cells = WG_PLANNER_PAGES[book].cells;
-  var ln = String(lessonName || '');
+  var ln = String(lessonName || ''), out = [];
   for(var i = 0; i < cells.length; i++){
-    if(!cells[i].note && cells[i].lesson === ln) return i;
+    if(!cells[i].note && cells[i].lesson === ln) out.push(i);
   }
+  if(out.length) return out;
   // Bricks Reading · Hand in Hand · English Time 같은 외부교재
   for(var j = 0; j < cells.length; j++){
-    if(cells[j].ext) return j;
+    if(cells[j].ext) out.push(j);
   }
-  return -1;
+  return out;
 }
 
 function openPlannerGuide(pageId){
@@ -6492,13 +6494,14 @@ function openPlannerGuide(pageId){
   var classId = (document.getElementById('class-' + pageId) || {}).value || '';
   var book = _pgBookOf(classId, ln);
   var page = WG_PLANNER_PAGES[book];
-  var hit  = _pgCellOf(book, ln);
+  var hits = _pgCellsOf(book, ln);
+  var hit  = hits.length ? hits[0] : -1;
 
   var cls = (classList || []).filter(function(x){ return x.id === classId; })[0];
   var progTxt = (cls && cls.program) ? cls.program : '';
 
   function cellHtml(c, i){
-    var on = (i === hit);
+    var on = hits.indexOf(i) >= 0;
     var rows = '';
     if(c.note){
       rows = "<div style='height:118px;border:1px solid #E3E6DE;margin:6px 8px 8px'></div>";
@@ -6520,6 +6523,9 @@ function openPlannerGuide(pageId){
       +   "border-radius:3px;background:" + (on ? '#FFFBF0' : '#fff') + ";"
       +   "box-shadow:" + (on ? '0 0 0 2px #F6D79A' : 'none') + ";overflow:hidden'>"
       +   "<div style='padding:5px 8px 4px;background:" + (on ? '#FDF3DF' : '#FAFBF8') + "'>"
+      +     (on && hits.length > 1
+        ? "<div style='font-size:8px;font-weight:800;color:#B4651A;margin-bottom:1px'>"
+          + "👉 둘 중 한 곳에만</div>" : "")
       +     "<div style='font-size:6.5px;color:#A8B09C;letter-spacing:.3px'>"
       +       _plEsc(c.series || '') + "</div>"
       +     "<div style='font-size:11px;font-weight:800;color:"
@@ -6562,9 +6568,14 @@ function openPlannerGuide(pageId){
         ? "<div style='font-size:11.5px;color:#C0392B;margin-top:10px'>"
           + "이 수업 칸을 알림장에서 못 찾았어요. 반의 프로그램을 Class Hub 에서 골라 주세요.</div>"
         : "<div style='font-size:11.5px;color:#8A6A22;background:#FFF8EC;border-radius:8px;"
-          + "padding:9px 11px;margin-top:10px;line-height:1.6'>"
+          + "padding:9px 11px;margin-top:10px;line-height:1.7'>"
           + "노란 칸이 지금 적고 계신 수업입니다. 위에서부터 차례대로 적으시면 "
-          + "학부모님 알림장과 같은 순서가 됩니다. 숙제가 없는 줄은 비워 두세요.</div>")
+          + "학부모님 알림장과 같은 순서가 됩니다. 숙제가 없는 줄은 비워 두세요."
+          + (hits.length > 1
+            ? "<br><b>같은 칸이 두 개 있는 수업입니다 — 둘 중 아무 곳에나 한 번만 적으면 됩니다.</b>"
+            : "")
+          + "<br><b>학생들이 한 주에 한 페이지씩 쓰도록 지도해 주세요.</b> "
+          + "(한 면에 그 주 수업이 다 들어갑니다)</div>")
       + (progTxt ? "" :
           "<div style='font-size:11px;color:#A8B09C;margin-top:7px'>"
           + "※ 이 반의 프로그램이 아직 안 정해져 있어 수업 이름으로 짐작했습니다.</div>"),
@@ -9851,32 +9862,46 @@ function confirmDeleteReport(pageId){
   .deleteReport(pageId);
 }
 // ── Title edit toggle ──
-function toggleTitleEdit(pageId){
-  var box = document.getElementById("titleEditBox-"+pageId);
-  if(!box) return;
-  var isOpen = box.style.display !== "none";
-  box.style.display = isOpen ? "none" : "block";
-  if(!isOpen){ document.getElementById("titleInput-"+pageId).focus(); }
+// 제목(시작 시간) 과 반을 한 창에서 고칩니다
+function openReportHead(pageId){
+  var titleEl = document.getElementById('rtitle-' + pageId);
+  var clsEl   = document.getElementById('class-' + pageId);
+  var opts = [{ value:'', label:'— pick a class —' }];
+  if(clsEl) Array.prototype.forEach.call(clsEl.options, function(o){
+    if(o.value) opts.push({ value:o.value, label:o.textContent });
+  });
+  wgModal({
+    title: 'Time · Class',
+    sub: (titleEl ? titleEl.textContent : ''),
+    saveLabel: 'Save',
+    fields: [
+      { key:'title', label:'Title (time · class · teacher)', type:'text', required:true,
+        value:(titleEl ? titleEl.textContent : ''),
+        hint:'e.g. 3:30 3A Sue (10/11)' },
+      { key:'classId', label:'Class', type:'select',
+        value:(clsEl ? clsEl.value : ''), options:opts,
+        hint:'Changing the class reloads the student list and last lesson' }
+    ],
+    onSave: function(v){
+      if(clsEl && v.classId !== clsEl.value){
+        clsEl.value = v.classId;
+        onReportClassChange(pageId);
+      }
+      if(titleEl && v.title && v.title !== titleEl.textContent){
+        showToast('Saving...');
+        google.script.run
+          .withSuccessHandler(function(r){
+            if(r && r.success){ titleEl.textContent = v.title; showToast('Saved!'); }
+            else showToast('Save failed');
+          })
+          .withFailureHandler(function(){ showToast('Error. Please try again.'); })
+          .updateReportTitle(pageId, v.title);
+      }
+    }
+  });
 }
 // ── Save report title ──
-function saveReportTitle(pageId){
-  var inp = document.getElementById("titleInput-"+pageId);
-  var newTitle = inp ? inp.value.trim() : "";
-  if(!newTitle){ showToast("Please enter a title."); return; }
-  showToast("Saving...");
-  google.script.run
-  .withSuccessHandler(function(r){
-    if(r && r.success){
-      document.getElementById("rtitle-"+pageId).textContent = newTitle;
-      document.getElementById("titleEditBox-"+pageId).style.display = "none";
-      showToast("✅ Title updated!");
-    } else {
-      showToast("❌ Save failed");
-    }
-  })
-  .withFailureHandler(function(){ showToast("❌ Error. Please try again."); })
-  .updateReportTitle(pageId, newTitle);
-}
+
 // ── Populate class dropdown in add-report form ──
 function populateNewReportClass(){
   var sel = document.getElementById("newReportClass");
@@ -16587,9 +16612,10 @@ function _prParentHtml(cls, mon, stu, rows, days, dayTxt){
 function _prSlipHtml(cls, mon, rows, days){
   var nP = 0, seen = {};
   rows.forEach(function(s){ if(!seen[s.period]){ seen[s.period]=1; nP++; } });
-  //  A4 세로 한 장에 다섯 장을 넣습니다.
-  //    한 장에 쓸 수 있는 높이 ≈ 43mm → 줄 수(머리줄 포함)로 나눕니다.
-  var rowPx  = Math.max(18, Math.min(74, Math.floor(162 / (nP + 1))));
+  //  A4 세로 한 장(297mm)에 네 장을 넣습니다.
+  //    위아래 여백 8mm 를 빼고 네 장이 나눠 가집니다 → 한 장 ≈ 70mm
+  //    카드 테두리·여백·머리줄을 빼면 표가 쓸 수 있는 높이 ≈ 56mm
+  var rowPx  = Math.max(22, Math.min(86, Math.floor(212 / (nP + 1))));
 
   function one(i){
     // 높이를 못 박지 않고 내용에 맞춥니다 (아래가 비지 않게)
@@ -16607,16 +16633,18 @@ function _prSlipHtml(cls, mon, rows, days){
       +    "</div>"
       +    _prTable(rows, days, false, rowPx)
       +  "</div>"
-      + (i < 4 ? "<div style='border-top:1px dashed #C7C2B2;margin:0 0 2.5mm;"
+      + (i < 3 ? "<div style='border-top:1px dashed #C7C2B2;margin:0 0 2.5mm;"
                  + "position:relative;height:0'>"
                  + "<span style='position:absolute;right:0;top:-7px;font-size:9px;"
                  + "color:#B9B4A4;background:#fff;padding-left:4px'>✂</span></div>"
                : "");
   }
   var cards = '';
-  for(var i=0;i<5;i++) cards += one(i);
+  for(var i=0;i<4;i++) cards += one(i);
 
-  var body = "<div class='sheet' style='width:210mm;padding:4mm 15mm'>"
+  //  높이를 297mm 로 못 박아야 A4 크기 그대로 사진이 나옵니다
+  var body = "<div class='sheet' style='width:210mm;height:297mm;padding:4mm 15mm;"
+           + "display:flex;flex-direction:column;justify-content:space-between'>"
            + cards + "</div>";
   return body;
 }
@@ -21233,65 +21261,49 @@ function frSyncTitle(){
 }
 
 function openFullReportModal(){
-  var modal = document.getElementById('fullReportModal');
-  if(!modal) return;
-  // Reset fields
-  ['fr_title','fr_lastLesson','fr_lastHW','fr_lesson','fr_hw','fr_book','fr_comments','fr_bookorders'].forEach(function(id){
-    var el = document.getElementById(id); if(el) el.value='';
-  });
-  var t0 = document.getElementById('fr_title');
-  if(t0) t0.dataset.touched = '';
-  ['fr_class','fr_test','fr_attitude'].forEach(function(id){
-    var el = document.getElementById(id); if(el) el.value='';
-  });
-  toggleFrMore(false);
+  //  새 리포트는 "언제 · 어느 반" 만 먼저 정하고,
+  //  나머지는 목록에 생긴 카드에서 다른 리포트와 똑같은 모양으로 적습니다.
+  var tid = (document.getElementById('tsel') || {}).value || '';
+  if(!tid){ showToast('Please select a teacher first.'); return; }
 
-  // 시간 고르는 칸 채우기 (1교시 = 2:30)
-  var perEl = document.getElementById('fr_period');
-  if(perEl){
-    perEl.innerHTML = '<option value="">-- 시간 고르기 --</option>'
-      + WG_PERIODS.map(function(p){
-          return '<option value="' + p.p + '">' + _h12(p.start) + ' ~ ' + _h12(p.end) + '</option>';
-        }).join('');
-    perEl.value = '';
-  }
-  // Populate class select (always reload)
-  var classEl = document.getElementById('fr_class');
-  if(classEl){
-    classEl.innerHTML = '<option value="">-- Select Class --</option>';
-    google.script.run.withSuccessHandler(function(classes){
-      if(!classes) return;
-      classes.forEach(function(c){ classEl.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>'; });
-    }).fetchClassList();
-  }
-  // Reset more section
-  var more = document.getElementById('fr_moreSection');
-  if(more) more.style.display = 'none';
-  var moreBtn = document.getElementById('fr_moreBtn');
-  if(moreBtn) moreBtn.textContent = '+ More (Comments / Book Orders)';
-  // Reset prev class panel
-  var prevPanel = document.getElementById('fr_prevPanel');
-  if(prevPanel) prevPanel.style.display = 'none';
-  var prevBtn = document.getElementById('fr_prevBtn');
-  if(prevBtn) prevBtn.textContent = '📂 이전 수업에서 Last Lesson / HW 가져오기 ▼';
-  var prevList = document.getElementById('fr_prevList');
-  if(prevList) prevList.innerHTML = '';
-  var prevDate = document.getElementById('fr_prevDate');
-  if(prevDate) prevDate.value = '';
-  // Load teachers for prev panel (default to current user)
-  var prevTeacherSel = document.getElementById('fr_prevTeacher');
-  if(prevTeacherSel){
-    prevTeacherSel.innerHTML = '<option value="">-- 선생님 선택 --</option>';
-    google.script.run.withSuccessHandler(function(teachers){
-      if(!teachers) return;
-      activeTeachers(teachers, _teacherId).forEach(function(t){   // 퇴사한 선생님은 제외
-        prevTeacherSel.innerHTML += '<option value="'+t.id+'">'+t.name+'</option>';
-      });
-      if(_teacherId) prevTeacherSel.value = _teacherId;
-    }).fetchTeachers();
-  }
-  modal.style.display = 'block';
-  modal.scrollTop = 0;
+  var perOpts = [{ value:'', label:'— pick a time —' }].concat(
+    (WG_PERIODS || []).map(function(p){
+      return { value:String(p.p), label:_h12(p.start) + ' ~ ' + _h12(p.end) };
+    }));
+  var clsOpts = [{ value:'', label:'— pick a class —' }].concat(
+    (classList || []).map(function(c){ return { value:c.id, label:c.name }; }));
+
+  wgModal({
+    title: 'New report',
+    sub: selectedDate,
+    saveLabel: 'Create',
+    fields: [
+      { key:'period',  label:'Time',  type:'select', options:perOpts, required:true },
+      { key:'classId', label:'Class', type:'select', options:clsOpts, required:true,
+        hint:'The title is made for you — you can change it later' }
+    ],
+    onSave: function(v){
+      var cls = (classList || []).filter(function(c){ return c.id === v.classId; })[0];
+      var per = (WG_PERIODS || []).filter(function(p){ return String(p.p) === v.period; })[0];
+      var d   = String(selectedDate || '').split('-');
+      var title = [ per ? _h12(per.start) : '',
+                    cls ? cls.name : '',
+                    (typeof _userName !== 'undefined' && _userName) ? _userName : '',
+                    (d.length === 3 ? '(' + Number(d[1]) + '/' + Number(d[2]) + ')' : '')
+                  ].filter(Boolean).join(' ');
+      showToast('Creating…');
+      google.script.run
+        .withSuccessHandler(function(r){
+          if(!r || !r.success){ showToast('Failed: ' + ((r && r.error) || '')); return; }
+          showToast('Report created — write it below');
+          loadReports();
+        })
+        .withFailureHandler(function(e){ showToast('Error: ' + (e && e.message ? e.message : '')); })
+        .createBlankReport({ title:title, teacherId:tid, classId:v.classId,
+                             dateStr:selectedDate, lastLesson:'', lastHW:'',
+                             period:v.period });
+    }
+  });
 }
 
 function closeFullReportModal(){
