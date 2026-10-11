@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-12 00:40';
+var APP_VERSION = '2026-10-12 01:10';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -21355,11 +21355,13 @@ function frSyncTitle(){
   t.value = parts.join(' ') + (parts.length ? ' (' + md + ')' : '');
 }
 
-function openFullReportModal(){
-  //  새 리포트는 "언제 · 어느 반" 만 먼저 정하고,
-  //  나머지는 목록에 생긴 카드에서 다른 리포트와 똑같은 모양으로 적습니다.
+//  새 리포트 — 시간 · 반만 고르고, 지난 수업도 여기서 불러올 수 있습니다
+var _nrDraft = { period:'', classId:'', lastLesson:'', lastHW:'', lastFrom:'' };
+
+function openFullReportModal(keep){
   var tid = (document.getElementById('tsel') || {}).value || '';
   if(!tid){ showToast('Please select a teacher first.'); return; }
+  if(!keep) _nrDraft = { period:'', classId:'', lastLesson:'', lastHW:'', lastFrom:'' };
 
   var perOpts = [{ value:'', label:'— pick a time —' }].concat(
     (WG_PERIODS || []).map(function(p){
@@ -21368,13 +21370,36 @@ function openFullReportModal(){
   var clsOpts = [{ value:'', label:'— pick a class —' }].concat(
     (classList || []).map(function(c){ return { value:c.id, label:c.name }; }));
 
+  var lastBox =
+      "<div style='border:1px solid #DEE3D8;border-radius:10px;background:#FBFCFA;"
+    +   "padding:10px 12px;margin-bottom:13px'>"
+    +   "<div style='display:flex;align-items:center;gap:8px;flex-wrap:wrap'>"
+    +     "<span style='font-size:11.5px;font-weight:700;color:#5F6B54'>↩ Last class</span>"
+    +     "<button type='button' onclick='nrLoadLast()' style='margin-left:auto;background:#fff;"
+    +       "color:#5F6B54;border:1.5px solid #DEE3D8;border-radius:20px;padding:4px 12px;"
+    +       "font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>"
+    +       "📂 Load from another day</button>"
+    +   "</div>"
+    +   "<div style='font-size:11.5px;color:" + (_nrDraft.lastLesson ? '#2D3A28' : '#A8B09C')
+    +     ";margin-top:6px;line-height:1.5'>"
+    +     (_nrDraft.lastLesson
+        ? "📖 " + _plEsc(String(_nrDraft.lastLesson).slice(0, 70))
+          + (_nrDraft.lastFrom ? " <span style='color:#A8B09C'>(" + _plEsc(_nrDraft.lastFrom)
+                                 + ")</span>" : "")
+        : "비워 두셔도 됩니다 — 같은 반 지난 수업은 앱이 알아서 찾아 줍니다.")
+    +   "</div>"
+    + "</div>";
+
   wgModal({
     title: 'New report',
     sub: selectedDate,
     saveLabel: 'Create',
+    html: lastBox,
     fields: [
-      { key:'period',  label:'Time',  type:'select', options:perOpts, required:true },
-      { key:'classId', label:'Class', type:'select', options:clsOpts, required:true,
+      { key:'period',  label:'Time',  type:'select', options:perOpts,
+        value:_nrDraft.period, required:true },
+      { key:'classId', label:'Class', type:'select', options:clsOpts,
+        value:_nrDraft.classId, required:true,
         hint:'The title is made for you — you can change it later' }
     ],
     onSave: function(v){
@@ -21390,15 +21415,81 @@ function openFullReportModal(){
       google.script.run
         .withSuccessHandler(function(r){
           if(!r || !r.success){ showToast('Failed: ' + ((r && r.error) || '')); return; }
+          _nrDraft = { period:'', classId:'', lastLesson:'', lastHW:'', lastFrom:'' };
           showToast('Report created — write it below');
           loadReports();
         })
         .withFailureHandler(function(e){ showToast('Error: ' + (e && e.message ? e.message : '')); })
         .createBlankReport({ title:title, teacherId:tid, classId:v.classId,
-                             dateStr:selectedDate, lastLesson:'', lastHW:'',
-                             period:v.period });
+                             dateStr:selectedDate, lastLesson:_nrDraft.lastLesson,
+                             lastHW:_nrDraft.lastHW, period:v.period });
     }
   });
+}
+
+//  새 리포트 창에서 "지난 수업 불러오기" — 고르던 값은 그대로 두고 다녀옵니다
+function nrLoadLast(){
+  var p0 = document.getElementById('wgm-0'), c0 = document.getElementById('wgm-1');
+  _nrDraft.period  = p0 ? p0.value : _nrDraft.period;
+  _nrDraft.classId = c0 ? c0.value : _nrDraft.classId;
+  wgModalClose();
+
+  var tid = (document.getElementById('tsel') || {}).value || '';
+  var d = new Date(selectedDate + 'T00:00:00');
+  d.setDate(d.getDate() - 7);
+  var ago = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+          + '-' + String(d.getDate()).padStart(2,'0');
+
+  wgModal({
+    title: 'Load last class',
+    sub: 'Pick the day you taught this class before',
+    saveLabel: 'Find',
+    fields: [
+      { key:'date', label:'Date', type:'date', value:ago, required:true,
+        hint:'Last week, same weekday is filled in for you' }
+    ],
+    onSave: function(v){
+      showToast('Looking…');
+      google.script.run
+        .withSuccessHandler(function(list){ _nrShowList(v.date, list || []); })
+        .withFailureHandler(function(){ showToast('Could not load.'); })
+        .fetchTodayReports(tid, v.date);
+    }
+  });
+}
+
+function _nrShowList(dateStr, list){
+  _llCache = { pageId:'', list:list, date:dateStr, forNew:true };
+  if(!list.length){
+    wgModal({ title:'Load last class', sub:dateStr, saveLabel:'Back',
+      html:"<div style='font-size:12.5px;color:#8A9178;padding:6px 0'>No reports on that day.</div>",
+      fields:[], onSave:function(){ openFullReportModal(true); } });
+    return;
+  }
+  var rows = list.map(function(r, i){
+    var lesson = String(r.todayLesson || '').slice(0, 70);
+    return "<button type='button' onclick='nrPick(" + i + ")' "
+      +   "style='width:100%;text-align:left;background:#fff;border:1.5px solid #E2E8D8;"
+      +   "border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer;"
+      +   "font-family:inherit;display:block'>"
+      +   "<div style='font-size:12.5px;font-weight:800;color:#2D3A28'>"
+      +     _plEsc(r.title || '') + "</div>"
+      +   (lesson ? "<div style='font-size:11.5px;color:#5B6551;margin-top:3px'>📖 "
+                    + _plEsc(lesson) + "</div>" : "")
+      + "</button>";
+  }).join('');
+  wgModal({ title:'Pick the class', sub:dateStr, wide:true, saveLabel:'Back',
+    html:rows, fields:[], onSave:function(){ openFullReportModal(true); } });
+}
+
+function nrPick(i){
+  var r = (_llCache.list || [])[i];
+  if(!r) return;
+  _nrDraft.lastLesson = r.todayLesson || '';
+  _nrDraft.lastHW     = r.homework    || '';
+  _nrDraft.lastFrom   = _llCache.date || '';
+  wgModalClose();
+  openFullReportModal(true);
 }
 
 function closeFullReportModal(){
