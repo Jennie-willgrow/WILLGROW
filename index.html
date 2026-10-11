@@ -219,7 +219,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
 .appt-time {font-size:13px;color:#5A6350;margin-top:5px}
 .appt-phone {font-size:13px;color:#4A5240;margin-top:4px;font-weight:600}
 .appt-phone a {color:#4A5240;text-decoration:none}
-</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Cheolsan Campus</div><div id="appVerTag" style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:1px;margin-bottom:34px"></div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button><div style="margin-top:14px"><a href="#" onclick="location.replace(location.pathname+'?v='+Date.now());return false" style="color:rgba(255,255,255,0.35);font-size:11px;text-decoration:none;letter-spacing:.5px">🔄 최신으로 새로 받기</a></div></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><button class="snav-item" data-mode="schedule" onclick="navigateTo('schedule')"><span class="si-icon">📅</span> Schedule</button><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">Class Hub</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> Classes &amp; Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="weeklyhw" onclick="navigateTo('weeklyhw')"><span class="si-icon">📋</span> Weekly Homework</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><button class="snav-item" data-mode="lessonplan" onclick="navigateTo('lessonplan')"><span class="si-icon">📖</span> Lesson Plan</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규등록</button><button class="snav-item" data-mode="consultcal" onclick="navigateTo('consultcal')"><span class="si-icon">📅</span> 신규상담일정</button><button class="snav-item" data-mode="newstudent" onclick="navigateTo('newstudent')"><span class="si-icon">🙋</span> 신규학생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> Book Orders</button><button class="snav-item" data-mode="wgorder" onclick="navigateTo('wgorder')"><span class="si-icon">📗</span> WG 교재 주문</button><button class="snav-item" data-mode="extorder" onclick="navigateTo('extorder')"><span class="si-icon">📔</span> 외부 교재 주문</button><button class="snav-item" data-mode="extraorder" onclick="navigateTo('extraorder')"><span class="si-icon">➕</span> 부가자료 추가주문</button><button class="snav-item" data-mode="parentmsg" onclick="navigateTo('parentmsg')"><span class="si-icon">💬</span> 교재구입메세지</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button><button class="snav-item" id="navTrash" data-mode="trash" onclick="navigateTo('trash')"><span class="si-icon">🗑️</span> 휴지통</button></nav><div id="sideVerTag" onclick="hardReloadApp()" title="눌러서 최신으로 새로 받기" style="padding:10px 14px 14px;font-size:9.5px;letter-spacing:.5px;color:rgba(255,255,255,0.28);cursor:pointer;text-align:center;line-height:1.5"></div></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
+</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Cheolsan Campus</div><div id="appVerTag" style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:1px;margin-bottom:34px"></div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button><div style="margin-top:14px"><a href="#" onclick="location.replace(location.pathname+'?v='+Date.now());return false" style="color:rgba(255,255,255,0.35);font-size:11px;text-decoration:none;letter-spacing:.5px">🔄 최신으로 새로 받기</a></div></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">Class Hub</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> Classes &amp; Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> 교재 주문</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button><button class="snav-item" id="navTrash" data-mode="trash" onclick="navigateTo('trash')"><span class="si-icon">🗑️</span> 휴지통</button></nav><div id="sideVerTag" onclick="hardReloadApp()" title="눌러서 최신으로 새로 받기" style="padding:10px 14px 14px;font-size:9.5px;letter-spacing:.5px;color:rgba(255,255,255,0.28);cursor:pointer;text-align:center;line-height:1.5"></div></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
 
 <!-- ======= Weekly Homework Screen ======= -->
 <div id="weeklyHwScreen" style="display:none">
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-06 13:00';
+var APP_VERSION = '2026-10-11 14:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -7440,10 +7440,73 @@ async function loadWeeklyHw(offsetArg) {
 function _whwEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 // ─────────────────────────────────────────────────────────
 
+// ════════════════════════════════════════════════════════════
+//  묶음 메뉴 — 비슷한 화면을 하나로 모으고 위에 탭으로 나눕니다
+//    🌟 신규생   신규등록 · 상담일정 · 신규학생
+//    📦 교재 주문 Book Orders · WG · 외부 · 부가자료 · 교재비 메세지
+// ════════════════════════════════════════════════════════════
+var WG_NAV_GROUPS = {
+  enrollment: { label:'🌟 신규생', items:[
+    { mode:'enrollment', label:'신규등록' },
+    { mode:'consultcal', label:'상담일정' },
+    { mode:'newstudent', label:'신규학생' } ] },
+  bookorderboard: { label:'📦 교재 주문', items:[
+    { mode:'bookorderboard', label:'주문 요청' },
+    { mode:'wgorder',    label:'WG 교재' },
+    { mode:'extorder',   label:'외부 교재' },
+    { mode:'extraorder', label:'부가자료' },
+    { mode:'parentmsg',  label:'교재비 메세지' } ] }
+};
+
+// 어느 모드가 어느 묶음에 드는지 (묶음 대표는 자기 자신)
+var WG_NAV_GROUP_OF = {};
+Object.keys(WG_NAV_GROUPS).forEach(function(head){
+  WG_NAV_GROUPS[head].items.forEach(function(it){ WG_NAV_GROUP_OF[it.mode] = head; });
+});
+
+function _navGroupHead(mode){ return WG_NAV_GROUP_OF[mode] || mode; }
+
+var WG_SCREEN_OF = {
+  enrollment:'enrollScreen', consultcal:'consultCalScreen', newstudent:'newStudentScreen',
+  bookorderboard:'bookOrderBoardScreen', wgorder:'bookOrderScreen', extorder:'bookOrderScreen',
+  extraorder:'extraOrderScreen', parentmsg:'parentMsgScreen'
+};
+function _screenIdOf(mode){ return WG_SCREEN_OF[mode] || ''; }
+
+// 화면 위에 탭 줄을 붙입니다
+function renderNavTabs(mode, screenEl){
+  var bar = document.getElementById('navTabs');
+  var head = WG_NAV_GROUP_OF[mode];
+  if(!head || !screenEl){ if(bar) bar.style.display = 'none'; return; }
+
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'navTabs';
+    bar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 0';
+  }
+  if(bar.parentNode !== screenEl.parentNode || bar.nextSibling !== screenEl){
+    screenEl.parentNode.insertBefore(bar, screenEl);
+  }
+  bar.style.display = 'flex';
+  bar.innerHTML = WG_NAV_GROUPS[head].items.map(function(it){
+    var on = (it.mode === mode);
+    return "<button onclick='navigateTo(\"" + it.mode + "\")' style='"
+      + "background:" + (on ? '#2D6A4F' : '#fff') + ";"
+      + "color:" + (on ? '#fff' : '#5B6551') + ";"
+      + "border:1.5px solid " + (on ? '#2D6A4F' : '#E2E8D8') + ";border-radius:20px;"
+      + "padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap'>"
+      + it.label
+      + (_badgeVals[it.mode] ? " <span style='background:" + (on ? '#fff' : '#C0392B')
+          + ";color:" + (on ? '#2D6A4F' : '#fff') + ";border-radius:20px;padding:0 5px;"
+          + "font-size:10.5px;margin-left:3px'>" + _badgeVals[it.mode] + "</span>" : "")
+      + "</button>";
+  }).join('');
+}
+
 function setActiveNav(mode){
   document.querySelectorAll(".snav-item").forEach(function(el){ el.classList.remove("active"); });
   if(mode){
-    var active = document.querySelector(".snav-item[data-mode='"+mode+"']");
+    var active = document.querySelector(".snav-item[data-mode='" + _navGroupHead(mode) + "']");
     if(active) active.classList.add("active");
   }
 }
@@ -7517,6 +7580,8 @@ function navigateTo(mode){
     currentMode = "meetings";
   }
   setActiveNav(currentMode);
+  // 3-2) 묶음 메뉴면 화면 위에 탭 줄을 붙입니다
+  renderNavTabs(currentMode, screenId ? document.getElementById(screenId) : null);
   // 4) 데이터 로드 (화면 표시 후 별도 실행)
   try{
     if(mode==="schedule"){ initScheduleScreen(); }
@@ -11370,8 +11435,19 @@ function filterVisibleMemos(list){
 //    📅 신규상담일정    오늘부터 앞으로 잡힌 신규 상담
 //    🙋 신규학생        등록 체크리스트가 아직 안 끝난 학생
 // ════════════════════════════════════════════════════════════
+var _badgeVals = {};
 function setNavBadge(mode, n){
-  var btn = document.querySelector('.snav-item[data-mode="' + mode + '"]');
+  _badgeVals[mode] = Number(n) || 0;
+  var head = _navGroupHead(mode);
+  // 묶음이면 식구들 숫자를 합쳐서 대표 버튼에 답니다
+  if(head !== mode || WG_NAV_GROUPS[head]){
+    n = Object.keys(_badgeVals).reduce(function(sum, k){
+      return sum + ((_navGroupHead(k) === head) ? _badgeVals[k] : 0); }, 0);
+  }
+  if(typeof currentMode !== 'undefined' && _navGroupHead(currentMode) === head){
+    renderNavTabs(currentMode, document.getElementById(_screenIdOf(currentMode)));
+  }
+  var btn = document.querySelector('.snav-item[data-mode="' + head + '"]');
   if(!btn) return;
   var b = btn.querySelector('.snav-badge');
   if(!n || n <= 0){ if(b) b.remove(); return; }
