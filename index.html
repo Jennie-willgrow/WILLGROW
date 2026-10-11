@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-11 19:30';
+var APP_VERSION = '2026-10-11 20:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -1011,8 +1011,14 @@ async function deleteTeacher(id) {
 }
 
 async function fetchClasses() {
-  var rows = await sbGet('classes', 'select=id,name&order=name.asc');
-  return _classSort(rows.map(function(r){ return { id:r.id, name:r.name||'' }; }));
+  //  프로그램 이름도 같이 가져옵니다 — 어느 알림장을 쓰는 반인지 알아야 해서요
+  var rows = await sbGetSoft('classes',
+    'select=id,name,programs!program_id(name)&order=name.asc',
+    'select=id,name&order=name.asc') || [];
+  return _classSort(rows.map(function(r){
+    return { id:r.id, name:r.name || '',
+             program:(r.programs && r.programs.name) || '' };
+  }));
 }
 function fetchClassList() { return fetchClasses(); }
 function fetchClassesForLP() { return fetchClasses(); }
@@ -6375,70 +6381,193 @@ function plFormOptions(){
 }
 
 // ════════════════════════════════════════════════════════════
-//  "이 칸에 뭘 적나요?" — 학부모 알림장과 같은 차례로 보여 줍니다
+//  "어디에 적나요?" — 진짜 알림장 한 면을 그대로 보여 줍니다
+//
+//    알림장은 프로그램마다 다릅니다.
+//      PHONICS COURSE   Little Junior Star + Sounds Great
+//      READING COURSE   Star / Galaxy + 외부교재(Speaking·Reading)
+//      JUNIOR COURSE    New Super Junior + 외부교재
+//
+//    반의 프로그램(Class Hub 에서 고른 것)으로 어느 알림장인지 고르고,
+//    지금 쓰고 있는 수업 칸을 노랗게 짚어 줍니다.
 // ════════════════════════════════════════════════════════════
-var PL_HINT = {
-  t1:   'Test range — tick Spelling / Meaning',
-  t2:   'Second test, if there is one',
-  sb:   'Student Book pages',
-  wb:   'Workbook pages',
-  wba:  'Workbook A pages',
-  wbb:  'Workbook B pages',
-  wf:   'Writing Factory pages',
-  story:'Storybook pages',
-  sg:   'Study Guide — lesson or pages',
-  hb:   'Handybook — what to write in the notebook',
-  tr:   'Translation',
-  aw:   'Alphabet Writing (always goes out)',
-  on:   'Online homework — lesson number',
-  etc:  'Anything else',
-  f1:'Write the name yourself', f2:'Write the name yourself',
-  f3:'Write the name yourself', f4:'Write the name yourself',
-  f5:'Write the name yourself'
+var PG_TEST_SM = { subs:['SPELLING','MEANING'] };
+
+var WG_PLANNER_PAGES = {
+  phonics: {
+    course: 'PHONICS COURSE',
+    cells: [
+      { series:'Little Junior Star', lesson:'PlayHouse',
+        rows:['Student Book','Workbook A','Workbook B','Writing Factory',
+              'Storybook','Study Guide','Online'] },
+      { series:'Little Junior Star', lesson:'StoryClub',
+        rows:['Student Book','Workbook A','Workbook B','Writing Factory',
+              'Storybook','Study Guide','Online'] },
+      { series:'Little Junior Star', lesson:'TalkTime',
+        rows:['Student Book','Workbook A','Workbook B','Writing Factory',
+              'Storybook','Study Guide','Online'] },
+      { note:true, lesson:'NOTES FOR THIS WEEK', series:'WEEKLY NOTE' },
+      { series:'Phonics', lesson:'Sounds Great',
+        rows:['Student Book','Workbook','Alphabet Writing'] },
+      { series:'Phonics', lesson:'Sounds Great',
+        rows:['Student Book','Workbook','Alphabet Writing'] }
+    ]
+  },
+  reading: {
+    course: 'READING COURSE',
+    cells: [
+      { series:'Little Junior Star / Galaxy', lesson:'PlayHouse',
+        rows:['TEST*','TEST*','Student Book','Workbook A','Workbook B',
+              'Writing Factory','Storybook','Study Guide','Online'] },
+      { series:'Little Junior Star / Galaxy', lesson:'StoryClub',
+        rows:['TEST*','TEST*','Student Book','Workbook A','Workbook B',
+              'Writing Factory','Storybook','Study Guide','Online'] },
+      { series:'Little Junior Star / Galaxy', lesson:'TalkTime',
+        rows:['Student Book','Workbook A','Workbook B','Writing Factory',
+              'Storybook','Study Guide','Online'] },
+      { note:true, lesson:'NOTES FOR THIS WEEK', series:'WEEKLY NOTE' },
+      { series:'SPEAKING / READING', ext:true, lesson:'Bricks Reading · Hand in Hand · English Time',
+        rows:['Test*','Student Book','Workbook','Translation','Etc'] },
+      { series:'SPEAKING / READING', ext:true, lesson:'Bricks Reading · Hand in Hand · English Time',
+        rows:['Test*','Student Book','Workbook','Translation','Etc'] }
+    ]
+  },
+  junior: {
+    course: 'JUNIOR COURSE',
+    cells: [
+      { series:'New Super Junior', lesson:'Grammar',
+        rows:['TEST*','TEST*','Student Book','Workbook','Study Guide',
+              'Handybook','Storybook','Etc','Online'] },
+      { series:'New Super Junior', lesson:'Grammar',
+        rows:['TEST*','TEST*','Student Book','Workbook','Study Guide',
+              'Handybook','Storybook','Etc','Online'] },
+      { series:'New Super Junior', lesson:'Reading',
+        rows:['TEST*','Student Book','Workbook','Study Guide',
+              'Handybook','Storybook','Translation','Online'] },
+      { series:'New Super Junior', lesson:'Speaking',
+        rows:['TEST*','Student Book','Workbook','Study Guide',
+              'Handybook','Storybook','Etc','Online'] },
+      { series:'SPEAKING / READING', ext:true, lesson:'Bricks Reading · Hand in Hand · English Time',
+        rows:['Test*','Student Book','Workbook','Translation','Etc'] },
+      { series:'SPEAKING / READING', ext:true, lesson:'Bricks Reading · Hand in Hand · English Time',
+        rows:['Test*','Student Book','Workbook','Translation','Etc'] }
+    ]
+  }
 };
+
+// 이 반은 어느 알림장을 쓰나요? (Class Hub 에서 고른 프로그램으로 봅니다)
+function _pgBookOf(classId, lessonName){
+  var c = (classList || []).filter(function(x){ return x.id === classId; })[0];
+  var prog = String((c && c.program) || '').toUpperCase();
+  if(prog.indexOf('PHONIC') >= 0) return 'phonics';
+  if(prog.indexOf('JUNIOR') >= 0 || prog.indexOf('TEMS') >= 0) return 'junior';
+  if(prog.indexOf('STAR') >= 0 || prog.indexOf('GALAXY') >= 0 || prog.indexOf('READ') >= 0)
+    return 'reading';
+  // 프로그램을 아직 안 고른 반이면 수업 이름으로 짐작합니다
+  var ln = String(lessonName || '');
+  if(ln === 'Sounds Great') return 'phonics';
+  if(ln === 'Grammar' || ln === 'Reading' || ln === 'Speaking') return 'junior';
+  return 'reading';
+}
+
+// 지금 쓰는 수업이 알림장의 몇 번째 칸인가요?
+function _pgCellOf(book, lessonName){
+  var cells = WG_PLANNER_PAGES[book].cells;
+  var ln = String(lessonName || '');
+  for(var i = 0; i < cells.length; i++){
+    if(!cells[i].note && cells[i].lesson === ln) return i;
+  }
+  // Bricks Reading · Hand in Hand · English Time 같은 외부교재
+  for(var j = 0; j < cells.length; j++){
+    if(cells[j].ext) return j;
+  }
+  return -1;
+}
 
 function openPlannerGuide(pageId){
   var sel = document.getElementById('plform-' + pageId);
   var v = sel ? sel.value : '';
   if(!v){ showToast('Pick a form first.'); return; }
-  var parts = v.split('|'), fk = parts[0], ln = parts[1];
-  var f = PLANNER_FORMS[fk];
-  if(!f){ showToast('Form not found.'); return; }
-  var ac = f.accent || '#CC2B2B';
+  var ln = v.split('|')[1];
+  var classId = (document.getElementById('class-' + pageId) || {}).value || '';
+  var book = _pgBookOf(classId, ln);
+  var page = WG_PLANNER_PAGES[book];
+  var hit  = _pgCellOf(book, ln);
 
-  var rows = f.items.map(function(it, i){
-    return "<div style='display:flex;gap:9px;align-items:flex-start;padding:7px 11px;"
-      +   "border-bottom:1px solid #F0F3EC'>"
-      +   "<span style='width:16px;flex-shrink:0;font-size:10.5px;color:#C3C9BB;"
-      +     "font-weight:700;padding-top:2px'>" + (i + 1) + "</span>"
-      +   "<span style='width:108px;flex-shrink:0;font-size:12.5px;font-weight:700;"
-      +     "color:#2D3A28'>" + _plEsc(it.free ? '(빈 줄)' : it.label)
-      +     (it.fixed ? " <span style='font-size:9px;font-weight:700;color:#CC2B2B'>fixed</span>" : "")
-      +     "</span>"
-      +   "<span style='flex:1;font-size:11.5px;color:#8A9178;line-height:1.5'>"
-      +     _plEsc(PL_HINT[it.key] || '')
-      +     (it.subs ? " <span style='color:#B4BCA8'>(" + it.subs.join(' / ') + ")</span>" : "")
-      +     "</span></div>";
-  }).join('');
+  var cls = (classList || []).filter(function(x){ return x.id === classId; })[0];
+  var progTxt = (cls && cls.program) ? cls.program : '';
+
+  function cellHtml(c, i){
+    var on = (i === hit);
+    var rows = '';
+    if(c.note){
+      rows = "<div style='height:118px;border:1px solid #E3E6DE;margin:6px 8px 8px'></div>";
+    } else {
+      rows = (c.rows || []).map(function(nm){
+        var star = nm.indexOf('*') > 0;
+        var label = nm.replace('*', '');
+        return "<div style='display:flex;align-items:center;gap:6px;padding:4px 8px;"
+          +   "border-top:1px solid #EEF0EA'>"
+          +   "<span style='width:8px;height:8px;border:1px solid #9AA391;flex-shrink:0'></span>"
+          +   "<span style='font-size:9.5px;font-weight:700;color:"
+          +     (on ? '#1F2A1B' : '#9AA391') + "'>" + _plEsc(label) + "</span>"
+          +   (star ? "<span style='margin-left:auto;font-size:6.5px;color:#B4BCA8;"
+                      + "letter-spacing:.3px'>☐ SPELLING  ☐ MEANING</span>" : "")
+          + "</div>";
+      }).join('');
+    }
+    return "<div style='border:1px solid " + (on ? '#E8A33A' : '#E3E6DE') + ";"
+      +   "border-radius:3px;background:" + (on ? '#FFFBF0' : '#fff') + ";"
+      +   "box-shadow:" + (on ? '0 0 0 2px #F6D79A' : 'none') + ";overflow:hidden'>"
+      +   "<div style='padding:5px 8px 4px;background:" + (on ? '#FDF3DF' : '#FAFBF8') + "'>"
+      +     "<div style='font-size:6.5px;color:#A8B09C;letter-spacing:.3px'>"
+      +       _plEsc(c.series || '') + "</div>"
+      +     "<div style='font-size:11px;font-weight:800;color:"
+      +       (on ? '#8A5A10' : '#5B6551') + ";line-height:1.3'>"
+      +       _plEsc(c.lesson) + "</div>"
+      +   "</div>"
+      +   rows
+      +   (c.note ? "" :
+          "<div style='display:flex;border-top:1px solid #E3E6DE'>"
+          + "<div style='flex:1;padding:3px 8px;font-size:6.5px;color:#B4BCA8'>TEACHER CHECK</div>"
+          + "<div style='flex:1;padding:3px 8px;font-size:6.5px;color:#B4BCA8;"
+          +   "border-left:1px solid #E3E6DE'>PARENT CHECK</div></div>")
+      + "</div>";
+  }
+
+  var grid = "<div style='display:grid;grid-template-columns:1fr 1fr;gap:7px'>"
+           + page.cells.map(cellHtml).join('') + "</div>";
 
   wgModal({
     title: 'Where do I write it?',
-    sub: f.category + ' · ' + ln,
+    sub: (progTxt ? progTxt + ' · ' : '') + ln,
     wide: true,
     saveLabel: 'Got it',
     html:
-        "<div style='font-size:11.5px;color:#8A9178;line-height:1.6;margin-bottom:11px'>"
-      +   "This is the same order the parents see on the planner.<br>"
-      +   "Leave a row empty if there is no homework for it."
+        "<div style='border:1px solid #DDE5D6;border-radius:10px;padding:11px;background:#fff'>"
+      +   "<div style='display:flex;align-items:flex-end;gap:8px;margin-bottom:9px;"
+      +     "padding-bottom:7px;border-bottom:1.5px solid #2A3226'>"
+      +     "<div>"
+      +       "<div style='font-size:7px;color:#A8B09C;letter-spacing:.4px'>"
+      +         _plEsc(page.course) + "</div>"
+      +       "<div style='font-size:14px;font-weight:900;color:#2A3226;letter-spacing:-.3px'>"
+      +         "HOMEWORK PLANNER</div>"
+      +     "</div>"
+      +     "<div style='margin-left:auto;font-size:11px;font-weight:900;color:#2A3226;"
+      +       "letter-spacing:.5px'>WiLLGROW</div>"
+      +   "</div>"
+      +   grid
       + "</div>"
-      + "<div style='border:1px solid #DDE5D6;border-radius:10px;overflow:hidden;background:#fff'>"
-      +   "<div style='padding:9px 12px;border-bottom:2px solid " + ac + ";"
-      +     "display:flex;align-items:center;justify-content:space-between'>"
-      +     "<b style='font-size:14px'>" + _plEsc(ln) + "</b>"
-      +     "<span style='font-size:9.5px;color:#9AA391;letter-spacing:.2px'>"
-      +       _plEsc(f.course) + "</span>"
-      +   "</div>" + rows
-      + "</div>",
+      + (hit < 0
+        ? "<div style='font-size:11.5px;color:#C0392B;margin-top:10px'>"
+          + "이 수업 칸을 알림장에서 못 찾았어요. 반의 프로그램을 Class Hub 에서 골라 주세요.</div>"
+        : "<div style='font-size:11.5px;color:#8A6A22;background:#FFF8EC;border-radius:8px;"
+          + "padding:9px 11px;margin-top:10px;line-height:1.6'>"
+          + "노란 칸이 지금 적고 계신 수업입니다. 위에서부터 차례대로 적으시면 "
+          + "학부모님 알림장과 같은 순서가 됩니다. 숙제가 없는 줄은 비워 두세요.</div>")
+      + (progTxt ? "" :
+          "<div style='font-size:11px;color:#A8B09C;margin-top:7px'>"
+          + "※ 이 반의 프로그램이 아직 안 정해져 있어 수업 이름으로 짐작했습니다.</div>"),
     fields: [],
     onSave: function(){}
   });
