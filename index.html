@@ -219,7 +219,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
 .appt-time {font-size:13px;color:#5A6350;margin-top:5px}
 .appt-phone {font-size:13px;color:#4A5240;margin-top:4px;font-weight:600}
 .appt-phone a {color:#4A5240;text-decoration:none}
-</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Cheolsan Campus</div><div id="appVerTag" style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:1px;margin-bottom:34px"></div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button><div style="margin-top:14px"><a href="#" onclick="location.replace(location.pathname+'?v='+Date.now());return false" style="color:rgba(255,255,255,0.35);font-size:11px;text-decoration:none;letter-spacing:.5px">🔄 최신으로 새로 받기</a></div></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">Class Hub</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> Classes &amp; Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="hw" onclick="navigateTo('hw')"><span class="si-icon">📚</span> Homework Check</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> 교재 주문</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button><button class="snav-item" id="navTrash" data-mode="trash" onclick="navigateTo('trash')"><span class="si-icon">🗑️</span> 휴지통</button></nav><div id="sideVerTag" onclick="hardReloadApp()" title="눌러서 최신으로 새로 받기" style="padding:10px 14px 14px;font-size:9.5px;letter-spacing:.5px;color:rgba(255,255,255,0.28);cursor:pointer;text-align:center;line-height:1.5"></div></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div><div id="hwScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Teacher</label><select id="hwTsel" onchange="loadHw()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="hwDateSelContainer"></div></div></div><div id="hwList"></div></div></div>
+</style></head><body><div id="loginScreen" style="position:fixed;inset:0;z-index:99999;background:#363D2E;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:32px 24px;width:100%;max-width:320px"><div style="font-size:28px;font-weight:900;color:white;letter-spacing:2px">WiLLGROW</div><div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">Cheolsan Campus</div><div id="appVerTag" style="color:rgba(255,255,255,0.3);font-size:10px;letter-spacing:1px;margin-bottom:34px"></div><input id="loginName" type="text" placeholder="Enter your name (e.g. Jenny)" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('loginPw').focus()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:10px;caret-color:white;display:block" /><input id="loginPw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') _doLogin()" style="width:100%;padding:13px 16px;border:none;border-radius:12px;font-size:15px;background:rgba(255,255,255,0.12);color:white;outline:none;box-sizing:border-box;margin-bottom:8px;caret-color:white;display:block" /><div id="loginError" style="color:#ffb4b4;font-size:13.5px;line-height:1.55;min-height:20px;margin-bottom:12px;padding:0 2px;white-space:pre-line"></div><button id="loginBtn" onclick="_doLogin()" style="width:100%;padding:13px;background:rgba(255,255,255,0.18);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">Log In</button><div style="margin-top:14px"><a href="#" onclick="location.replace(location.pathname+'?v='+Date.now());return false" style="color:rgba(255,255,255,0.35);font-size:11px;text-decoration:none;letter-spacing:.5px">🔄 최신으로 새로 받기</a></div></div></div><div class="sidebar" id="sidebar" style="display:flex"><div class="sidebar-logo"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:22px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:8px;color:rgba(255,255,255,0.85);letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><div class="sidebar-campus">Cheolsan Campus</div></div><nav class="snav"><button class="snav-item home-item" data-mode="home" onclick="navigateTo('home')"><span class="si-icon">🏠</span> Home</button><hr class="snav-divider"><hr class="snav-divider" id="divClassRoom"><div class="snav-section" id="secClassRoom">Class Hub</div><button class="snav-item" data-mode="classmgmt" onclick="navigateTo('classmgmt')"><span class="si-icon">🏫</span> Classes &amp; Schedule</button><hr class="snav-divider" id="divClassMgmt"><div class="snav-section" id="secClassMgmt">Class Management</div><button class="snav-item" data-mode="report" onclick="navigateTo('report')"><span class="si-icon">📝</span> Daily Report</button><button class="snav-item" data-mode="comments" onclick="navigateTo('comments')"><span class="si-icon">💬</span> Comments</button><hr class="snav-divider"><div class="snav-section">Teacher Board</div><button class="snav-item" data-mode="nativeboard" onclick="navigateTo('nativeboard')"><span class="si-icon">🌍</span> Memo Board</button><button class="snav-item" data-mode="memoboard" onclick="navigateTo('memoboard')"><span class="si-icon">🗒️</span> 메모 보드</button><hr class="snav-divider" id="divDeskWork"><div class="snav-section" id="secDeskWork">Desk Tasks</div><button class="snav-item" data-mode="supmat" onclick="navigateTo('supmat')"><span class="si-icon">📎</span> 부가자료 제작</button><hr class="snav-divider"><div class="snav-section">Meetings &amp; Events</div><button class="snav-item" data-mode="meetings" onclick="navigateTo('meetings')"><span class="si-icon">📅</span> Meetings &amp; Events</button><hr class="snav-divider" id="divStudentMgmt"><div class="snav-section" id="secStudentMgmt">Student Management</div><button class="snav-item" data-mode="studentlist" onclick="navigateTo('studentlist')"><span class="si-icon">👥</span> 학생명단</button><button class="snav-item" data-mode="absence" onclick="navigateTo('absence')"><span class="si-icon">📅</span> 출석부</button><button class="snav-item" data-mode="tuition" onclick="navigateTo('tuition')"><span class="si-icon">💰</span> 수납관리</button><hr class="snav-divider" id="divNewInquiry"><div class="snav-section" id="secNewInquiry">New Inquiry</div><button class="snav-item" data-mode="enrollment" onclick="navigateTo('enrollment')"><span class="si-icon">🌟</span> 신규생</button><hr class="snav-divider" id="divBookOrders"><div class="snav-section" id="secBookOrders">Book Orders</div><button class="snav-item" data-mode="bookorderboard" onclick="navigateTo('bookorderboard')"><span class="si-icon">📦</span> 교재 주문</button><hr class="snav-divider" id="divAdminMgmt"><div class="snav-section" id="secAdminMgmt">Admin</div><button class="snav-item" id="navTeacherMgmt" data-mode="teachermgmt" onclick="navigateTo('teachermgmt')"><span class="si-icon">👩‍🏫</span> 선생님 관리</button><button class="snav-item" id="navTrash" data-mode="trash" onclick="navigateTo('trash')"><span class="si-icon">🗑️</span> 휴지통</button></nav><div id="sideVerTag" onclick="hardReloadApp()" title="눌러서 최신으로 새로 받기" style="padding:10px 14px 14px;font-size:9.5px;letter-spacing:.5px;color:rgba(255,255,255,0.28);cursor:pointer;text-align:center;line-height:1.5"></div></div><div class="main-content" id="mainContent" style="display:flex"><div id="modeScreen" class="mode-screen"><div class="mode-box" style="text-align:center"><div style="display:inline-block;line-height:1.2"><div style="font-family:Impact,'Arial Black',sans-serif;font-size:42px;line-height:1;display:inline-flex;align-items:flex-start;letter-spacing:1px"><span style="color:#CC0000">W</span><span style="color:#CC0000;position:relative;display:inline-block">i<span style="position:absolute;top:0.04em;left:50%;transform:translateX(-50%);width:0.28em;height:0.28em;background:#66BB33;border-radius:50%;display:block"></span></span><span style="color:#CC0000">LLGR</span><span style="color:#66BB33">O</span><span style="color:#CC0000">W</span></div><div style="font-size:12px;color:#363D2E;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;margin-top:3px;font-family:-apple-system,sans-serif">CHEOLSAN CAMPUS</div></div><p style="margin-top:18px;font-size:15px;font-weight:700;color:#363D2E;line-height:1.8">Welcome to WillGrow Academy</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:8px;margin-bottom:2px;white-space:nowrap">An all-in-one academy management system.</p><p style="font-size:13px;color:#666;line-height:1.8;margin-top:0;margin-bottom:2px;white-space:nowrap">Growing students starts with growing together.</p><p style="font-size:13px;color:#888;line-height:1.8;margin-top:0;white-space:nowrap">Thank you for being an important part of the WillGrow family.</p></div></div>
 
 <!-- ======= Weekly Homework Screen ======= -->
 <div id="weeklyHwScreen" style="display:none">
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-11 17:00';
+var APP_VERSION = '2026-10-11 18:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -5932,7 +5932,6 @@ function dpSelect(key, y, m, d){
   var pop = document.getElementById("dpPop-"+key); if(pop) pop.classList.remove("open");
   renderDpPicker(key);
   if(key==="report"){ selectedDate = ds; loadReports(); }
-  else if(key==="hw"){ hwSelectedDate = ds; loadHw(); }
 }
 function buildDateSelect(){ buildDpPicker("report","dateSelContainer",selectedDate); }
 // PIN disabled for testing
@@ -6051,16 +6050,20 @@ function renderCard(r, c){
   //  ── 보기 화면 — 적어 둔 내용을 그냥 보여 줍니다 ──
   html += "<div id='rview-" + r.pageId + "' style='display:none'></div>";
 
-  //  학생 명단 — 보기 · 수정 어느 쪽이든 늘 보입니다 (출결 · 숙제 · 재시험 · 태도)
+  //  학생 명단 — 머리글을 누르면 접히고 펴집니다 (출결 · 숙제 · 재시험 · 태도)
   html +=   "<div id='stubox-" + r.pageId + "' style='display:none;margin-bottom:12px;"
         +     "border:1px solid #E3E8DE;border-radius:9px;overflow:hidden;background:#FCFDFB'>"
-        +     "<div style='display:flex;align-items:center;justify-content:space-between;gap:6px;"
-        +       "padding:7px 11px;background:#F2F5EE;border-bottom:1px solid #E3E8DE'>"
-        +       "<span style='font-size:11px;font-weight:700;color:#5F6B54'>Students</span>"
+        +     "<div onclick='toggleStuBox(\"" + r.pageId + "\")' "
+        +       "style='display:flex;align-items:center;justify-content:space-between;gap:6px;"
+        +       "padding:7px 11px;background:#F2F5EE;border-bottom:1px solid #E3E8DE;cursor:pointer'>"
+        +       "<span style='font-size:11px;font-weight:700;color:#5F6B54'>"
+        +         "<span id='stuarrow-" + r.pageId + "' style='color:#9AA391'>▾</span> Students</span>"
         +       "<span id='stucnt-" + r.pageId + "' style='font-size:10.5px;color:#9AA391'></span>"
         +     "</div>"
-        +     "<div id='stulist-" + r.pageId + "' style='padding:7px 11px'></div>"
-        +     "<div id='misstbl-" + r.pageId + "' style='display:none'></div>"
+        +     "<div id='stubody-" + r.pageId + "'>"
+        +       "<div id='stulist-" + r.pageId + "' style='padding:7px 11px'></div>"
+        +       "<div id='misstbl-" + r.pageId + "' style='display:none'></div>"
+        +     "</div>"
         +   "</div>";
 
   // ── 지난 수업 (보기 · 수정 어느 쪽이든 늘 보입니다) ──
@@ -6142,24 +6145,24 @@ function renderCard(r, c){
           +   "<button type='button' onclick='openReportExtra(\"" + r.pageId + "\")' "
           +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
           +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
-          +     "cursor:pointer'>＋ 태도 · 코멘트 · 교재주문</button>"
+          +     "cursor:pointer'>＋ Attitude · Comments · Book order</button>"
           +   "<button type='button' onclick='openHwFromReport(\"" + r.pageId + "\")' "
           +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
           +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
-          +     "cursor:pointer'>📚 숙제 보여주기</button>"
+          +     "cursor:pointer'>📚 Show homework</button>"
           +   "<button type='button' onclick='toggleReportEdit(\"" + r.pageId + "\", false)' "
           +     "style='background:#fff;color:#8A9178;border:1.5px solid #E2E8D8;"
           +     "border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;"
-          +     "cursor:pointer'>👁 보기</button>"
+          +     "cursor:pointer'>👁 View</button>"
           +   "<span id='rxsum-" + r.pageId + "' style='font-size:11.5px;color:#8A9178'></span>"
           + "</div>";
     html += "<div style='display:flex;gap:8px'>"
           +   "<button type='button' onclick='toggleReportEdit(\"" + r.pageId + "\", false)' "
           +     "id='rcancel-" + r.pageId + "' style='display:none;flex:1;background:#F1F3EE;"
           +     "color:#5B6551;border:none;border-radius:10px;padding:12px;font-size:13px;"
-          +     "font-weight:600;cursor:pointer'>취소</button>"
+          +     "font-weight:600;cursor:pointer'>Cancel</button>"
           +   "<button class='btn' id='btn-" + r.pageId + "' style='flex:2;margin:0' "
-          +     "onclick='doSubmit(\"" + r.pageId + "\")'>저장</button>"
+          +     "onclick='doSubmit(\"" + r.pageId + "\")'>Save</button>"
           + "</div>";
   } else {
     html += "<div style='text-align:center;padding:10px 0;color:#aaa;font-size:12px;border-top:1px solid #f0f0f0;margin-top:8px'>🔒 Reports from past dates cannot be edited.</div>";
@@ -6175,6 +6178,16 @@ function renderCard(r, c){
   initReportPlanner(r);
   //  이미 적어 둔 리포트는 "보기" 로 엽니다. 빈 리포트는 바로 적게 열어 둡니다.
   toggleReportEdit(r.pageId, !r.todayLesson);
+}
+
+// 학생 명단 접기 · 펴기
+function toggleStuBox(pageId){
+  var body = document.getElementById('stubody-' + pageId);
+  var arrow = document.getElementById('stuarrow-' + pageId);
+  if(!body) return;
+  var open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if(arrow) arrow.textContent = open ? '▸' : '▾';
 }
 
 // ── 보기 ↔ 수정 ──────────────────────────────────────────
@@ -6195,20 +6208,28 @@ function toggleReportEdit(pageId, on){
   if(cancel) cancel.style.display = on ? '' : 'none';
 }
 
-// 지금 칸에 들어 있는 값으로 "보기" 를 그립니다
+// 지금 칸에 들어 있는 값으로 "보기" 를 그립니다 (화면 말은 영어로 — 원어민 선생님도 씁니다)
 function renderReportView(pageId){
   var view = document.getElementById('rview-' + pageId);
   if(!view) return;
   function v(id){ var e = document.getElementById(id + '-' + pageId); return e ? String(e.value || '').trim() : ''; }
   var isPast = isDateLocked(selectedDate);
 
-  function row(label, body, color){
-    if(!body) return '';
-    return "<div style='display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #F2F4EF'>"
-      +   "<div style='width:62px;flex-shrink:0;font-size:11px;font-weight:700;color:#8A9178;"
+  //  줄마다 오른쪽 끝에 작은 ✏️ — 그 자리를 바로 고칠 수 있게
+  function editBtn(){
+    if(isPast) return '';
+    return "<button type='button' onclick='toggleReportEdit(\"" + pageId + "\", true)' "
+      + "title='Edit' style='background:none;border:none;color:#B4BCA8;font-size:12px;"
+      + "cursor:pointer;padding:0 2px;flex-shrink:0'>✏️</button>";
+  }
+  function row(label, body, extra){
+    return "<div style='display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F2F4EF'>"
+      +   "<div style='width:86px;flex-shrink:0;font-size:11px;font-weight:700;color:#8A9178;"
       +     "padding-top:2px'>" + label + "</div>"
-      +   "<div style='flex:1;font-size:13px;line-height:1.55;color:" + (color || '#2D3A28')
-      +     ";word-break:break-word'>" + body + "</div></div>";
+      +   "<div style='flex:1;font-size:13px;line-height:1.55;color:#2D3A28;word-break:break-word'>"
+      +     (body || "<span style='color:#C7CCC0'>—</span>")
+      +     (extra || '')
+      +   "</div>" + editBtn() + "</div>";
   }
 
   var hwTxt = v('hw');
@@ -6222,6 +6243,13 @@ function renderReportView(pageId){
   var book = v('book'), test = v('test'), lesson = v('lesson');
   var at = v('attitude'), cm = v('comments'), bo = v('bookorders');
 
+  //  숙제 바로 아래에 붙는 버튼 — 수업 중 크게 띄우기
+  var hwBtn = "<div style='margin-top:8px'>"
+    + "<button type='button' onclick='openHwFromReport(\"" + pageId + "\")' "
+    +   "style='background:#2D6A4F;color:#fff;border:none;border-radius:20px;"
+    +   "padding:6px 14px;font-size:11.5px;font-weight:700;cursor:pointer'>"
+    +   "📚 Show homework</button></div>";
+
   var chips = '';
   function chip(txt, bg, fg){
     return "<span style='display:inline-block;background:" + bg + ";color:" + fg + ";"
@@ -6233,31 +6261,23 @@ function renderReportView(pageId){
   if(bo) chips += chip('📦 ' + bo, '#FFF4E5', '#B4651A');
 
   var body = '';
-  body += row('교재', _plEsc(book) + (test && test !== 'No Test'
-            ? " <span style='color:#C0392B;font-weight:700'>· " + _plEsc(test) + "</span>" : ''));
-  body += row('진도', _plEsc(lesson).replace(/\n/g, '<br>'));
-  body += row('숙제', hwView || (hwTxt ? _plEsc(hwTxt).replace(/\n/g, '<br>') : ''));
-  if(chips) body += row('그 밖', chips);
-
-  if(!body){
-    body = "<div style='font-size:12.5px;color:#BDBDBD;padding:10px 0'>"
-         + "아직 아무것도 안 적혀 있어요.</div>";
-  }
+  body += row('Book · Test', _plEsc(book)
+            + (test && test !== 'No Test'
+               ? " <span style='color:#C0392B;font-weight:700'>· " + _plEsc(test) + "</span>" : ''));
+  body += row("Today's Lesson", _plEsc(lesson).replace(/\n/g, '<br>'));
+  body += row('Homework', hwView || (hwTxt ? _plEsc(hwTxt).replace(/\n/g, '<br>') : ''),
+              hwTxt ? hwBtn : '');
+  body += row('More', chips);
 
   view.innerHTML =
       "<div style='border:1px solid #DDE5D6;border-radius:11px;padding:4px 14px 10px;"
-    +   "background:#fff;margin-bottom:12px'>" + body
-    + "</div>"
-    + "<div style='display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px'>"
-    +   (isPast ? "" :
-        "<button type='button' onclick='toggleReportEdit(\"" + pageId + "\", true)' "
+    +   "background:#fff;margin-bottom:12px'>" + body + "</div>"
+    + (isPast ? ""
+      : "<div style='margin-bottom:10px'>"
+        + "<button type='button' onclick='toggleReportEdit(\"" + pageId + "\", true)' "
         + "style='background:#2D6A4F;color:#fff;border:none;border-radius:20px;"
-        + "padding:7px 16px;font-size:12.5px;font-weight:700;cursor:pointer'>✏️ 수정</button>")
-    +   "<button type='button' onclick='openHwFromReport(\"" + pageId + "\")' "
-    +     "style='background:#F2F5EE;color:#3F5233;border:1.5px solid #DDE5D6;"
-    +     "border-radius:20px;padding:7px 16px;font-size:12.5px;font-weight:700;"
-    +     "cursor:pointer'>📚 숙제 보여주기</button>"
-    + "</div>";
+        + "padding:7px 18px;font-size:12.5px;font-weight:700;cursor:pointer'>"
+        + "✏️ Edit this report</button></div>");
 }
 
 // 숙제 체크 — 이 수업의 숙제를 크게 띄웁니다 (수업 중 보여 주기용)
@@ -6270,7 +6290,7 @@ function openHwFromReport(pageId){
     var pl = plCollectReport(pageId);
     if(pl) hwTxt = plItemsToText(pl.formKey, pl.lessonName, pl.items);
   }
-  if(!hwTxt){ showToast('아직 숙제가 없어요.'); return; }
+  if(!hwTxt){ showToast('No homework yet.'); return; }
   openHwCardZoom(title, hwTxt, v('lesson'), selectedDate);
 }
 
@@ -6291,30 +6311,31 @@ function openReportExtra(pageId){
   function el(id){ return document.getElementById(id + '-' + pageId); }
   var title = (document.getElementById('rtitle-' + pageId) || {}).textContent || '';
   var atEl = el('attitude');
-  var opts = [{ value:'', label:'— 고르지 않음 —' }];
+  var opts = [{ value:'', label:'— none —' }];
   if(atEl) Array.prototype.forEach.call(atEl.options, function(o){
     if(o.value) opts.push({ value:o.value, label:o.value });
   });
   wgModal({
-    title: '태도 · 코멘트 · 교재주문',
+    title: 'Attitude · Comments · Book order',
     sub: title,
+    saveLabel: 'Done',
     fields: [
-      { key:'attitude', label:'수업 태도', type:'select',
+      { key:'attitude', label:'Attitude', type:'select',
         value:(atEl ? atEl.value : ''), options:opts },
-      { key:'comments', label:'코멘트', type:'textarea', rows:3,
+      { key:'comments', label:'Comments', type:'textarea', rows:3,
         value:(el('comments') ? el('comments').value : ''),
-        placeholder:'반 전체에 남길 말' },
-      { key:'bookorders', label:'📦 교재 주문', type:'text',
+        placeholder:'A note about the class' },
+      { key:'bookorders', label:'📦 Book order', type:'text',
         value:(el('bookorders') ? el('bookorders').value : ''),
-        placeholder:'예) Bricks Reading 3 으로 넘어갑니다 — 주문 부탁드려요',
-        hint:'적어 두시면 Book Orders 화면에 메세지로 올라갑니다' }
+        placeholder:'e.g. Moving on to Bricks Reading 3 — please order',
+        hint:'This shows up on the Book Orders board' }
     ],
     onSave: function(v){
       if(el('attitude'))   el('attitude').value   = v.attitude;
       if(el('comments'))   el('comments').value   = v.comments;
       if(el('bookorders')) el('bookorders').value = v.bookorders;
       rxSummary(pageId);
-      showToast('적었어요 — 아래 Submit 을 누르면 저장됩니다');
+      showToast('Noted — press Save to keep it');
     }
   });
 }
@@ -7184,192 +7205,15 @@ function doSubmit(pageId){
   };
   google.script.run
   .withSuccessHandler(function(){
-    btn.disabled = false; btn.textContent = "저장";
+    btn.disabled = false; btn.textContent = "Save";
     toggleReportEdit(pageId, false);     // 적고 나면 보기로 돌아갑니다
-    showToast("저장했어요!");
+    showToast("Saved!");
   })
   .withFailureHandler(function(){
     btn.disabled = false;
     showToast("Error! Please try again.");
   })
   .submitReport(data);
-}
-var hwSelectedDate = getTodayStr();
-function buildHwDateSelect(){
-  hwSelectedDate = getTodayStr();
-  buildDpPicker("hw", "hwDateSelContainer", hwSelectedDate);
-}
-function loadHwTeachers(){
-  var s = document.getElementById("hwTsel");
-  s.innerHTML = "<option value=''>-- Select --</option>";
-  google.script.run
-  .withSuccessHandler(function(d){
-    activeTeachers(d, _teacherId).forEach(function(t){   // 퇴사한 선생님은 제외
-      var o = document.createElement("option");
-      o.value = t.id; o.textContent = t.name; s.appendChild(o);
-    });
-    if(_teacherId) s.value = _teacherId;
-    if(s.value) loadHw();
-  })
-  .fetchTeachers();
-}
-function loadHw(){
-  var tid = document.getElementById("hwTsel").value;
-  var c = document.getElementById("hwList");
-  if(!tid){ c.innerHTML = ""; return; }
-  c.innerHTML = "<div class='loading'>Loading...</div>";
-  google.script.run
-  .withSuccessHandler(function(reports){
-    c.innerHTML = "";
-    var shown = 0;
-    reports.forEach(function(r){
-      var div = document.createElement("div");
-      div.className = "hw-card";
-      var hw = r.homework ? r.homework.replace(/\n/g,"<br>") : null;
-      var lesson = r.todayLesson ? r.todayLesson.replace(/\n/g,"<br>") : null;
-      var isPastHw = isDateLocked(hwSelectedDate);
-      var html = "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:6px'>"
-               + "<div class='hw-head' style='margin:0'>" + r.title + "</div>"
-               + "<div style='display:flex;gap:6px;flex-shrink:0'>"
-               + (isPastHw ? "" : "<button class='hw-edit-btn' style='background:#4a90d9;color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>✏️ 수정</button>")
-               + "<button class='hw-zoom-btn' style='background:#363D2E;color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap'>🔍 확대</button>"
-               + "</div></div>"
-               + "<div class='hw-body'>";
-      html += "<div class='hw-lbl'>📚 Homework</div>";
-      var hwForm = plHwView(r.homework);
-      html += hwForm ? hwForm
-                     : (hw ? "<div class='hw-text'>" + hw + "</div>"
-                           : "<div class='no-hw'>No homework</div>");
-      if(lesson) html += "<div class='hw-lesson'><div class='hw-lbl'>📖 Today's Lesson</div><div class='hw-lesson-text'>" + lesson + "</div></div>";
-      html += "</div>";
-      div.innerHTML = html;
-      (function(rid, title, hwRaw, lessonRaw, bookRaw, dateStr){
-        var zoomBtn = div.querySelector(".hw-zoom-btn");
-        if(zoomBtn) zoomBtn.addEventListener("click", function(){ openHwCardZoom(title, hwRaw, lessonRaw, dateStr); });
-        var editBtn = div.querySelector(".hw-edit-btn");
-        if(editBtn) editBtn.addEventListener("click", function(){ openHwEditModal(rid, title, hwRaw, lessonRaw, bookRaw); });
-      })(r.pageId, r.title || "", r.homework || "", r.todayLesson || "", r.book || "", hwSelectedDate || "");
-      c.appendChild(div); shown++;
-    });
-    if(!shown) c.innerHTML = "<div class='empty'>No classes for this date.</div>";
-  })
-  .withFailureHandler(function(){ c.innerHTML = "<div class='empty'>Something went wrong. Please try again.</div>"; })
-  .fetchTodayReports(tid, hwSelectedDate);
-}
-function openHwEditModal(pageId, title, hw, lesson, book){
-  var ex = document.getElementById("hwEditModal"); if(ex) ex.remove();
-
-  // Daily Report 화면과 id 가 겹치지 않게 앞에 표시를 붙입니다
-  var pid = 'hwe-' + pageId;
-
-  var modal = document.createElement("div");
-  modal.id = "hwEditModal";
-  modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;"
-    + "display:flex;align-items:center;justify-content:center;padding:20px";
-
-  modal.innerHTML =
-      "<div style='background:#fff;border-radius:16px;padding:20px;width:min(96%,620px);"
-    +   "max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)'>"
-
-    + "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:14px'>"
-    +   "<div style='font-size:14px;font-weight:700;color:#363D2E'>✏️ " + _plEsc(title) + "</div>"
-    +   "<button id='hwEditClose' style='background:none;border:none;font-size:20px;"
-    +     "cursor:pointer;color:#888'>✕</button>"
-    + "</div>"
-
-    // ── 숙제 : Daily Report 와 똑같은 알림장 양식 ──
-    + "<label style='font-size:11px;font-weight:700;color:#5A6350;display:block;"
-    +   "margin-bottom:5px;text-transform:uppercase'>📚 Homework</label>"
-    + "<div style='border:1px solid #DDE5D6;border-radius:9px;overflow:hidden;background:#fff;"
-    +   "margin-bottom:14px'>"
-    +   "<div style='display:flex;align-items:center;gap:8px;padding:7px 11px;background:#F2F5EE;"
-    +     "border-bottom:1px solid #DDE5D6;flex-wrap:wrap'>"
-    +     "<span style='font-size:11px;font-weight:700;color:#3F5233;white-space:nowrap'>Form</span>"
-    +     "<select id='plform-" + pid + "' onchange='onPlFormChange(\"" + pid + "\")' "
-    +       "style='flex:1;min-width:130px;padding:5px 8px;border:1.5px solid #C9D9BE;"
-    +       "border-radius:6px;font-size:12.5px;background:white'>" + plFormOptions() + "</select>"
-    +   "</div>"
-    +   "<div style='padding:6px 11px;font-size:10px;color:#8A9178;border-bottom:1px solid #F0F3EC'>"
-    +     "Just type the pages — the check turns on by itself.</div>"
-    +   "<div id='plbox-" + pid + "'></div>"
-    +   "<div id='plfree-" + pid + "' style='display:none;padding:9px 11px'>"
-    +     "<textarea id='hw-" + pid + "' rows='4' placeholder='Write homework freely' "
-    +       "style='width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;"
-    +       "font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6;"
-    +       "font-family:inherit'></textarea></div>"
-    + "</div>"
-
-    // ── 오늘 수업 ──
-    + "<div style='margin-bottom:16px'>"
-    +   "<label style='font-size:11px;font-weight:700;color:#5A6350;display:block;"
-    +     "margin-bottom:5px;text-transform:uppercase'>📖 Today&#39;s Lesson</label>"
-    +   "<textarea id='hwEditLesson' rows='4' style='width:100%;padding:9px 10px;"
-    +     "border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;"
-    +     "box-sizing:border-box;line-height:1.6;font-family:inherit'></textarea>"
-    + "</div>"
-
-    + "<div style='display:flex;gap:8px'>"
-    +   "<button onclick='document.getElementById(\"hwEditModal\").remove()' "
-    +     "style='flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;"
-    +     "border-radius:8px;font-size:13px;font-weight:600;cursor:pointer'>취소</button>"
-    +   "<button id='hwEditSaveBtn' style='flex:2;padding:10px;background:#363D2E;color:white;"
-    +     "border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer'>저장</button>"
-    + "</div></div>";
-
-  document.body.appendChild(modal);
-  document.getElementById("hwEditLesson").value = lesson || '';
-
-  // 저장돼 있던 숙제를 표로 되살립니다 (양식이 아니면 자유 입력으로)
-  var sel   = document.getElementById('plform-' + pid);
-  var saved = plTextToItems(hw);
-  var restored = false;
-  if(sel && saved){
-    var v = saved.formKey + '|' + saved.lessonName;
-    var has = Array.prototype.some.call(sel.options, function(o){ return o.value === v; });
-    if(has){
-      sel.value = v;
-      onPlFormChange(pid, saved.items, hwSelectedDate);
-      restored = true;
-    }
-  }
-  if(!restored){
-    var free = document.getElementById('plfree-' + pid);
-    if(free) free.style.display = '';
-    var ta = document.getElementById('hw-' + pid);
-    if(ta) ta.value = hw || '';
-  }
-
-  document.getElementById("hwEditClose").onclick = function(){ modal.remove(); };
-  modal.addEventListener("click", function(e){ if(e.target === modal) modal.remove(); });
-
-  document.getElementById("hwEditSaveBtn").onclick = function(){
-    // 양식을 골랐으면 표에서, 아니면 자유 입력에서 가져옵니다
-    var pl = plCollectReport(pid);
-    var newHw;
-    if(pl){
-      newHw = plItemsToText(pl.formKey, pl.lessonName, pl.items);
-      if(!newHw){ showToast("교재 한 줄에는 숙제를 적어주세요."); return; }
-    } else {
-      var ta = document.getElementById('hw-' + pid);
-      newHw = ta ? ta.value.trim() : '';
-    }
-    var newLesson = document.getElementById("hwEditLesson").value;
-    var saveBtn = document.getElementById("hwEditSaveBtn");
-    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = "저장 중..."; }
-    google.script.run
-    .withSuccessHandler(function(){
-      modal.remove();
-      showToast("✅ 저장됐어!");
-      loadHw();
-    })
-    .withFailureHandler(function(e){
-      if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = "저장"; }
-      showToast("저장 실패: " + (e && e.message || ""));
-    })
-    // ⚠ comments · bookOrders 는 보내지 않습니다.
-    //   빈 값을 보내면 선생님이 써 두신 코멘트 · 교재주문 메모가 지워집니다.
-    .submitReport({ pageId:pageId, homework:newHw, todayLesson:newLesson, book:book });
-  };
 }
 function openHwCardZoom(title, hw, lesson, dateStr){
   var ex = document.getElementById("hwZoomOverlay"); if(ex) ex.remove();
@@ -7693,7 +7537,7 @@ function setActiveNav(mode){
     if(active) active.classList.add("active");
   }
 }
-var ALL_SCREEN_IDS = ["modeScreen","mainScreen","hwScreen","weeklyHwScreen","rosterScreen","enrollScreen","consultCalScreen","withdrawScreen","bookOrderScreen","extraOrderScreen","supmatScreen","parentMsgScreen","memoBoardScreen","commentsScreen","bookOrderBoardScreen","scheduleScreen","nativeBoardScreen","studentListScreen","tuitionScreen","lessonPlanScreen","newStudentScreen","schoolCalScreen","meetingsScreen","teacherMgmtScreen","trashScreen","absenceScreen","classMgmtScreen"];
+var ALL_SCREEN_IDS = ["modeScreen","mainScreen","weeklyHwScreen","rosterScreen","enrollScreen","consultCalScreen","withdrawScreen","bookOrderScreen","extraOrderScreen","supmatScreen","parentMsgScreen","memoBoardScreen","commentsScreen","bookOrderBoardScreen","scheduleScreen","nativeBoardScreen","studentListScreen","tuitionScreen","lessonPlanScreen","newStudentScreen","schoolCalScreen","meetingsScreen","teacherMgmtScreen","trashScreen","absenceScreen","classMgmtScreen"];
 function navigateTo(mode){
   // 1) 모든 화면 숨기기
   ALL_SCREEN_IDS.forEach(function(id){
@@ -7705,7 +7549,6 @@ function navigateTo(mode){
   var screenId = null;
   if(mode==="schedule"){ currentMode="schedule"; screenId="scheduleScreen"; }
   else if(mode==="report"){ currentMode="report"; screenId="mainScreen"; }
-  else if(mode==="hw"){ currentMode="hw"; screenId="hwScreen"; }
   else if(mode==="weeklyhw"){ currentMode="weeklyhw"; screenId="weeklyHwScreen"; }
   else if(mode==="roster"){ currentMode="roster"; screenId="rosterScreen"; }
   else if(mode==="enrollment"){ currentMode="enrollment"; screenId="enrollScreen"; }
@@ -7773,11 +7616,6 @@ function navigateTo(mode){
       var _list = document.getElementById("list"); if(_list) _list.innerHTML = "";
       var _add  = document.getElementById("addReportArea"); if(_add) _add.style.display = "none";
       buildDateSelect(); loadClasses(); loadTeachers();
-    }
-    else if(mode==="hw"){
-      hwSelectedDate = getTodayStr();
-      var _hwl = document.getElementById("hwList"); if(_hwl) _hwl.innerHTML = "";
-      buildHwDateSelect(); loadHwTeachers();
     }
     else if(mode==="weeklyhw"){ initWeeklyHwScreen(); }
     else if(mode==="roster"){ loadRosterClasses(); }
@@ -16541,7 +16379,9 @@ function _prParentHtml(cls, mon, stu, rows, days, dayTxt){
 function _prSlipHtml(cls, mon, rows, days){
   var nP = 0, seen = {};
   rows.forEach(function(s){ if(!seen[s.period]){ seen[s.period]=1; nP++; } });
-  var rowPx  = Math.max(16, Math.min(70, Math.floor(128 / Math.max(1,nP))));
+  //  A4 세로 한 장에 다섯 장을 넣습니다.
+  //    한 장에 쓸 수 있는 높이 ≈ 43mm → 줄 수(머리줄 포함)로 나눕니다.
+  var rowPx  = Math.max(18, Math.min(74, Math.floor(162 / (nP + 1))));
 
   function one(i){
     // 높이를 못 박지 않고 내용에 맞춥니다 (아래가 비지 않게)
@@ -16553,7 +16393,7 @@ function _prSlipHtml(cls, mon, rows, days){
       +        "<div class='logobox' style='width:20mm;height:4.6mm'>"
       +          "<img src='" + WG_LOGO + "' alt='' style='width:17mm;display:block'></div>"
       +        "<div style='font-size:10.5px;font-weight:800;color:" + PR.head + "'>"
-      +          _plEsc(cls) + " · " + mon + "월 시간표</div>"
+      +          _plEsc(cls) + " 시간표</div>"
       +      "</div>"
       +      "<div class='eyebrow' style='font-size:7px;color:" + PR.mark + "'>WILLGROW</div>"
       +    "</div>"
@@ -16568,7 +16408,7 @@ function _prSlipHtml(cls, mon, rows, days){
   var cards = '';
   for(var i=0;i<5;i++) cards += one(i);
 
-  var body = "<div class='sheet' style='width:210mm;padding:7mm 7mm'>"
+  var body = "<div class='sheet' style='width:210mm;padding:4mm 15mm'>"
            + cards + "</div>";
   return body;
 }
