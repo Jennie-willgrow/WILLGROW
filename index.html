@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-11 22:00';
+var APP_VERSION = '2026-10-11 23:40';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -3027,6 +3027,15 @@ async function addLessonPlanEntry(classId, termNo, date, period, label, part) {
       return { success:false, error:'그 자리에는 이미 수업이 있어요.' };
     } else throw e;
   }
+  return { success:true };
+}
+
+// 지난 수업(Last lesson · Last homework) 만 따로 고쳐 씁니다
+async function setReportLast(pageId, lastLesson, lastHW) {
+  if(!pageId) return { success:false };
+  await sbPatch('daily_reports', 'id=' + _eq(pageId), {
+    last_lesson: lastLesson || '', last_hw: lastHW || ''
+  });
   return { success:true };
 }
 
@@ -5529,7 +5538,7 @@ var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
-  fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents, addLessonPlanEntry,
+  fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents, addLessonPlanEntry, setReportLast,
   saveTeacher, deleteTeacher,
   fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
   fetchLessonPlanSetup, fetchBookUnits, saveLessonPlanLines,
@@ -6026,7 +6035,10 @@ function renderCard(r, c){
     + "<div style='display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;"
     +   "padding:8px 13px;background:#EFF2EB;border-bottom:1px solid #DEE3D8'>"
     +   "<span style='font-size:12px;font-weight:700;color:#5F6B54'>↩ Last Class</span>"
-    +   "<span style='font-size:10.5px;color:#9AA391'>Check before writing today's report</span>"
+    +   "<button type='button' onclick='openLoadLast(\"" + r.pageId + "\")' "
+    +     "style='margin-left:auto;background:#fff;color:#5F6B54;border:1.5px solid #DEE3D8;"
+    +     "border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;"
+    +     "cursor:pointer;white-space:nowrap'>📂 Load from another day</button>"
     + "</div>"
     + "<div id='prevbody-" + r.pageId + "' style='display:flex;flex-wrap:wrap'></div>"
     + "</div>";
@@ -6294,6 +6306,82 @@ function renderReportView(pageId){
   view.innerHTML =
       "<div style='border:1px solid #DDE5D6;border-radius:11px;padding:0 14px 10px;"
     +   "background:#fff;margin-bottom:12px'>" + head + body + "</div>";
+}
+
+// ── 지난 수업 불러오기 ──────────────────────────────────
+//   다른 날 리포트를 골라, 그 날의 진도·숙제를 이 리포트의 "Last class" 로 넣습니다.
+var _llCache = { pageId:'', list:[] };
+
+function openLoadLast(pageId){
+  var tid = (document.getElementById('tsel') || {}).value || '';
+  //  기본값 — 지난주 같은 요일
+  var d = new Date(selectedDate + 'T00:00:00');
+  d.setDate(d.getDate() - 7);
+  var ago = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+          + '-' + String(d.getDate()).padStart(2,'0');
+
+  wgModal({
+    title: 'Load last class',
+    sub: 'Pick the day you taught this class before',
+    saveLabel: 'Find',
+    fields: [
+      { key:'date', label:'Date', type:'date', value:ago, required:true,
+        hint:'Last week, same weekday is filled in for you' }
+    ],
+    onSave: function(v){
+      showToast('Looking…');
+      google.script.run
+        .withSuccessHandler(function(list){ _llShow(pageId, v.date, list || []); })
+        .withFailureHandler(function(){ showToast('Could not load.'); })
+        .fetchTodayReports(tid, v.date);
+    }
+  });
+}
+
+function _llShow(pageId, dateStr, list){
+  _llCache = { pageId:pageId, list:list };
+  if(!list.length){
+    wgModal({ title:'Load last class', sub:dateStr, saveLabel:'OK',
+      html:"<div style='font-size:12.5px;color:#8A9178;padding:6px 0'>"
+         + "No reports on that day.</div>", fields:[], onSave:function(){} });
+    return;
+  }
+  var rows = list.map(function(r, i){
+    var lesson = String(r.todayLesson || '').slice(0, 70);
+    var hw     = plTextToItems(r.homework);
+    return "<button type='button' onclick='llPick(" + i + ")' "
+      +   "style='width:100%;text-align:left;background:#fff;border:1.5px solid #E2E8D8;"
+      +   "border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer;"
+      +   "font-family:inherit;display:block'>"
+      +   "<div style='font-size:12.5px;font-weight:800;color:#2D3A28'>"
+      +     _plEsc(r.title || '') + "</div>"
+      +   (lesson ? "<div style='font-size:11.5px;color:#5B6551;margin-top:3px'>📖 "
+                    + _plEsc(lesson) + "</div>" : "")
+      +   (r.homework ? "<div style='font-size:11px;color:#8A9178;margin-top:2px'>✏️ "
+                    + _plEsc(hw ? hw.lessonName : String(r.homework).slice(0, 60)) + "</div>" : "")
+      + "</button>";
+  }).join('');
+  wgModal({
+    title: 'Pick the class', sub: dateStr, wide:true, saveLabel:'Close',
+    html: rows, fields: [], onSave: function(){}
+  });
+}
+
+function llPick(i){
+  var r = _llCache.list[i];
+  var pageId = _llCache.pageId;
+  if(!r || !pageId) return;
+  wgModalClose();
+  showToast('Loading…');
+  google.script.run
+    .withSuccessHandler(function(){
+      //  화면의 Last class 칸을 바로 새로 그립니다
+      var cls = (document.getElementById('class-' + pageId) || {}).value || '';
+      loadReportPlannerCtx(pageId, cls, r.todayLesson || '', r.book || '', r.homework || '');
+      showToast('Last class loaded.');
+    })
+    .withFailureHandler(function(){ showToast('Could not save.'); })
+    .setReportLast(pageId, r.todayLesson || '', r.homework || '');
 }
 
 // 숙제 체크 — 이 수업의 숙제를 크게 띄웁니다 (수업 중 보여 주기용)
@@ -7317,8 +7405,12 @@ function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
       extra += "</div>";
     }
 
-    pbody.innerHTML = cells + extra;
-    pbox.style.display = (cells || extra) ? '' : 'none';
+    pbody.innerHTML = (cells || extra)
+      ? (cells + extra)
+      : "<div style='padding:9px 13px;font-size:11.5px;color:#A8B09C'>"
+        + "No last class yet — use [📂 Load from another day].</div>";
+    //  칸은 늘 보여 둡니다 — 불러오기 버튼이 여기 있습니다
+    pbox.style.display = '';
     return parsed;
   }
 
@@ -7352,7 +7444,7 @@ function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
   // 리포트에 박혀 있는 값으로 먼저 그려두고 (화면이 비어 보이지 않게),
   // 같은 교재의 지난 수업을 찾으면 그걸로 덮어씁니다.
   if(has(fbLesson) || has(fbHW)) pickForm(paint(fbLesson, fbBook, fbHW, [], [], [], []));
-  if(!classId){ if(!has(fbLesson) && !has(fbHW)) pbox.style.display='none'; return; }
+  if(!classId){ paint('', '', '', [], [], [], []); return; }
 
   google.script.run
     .withSuccessHandler(function(ctx){
@@ -7361,14 +7453,10 @@ function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
         paint(prev.todays_lesson, prev.book, prev.homework,
               ctx.prevAbsent || [], ctx.prevMissed || [],
               ctx.prevRetest || [], ctx.prevBehav || []);
-      } else if(!has(fbLesson) && !has(fbHW)){
-        pbox.style.display='none';
       }
       pickForm(plTextToItems(ctx.prevForm));
     })
-    .withFailureHandler(function(){
-      if(!has(fbLesson) && !has(fbHW)) pbox.style.display='none';
-    })
+    .withFailureHandler(function(){ })
     .fetchReportPlannerCtx(classId, selectedDate, teacherId);
 }
 
@@ -16610,19 +16698,17 @@ function _prParentHtml(cls, mon, stu, rows, days, dayTxt){
 
 // ── ② 알림장 붙임용 (A4 세로 · 5매) ────────────────────────
 function _prSlipHtml(cls, mon, rows, days){
-  var nP = 0, seen = {};
-  rows.forEach(function(s){ if(!seen[s.period]){ seen[s.period]=1; nP++; } });
-  //  A4 세로 한 장(297mm)에 네 장을 넣습니다.
-  //    위아래 여백 8mm 를 빼고 네 장이 나눠 가집니다 → 한 장 ≈ 70mm
-  //    카드 테두리·여백·머리줄을 빼면 표가 쓸 수 있는 높이 ≈ 56mm
-  var rowPx  = Math.max(22, Math.min(86, Math.floor(212 / (nP + 1))));
+  //  A4 세로 한 장(297mm)에 네 장.
+  //  카드마다 종이 높이의 1/4 을 나눠 갖고, 표가 그 안을 꽉 채웁니다.
+  //  (줄 높이를 작게 깔아 두고 table{height:100%} 로 늘립니다)
+  var rowPx = 20;
 
   function one(i){
-    // 높이를 못 박지 않고 내용에 맞춥니다 (아래가 비지 않게)
-    return "<div style='border:1px solid " + PR.rule + ";padding:3mm 4mm;"
-      +      "margin-bottom:2.5mm;page-break-inside:avoid'>"
+    return "<div class='slipcard' style='flex:1 1 0;min-height:0;display:flex;"
+      +      "flex-direction:column;border:1px solid " + PR.rule + ";padding:3mm 4mm;"
+      +      "page-break-inside:avoid'>"
       +    "<div style='display:flex;justify-content:space-between;align-items:center;"
-      +      "margin-bottom:2mm'>"
+      +      "margin-bottom:2mm;flex-shrink:0'>"
       +      "<div style='display:flex;align-items:center;gap:2.5mm'>"
       +        "<div class='logobox' style='width:20mm;height:4.6mm'>"
       +          "<img src='" + WG_LOGO + "' alt='' style='width:17mm;display:block'></div>"
@@ -16631,9 +16717,11 @@ function _prSlipHtml(cls, mon, rows, days){
       +      "</div>"
       +      "<div class='eyebrow' style='font-size:7px;color:" + PR.mark + "'>WILLGROW</div>"
       +    "</div>"
-      +    _prTable(rows, days, false, rowPx)
+      +    "<div style='flex:1;min-height:0;display:flex'>"
+      +      _prTable(rows, days, false, rowPx)
+      +    "</div>"
       +  "</div>"
-      + (i < 3 ? "<div style='border-top:1px dashed #C7C2B2;margin:0 0 2.5mm;"
+      + (i < 3 ? "<div style='flex-shrink:0;border-top:1px dashed #C7C2B2;margin:2.5mm 0;"
                  + "position:relative;height:0'>"
                  + "<span style='position:absolute;right:0;top:-7px;font-size:9px;"
                  + "color:#B9B4A4;background:#fff;padding-left:4px'>✂</span></div>"
@@ -16643,10 +16731,11 @@ function _prSlipHtml(cls, mon, rows, days){
   for(var i=0;i<4;i++) cards += one(i);
 
   //  높이를 297mm 로 못 박아야 A4 크기 그대로 사진이 나옵니다
-  var body = "<div class='sheet' style='width:210mm;height:297mm;padding:4mm 15mm;"
-           + "display:flex;flex-direction:column;justify-content:space-between'>"
-           + cards + "</div>";
-  return body;
+  return "<style>.slipcard table{height:100%;width:100%;flex:1}"
+       + ".slipcard td,.slipcard th{vertical-align:middle}</style>"
+       + "<div class='sheet' style='width:210mm;height:297mm;padding:4mm 15mm;"
+       +   "display:flex;flex-direction:column'>"
+       + cards + "</div>";
 }
 
 // 한 반 시간표
