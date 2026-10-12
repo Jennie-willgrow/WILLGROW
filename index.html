@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-12 12:20';
+var APP_VERSION = '2026-10-12 13:05';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -3027,6 +3027,15 @@ async function addLessonPlanEntry(classId, termNo, date, period, label, part) {
       return { success:false, error:'그 자리에는 이미 수업이 있어요.' };
     } else throw e;
   }
+  return { success:true };
+}
+
+// 리포트의 반만 따로 바꿉니다 (제목 줄 창에서 씁니다)
+async function setReportClass(pageId, classId) {
+  if(!pageId) return { success:false };
+  await sbPatch('daily_reports', 'id=' + _eq(pageId),
+                { class_id: classId || null });
+  _classInfoMapCache = null;
   return { success:true };
 }
 
@@ -5590,7 +5599,7 @@ var _serverFunctions = {
   fetchReportPlannerCtx, fetchClassRoster, setAbsent, setStudentRecord, fetchMonthGrid,
   fetchAdminMemos, saveAdminMemo, deleteAdminMemo, markAdminMemoRead, toggleAdminTodo,
   setSeriesSections, addSeries, renameSeries, deleteSeries,
-  fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents, addLessonPlanEntry, setReportLast,
+  fetchMasterTimetable, fetchNonClassDays, fetchPlanEvents, addLessonPlanEntry, setReportLast, setReportClass,
   fetchWgSupmatOptions, fetchSupmatRules,
   saveTeacher, deleteTeacher,
   fetchClassScheduleVersions, createNextSchedule, deleteScheduleVersion,
@@ -7526,8 +7535,16 @@ function loadReportPlannerCtx(pageId, classId, fbLesson, fbBook, fbHW){
   google.script.run
     .withSuccessHandler(function(ctx){
       var prev = ctx.prevLesson;
-      if(prev){
+      //  리포트에 적혀 있는 Last class 가 1순위입니다.
+      //    (선생님이 [📂 Load from another day] 로 골라 넣으신 것)
+      //    그게 있으면 자동으로 찾은 지난 수업으로 덮어쓰지 않습니다.
+      if(prev && !has(fbLesson) && !has(fbHW)){
         paint(prev.todays_lesson, prev.book, prev.homework,
+              ctx.prevAbsent || [], ctx.prevMissed || [],
+              ctx.prevRetest || [], ctx.prevBehav || []);
+      } else if(prev){
+        //  학생 출결 · 미제출 표시만 덧붙입니다 (지난 수업 글은 그대로 둡니다)
+        paint(fbLesson, fbBook, fbHW,
               ctx.prevAbsent || [], ctx.prevMissed || [],
               ctx.prevRetest || [], ctx.prevBehav || []);
       }
@@ -10252,6 +10269,14 @@ function openReportHead(pageId){
       if(clsEl && v.classId !== clsEl.value){
         clsEl.value = v.classId;
         onReportClassChange(pageId);
+        //  고른 반을 바로 저장합니다 (전에는 아래 Save 를 눌러야 들어갔습니다)
+        google.script.run
+          .withSuccessHandler(function(){
+            renderReportView(pageId);
+            showToast('Class changed.');
+          })
+          .withFailureHandler(function(){ showToast('Could not change the class.'); })
+          .setReportClass(pageId, v.classId);
       }
       if(titleEl && v.title && v.title !== titleEl.textContent){
         showToast('Saving...');
