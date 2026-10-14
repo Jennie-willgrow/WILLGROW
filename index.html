@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-13 09:30';
+var APP_VERSION = '2026-10-15 10:00';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -12301,8 +12301,10 @@ async function refreshNavBadges(){
     function dutyBadge(key, n){ setNavBadge(key, canSeeDuty(key) ? n : 0); }
 
     // 📎 부가자료 제작 — 아직 제작완료가 아닌 것 (Desk 담당)
+    //    화면과 똑같이 "만들 부가자료가 있는 주문" 만 셉니다
     dutyBadge('supmat',
-        wg.filter(function(o){ return o.makeStatus !== '완료'; }).length
+        wg.filter(function(o){
+          return o.supMats && o.supMats.length && o.makeStatus !== '완료'; }).length
       + ext.filter(function(o){ return o.supMats && o.supMats.length && o.progress !== '제작완료'; }).length
       + extra.filter(function(o){ return o.makeStatus !== '제작완료'; }).length);
 
