@@ -510,7 +510,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
   <div id="monthGrid" style="overflow-x:auto"></div>
 </div>
-<div id="absenceList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">반을 선택해주세요</div></div></div><div id="absenceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">➕ 결석 추가</div><button onclick="closeAddAbsenceModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div style="font-size:13px;font-weight:600;color:#2D6A4F;margin-bottom:14px;padding:8px 12px;background:#f0fdf4;border-radius:8px">👤 <span id="absModalStudentName"></span></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 날짜 <span class="req">*</span></label><input type="date" id="absDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">사유</label><select id="absReason" onchange="onAbsReasonChange()" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white"><option value="">-- 선택 --</option><option value="병결">병결</option><option value="가족여행">가족여행</option><option value="가족행사">가족행사</option><option value="개인사정">개인사정</option><option value="미통보결석">미통보결석</option><option value="기타">기타</option></select><input type="text" id="absReasonEtc" placeholder="기타 사유 직접 입력..." style="display:none;width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충일 <span style="color:#999;font-weight:400">(선택)</span></label><input type="date" id="absMakeupDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="display:flex;gap:8px;margin-top:16px"><button onclick="closeAddAbsenceModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="absSubmitBtn" onclick="submitAbsence()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="consultModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,380px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">💬 상담 추가</div><button onclick="closeConsultModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">✕</button></div><div id="consultModalStudentName" style="font-size:13px;font-weight:600;color:#1565c0;margin-bottom:12px"></div><div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담일 <span style="color:#e53935">*</span></label><input type="date" id="consultDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담 내용</label><textarea id="consultContent" rows="4" placeholder="상담 내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea></div><div style="display:flex;gap:8px"><button onclick="submitConsult()" id="consultSubmitBtn" style="flex:1;padding:10px;background:#1565c0;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeConsultModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:10px;font-size:13px;cursor:pointer">취소</button></div></div></div>
+<div id="absenceList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">반을 선택해주세요</div></div></div><div id="absenceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">➕ 결석 추가</div><button onclick="closeAddAbsenceModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div style="font-size:13px;font-weight:600;color:#2D6A4F;margin-bottom:14px;padding:8px 12px;background:#f0fdf4;border-radius:8px">👤 <span id="absModalStudentName"></span></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 날짜 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="date" id="absDate" style="flex:1;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"><button type="button" onclick="absAddDate()" style="background:#EFF4EA;color:#2D6A4F;border:1.5px solid #CFE0D3;border-radius:8px;padding:0 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 날짜 더하기</button></div><div id="absDateChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div><div style="font-size:10.5px;color:#A8B09C;margin-top:4px">여러 날을 한꺼번에 넣을 수 있어요 — 날짜를 고르고 [＋ 날짜 더하기]</div></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">사유</label><select id="absReason" onchange="onAbsReasonChange()" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white"><option value="">-- 선택 --</option><option value="병결">병결</option><option value="가족여행">가족여행</option><option value="가족행사">가족행사</option><option value="개인사정">개인사정</option><option value="미통보결석">미통보결석</option><option value="기타">기타</option></select><input type="text" id="absReasonEtc" placeholder="기타 사유 직접 입력..." style="display:none;width:100%;margin-top:6px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충일 <span style="color:#999;font-weight:400">(선택)</span></label><input type="date" id="absMakeupDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="display:flex;gap:8px;margin-top:16px"><button onclick="closeAddAbsenceModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="absSubmitBtn" onclick="submitAbsence()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="consultModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,380px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">💬 상담 추가</div><button onclick="closeConsultModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">✕</button></div><div id="consultModalStudentName" style="font-size:13px;font-weight:600;color:#1565c0;margin-bottom:12px"></div><div style="margin-bottom:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담일 <span style="color:#e53935">*</span></label><input type="date" id="consultDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="margin-bottom:14px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상담 내용</label><textarea id="consultContent" rows="4" placeholder="상담 내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea></div><div style="display:flex;gap:8px"><button onclick="submitConsult()" id="consultSubmitBtn" style="flex:1;padding:10px;background:#1565c0;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeConsultModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:10px;font-size:13px;cursor:pointer">취소</button></div></div></div>
 <div id="makeupModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">📖 보충일 입력/수정</div><button onclick="closeMakeupModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 날짜 <span class="req">*</span></label><input type="date" id="makeupDateInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충 시간 <span style="color:#999;font-weight:400">(선택)</span></label><input type="time" id="makeupTimeInput" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><button onclick="resetMakeupDate()" style="width:100%;padding:8px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">🗑️ 보충일 초기화 (취소)</button><div style="display:flex;gap:8px;margin-top:4px"><button onclick="closeMakeupModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitMakeupDate()" style="flex:2;background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div></div><div id="meetingsScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E;white-space:nowrap">📋 회의록</div><div style="font-size:11px;color:#999;margin-top:2px">안건을 미리 올리고 · 이번 주 필수 확인을 보며 · 회의를 남깁니다</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button onclick="openEventModal()" class="btn" style="padding:7px 14px;font-size:12px;width:auto;white-space:nowrap;background:#F1F3EE;color:#4A5344">＋ 학사일정</button><button onclick="openMeetingModal()" class="btn" style="padding:7px 14px;font-size:12px;width:auto;white-space:nowrap">＋ 새 회의록</button></div></div><div class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="mgTab0" onclick="mgSwitch(0)">🇰🇷 한국인 회의</button><button class="etab" id="mgTab1" onclick="mgSwitch(1)">🌍 Native Meeting</button><button class="etab" id="mgTab2" onclick="mgSwitch(2)">📅 학사일정</button></div><div id="mgBrief" style="margin-bottom:14px"></div><div id="mgAgenda" style="margin-bottom:16px"></div><div id="meetingsList" style="padding-bottom:20px"><div class="loading">Loading...</div></div></div><div id="meetingModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;align-items:center;justify-content:center"><div style="background:white;border-radius:16px;padding:24px;width:90%;max-width:460px;max-height:88vh;overflow-y:auto"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:16px" id="meetingModalTitle">New Meeting</div><div class="ef"><label>Title <span class="req">*</span></label><input type="text" id="mtgTitle" placeholder="Meeting or event title"></div><div id="mtgMeetingRow" style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Date</label><input type="date" id="mtgDate" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>Type <span class="req">*</span></label><select id="mtgType" onchange="onMtgTypeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="Staff Meeting">Staff Meeting</option><option value="Native Meeting">Native Meeting</option><option value="Emergency Meeting">Emergency Meeting</option><option value="Schedule/Event">📅 Schedule/Event</option></select></div></div><div id="mtgEventFields" style="display:none;background:#FFF8E7;border-radius:10px;padding:12px;margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:#92600A;margin-bottom:8px">📅 Calendar Info</div><div id="mtgEvtHint" style="display:none;background:#fff;border:1px solid #F0DFB0;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11.5px;color:#7A5E10;line-height:1.5">달력에만 남기는 일정입니다. 아래 <b>이 날 수업은요?</b> 를 <b>🟢 평소대로</b> 로 두시면 Lesson Plan 은 그대로 갑니다 — 학교 시험 · 상담 주간처럼 학원 수업은 하는 일정이 그렇습니다.</div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>Start Date <span class="req">*</span></label><input type="date" id="mtgEvtStart" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div><div class="ef" style="flex:1"><label>End Date</label><input type="date" id="mtgEvtEnd" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px"></div></div><div class="ef"><label>Category <span class="req">*</span></label><select id="mtgEvtCat" onchange="onMtgCatChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">-- Select --</option><option value="School Exam">🟠 학교 시험 — 수업 그대로</option><option value="Exam">🔴 학원 시험</option><option value="Holiday">🔵 Holiday</option><option value="Event">🟢 Event</option><option value="Public Holiday">⚫ Public Holiday</option><option value="Etc">🟣 Etc</option></select></div><div class="ef" style="margin-bottom:0"><label>이 날 수업은요? <span style="font-weight:500;color:#999">(Lesson Plan 이 이걸 보고 진도를 건너뜁니다)</span></label><select id="mtgClassMode" onchange="onMtgModeChange()" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="">🟢 평소대로 — 진도 그대로</option><option value="휴강">🔴 휴강 — 수업 없음</option><option value="특별수업">🟡 특별수업 — 프로젝트·행사 (진도 멈춤)</option></select></div><div id="mtgPeriodBox" style="display:none;margin-top:8px"><label style="font-size:12px;font-weight:600;color:#92600A;display:block;margin-bottom:5px">어느 시간에 걸리나요?</label><div id="mtgPeriodChips" style="display:flex;flex-wrap:wrap;gap:5px"></div><div style="font-size:10.5px;color:#A8872A;margin-top:5px">아무것도 안 고르면 <b>그날 전체</b>입니다. 하루 두 수업 중 하나만 프로젝트면 그 시간만 골라주세요.</div></div></div><div class="ef"><label>Notes</label><textarea id="mtgContent" rows="4" placeholder="Meeting notes..." style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;resize:vertical"></textarea></div><div class="ef"><label>Status</label><select id="mtgStatus" style="width:100%;padding:9px 12px;border:1.5px solid #E2E8D8;border-radius:8px;font-size:13px;background:white"><option value="고민중">🤔 Discussing (고민중)</option><option value="확정">✅ Confirmed (확정)</option></select></div><input type="hidden" id="mtgEditId"><div style="display:flex;gap:8px;margin-top:4px"><button id="mtgDelBtn" onclick="deleteMeetingItem()" style="display:none;background:#fee2e2;color:#c62828;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">삭제</button><div style="flex:1"></div><button onclick="closeMeetingModal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="saveMeetingItem()" id="mtgSaveBtn" style="background:#4A5240;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer">저장</button></div></div></div></div><div id="schoolCalScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 Meetings &amp; Events</div><div style="font-size:11px;color:#999;margin-top:2px">학사일정 달력 · 아래에 회의록이 이어집니다</div></div><span style="font-size:11px;color:#999">일정은 회의록에서 추가합니다</span></div><div id="schoolCalWrap"></div><div id="schoolEventListWrap" style="margin-top:18px"></div><hr style="border:none;border-top:1px solid #E7EAE3;margin:20px 0 0"></div></div><div id="lessonPlanScreen" style="display:none"><div id="lpAddModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:24px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:15px;font-weight:700;color:#363D2E">➕ 레슨플랜 추가</div><button onclick="closeLessonPlanModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button></div><div style="display:flex;flex-direction:column;gap:12px"><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">반 선택</label><select id="lpFormClass" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">반 선택...</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">교재명 *</label><input id="lpFormTitle" type="text" placeholder="교재명 입력" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">상태</label><select id="lpFormStatus" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="Not Started">Not Started</option><option value="In Progress" selected>In Progress</option><option value="Completed">Completed</option></select></div><div><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">PDF 파일 (선택)</label><label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px dashed #ccc;border-radius:8px;cursor:pointer;font-size:12px;color:#777">📎 <span id="lpFormFileLabel">파일 선택 (PDF)</span><input id="lpFormFile" type="file" accept=".pdf,application/pdf" onchange="lpFileChange(this)" style="display:none"></label></div><button id="lpFormSubmit" onclick="submitLessonPlan()" style="background:#363D2E;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px">추가</button></div></div></div><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:#363D2E">📖 Lesson Plan</div><div style="display:flex;gap:6px"><button onclick="openLessonPlanModal()" style="background:#363D2E;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">➕ 추가</button><button onclick="initLessonPlanScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div style="margin-bottom:10px"><select id="lpClassFilter" onchange="filterLessonPlan()" style="width:100%;max-width:280px;padding:7px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"><option value="">All Classes</option></select></div><div id="lpStatusFilter" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"></div><div id="lessonPlanList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="newStudentScreen" style="display:none"><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">🙋 신규학생 관리</div><button onclick="initNewStudentScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄 새로고침</button></div><div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:11px;color:#2E7D32;line-height:1.5">📌 등록일 기준 <strong>30일 이내</strong> 신규 학생이 표시됩니다. 30일이 지나면 자동으로 목록에서 제외됩니다.</div><div id="newStudentList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="teacherMgmtScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">👩‍🏫 Teacher Management</div><div style="font-size:11px;color:#999;margin-top:2px">Manage teacher accounts and roles</div></div><div style="display:flex;gap:8px"><button onclick="openTeacherModal(null)" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ Add Teacher</button><button onclick="initTeacherMgmtScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div>
 
 <!-- ── 신규 입사 체크리스트 ── -->
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-15 10:00';
+var APP_VERSION = '2026-10-15 13:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -9335,7 +9335,7 @@ var WG_SUPMAT_BY_COURSE = {
   JUNIOR: { always:['Study Guide','Grammar WT','Reading WT',
                     'Handybook Test','Handybook','Translation'], pick:[] },
   TEMS:   { always:['Grammar WT','Reading WT','PL WT','Word List','구문독해',
-                    '예문영작 List','예문영작 Test','추가문제'], pick:[] },
+                    '예문영작 List','예문영작 Test'], pick:['추가문제'] },
   STAR:   { always:['Study Guide'], pick:['Word Test'] },
   GALAXY: { always:['Study Guide'], pick:['Word Test'] }
 };
@@ -9944,7 +9944,9 @@ function loadWGSupmats(){
         + "<div class='bok-row'>"
         + "<div><div class='bok-name'>"+o.className+"<span class='course-tag'>"+(o.bookCourse||"")+"</span></div>"
         + "<div class='bok-meta'>"+(o.bookName||"교재 미확인")+"</div></div>"
-        + "<div style='text-align:right;font-size:12px;color:#999;white-space:nowrap'>"+(o.startDate||"")+"</div></div>"
+        + "<div style='text-align:right;font-size:11.5px;color:#8A9178;white-space:nowrap'>"
+        +   (o.startDate ? "<span style='font-size:10px;color:#A8B09C'>교재 시작일</span><br>"
+                            + o.startDate : "") + "</div></div>"
         + "<div style='display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:5px 0 2px'><span style='background:#e8f5e9;color:#2e7d32;padding:2px 9px;border-radius:10px;font-size:12px;font-weight:700'>📦 학생 "+(o.qty||0)+"부</span><span style='background:#e3f2fd;color:#1565c0;padding:2px 9px;border-radius:10px;font-size:12px;font-weight:700'>👨‍🏫 교사 "+(o.teacherCopy||0)+"부</span><span style='background:#EFF2FA;color:#3C5A8A;padding:2px 9px;border-radius:10px;font-size:11.5px;font-weight:700'>작성자 "+(reqName||"미기재")+"</span></div>"
         + mats
         + "<div style='margin:8px 0 4px'><label style='font-size:11px;color:#888'>📝 제작 특이사항</label>"
@@ -10024,7 +10026,9 @@ function loadExtSupmats(){
         + "<div class='bok-row'>"
         + "<div><div class='bok-name'>"+o.className+"</div>"
         + "<div class='bok-meta'>"+(o.bookName||"교재 미확인")+"</div></div>"
-        + "<div style='text-align:right;font-size:12px;color:#999;white-space:nowrap'>"+(o.startDate||"")+"</div></div>"
+        + "<div style='text-align:right;font-size:11.5px;color:#8A9178;white-space:nowrap'>"
+        +   (o.startDate ? "<span style='font-size:10px;color:#A8B09C'>교재 시작일</span><br>"
+                            + o.startDate : "") + "</div></div>"
         + "<div style='display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:5px 0 2px'><span style='background:#e8f5e9;color:#2e7d32;padding:2px 9px;border-radius:10px;font-size:12px;font-weight:700'>📦 학생 "+(o.qty||0)+"부</span><span style='background:#e3f2fd;color:#1565c0;padding:2px 9px;border-radius:10px;font-size:12px;font-weight:700'>👨‍🏫 교사 "+(o.teacherCopy||0)+"부</span><span style='background:#EFF2FA;color:#3C5A8A;padding:2px 9px;border-radius:10px;font-size:11.5px;font-weight:700'>작성자 "+(reqName||"미기재")+"</span></div>"
         + mats
         + "<div style='margin:8px 0 4px'><label style='font-size:11px;color:#888'>📝 제작 특이사항</label>"
@@ -10074,7 +10078,9 @@ function loadExtraSupmats(){
         + "<div class='bok-row'>"
         + "<div><div class='bok-name'>"+o.className+"</div>"
         + "<div class='bok-meta'>"+(o.bookName||"")+(o.supMat?" · 📎 "+o.supMat:"")+"</div></div>"
-        + "<div style='text-align:right;font-size:12px;color:#999;white-space:nowrap'>"+(o.startDate||"")+"</div></div>"
+        + "<div style='text-align:right;font-size:11.5px;color:#8A9178;white-space:nowrap'>"
+        +   (o.startDate ? "<span style='font-size:10px;color:#A8B09C'>교재 시작일</span><br>"
+                            + o.startDate : "") + "</div></div>"
         + "<div style='display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:5px 0 2px'><span style='background:#e8f5e9;color:#2e7d32;padding:2px 9px;border-radius:10px;font-size:12px;font-weight:700'>📦 "+o.qty+"부</span>"
         + "<span style='background:#EFF2FA;color:#3C5A8A;padding:2px 9px;border-radius:10px;font-size:11.5px;font-weight:700'>작성자 "+(reqName||"미기재")+"</span></div>"
         + "<div style='margin:8px 0 4px'><label style='font-size:11px;color:#888'>📝 제작 특이사항</label>"
@@ -14782,6 +14788,18 @@ function _lpGrid(forImage){
   var wdList = Object.keys(wds).map(Number).sort(function(a,b){ return a-b; });
   var wkList = Object.keys(weeks).sort();
 
+  //  [＋ 주 추가] 로 늘린 만큼 빈 주를 뒤에 붙입니다
+  if(!forImage && typeof _lpExtraWeeks === 'number' && _lpExtraWeeks > 0 && wkList.length){
+    var lastMk = wkList[wkList.length - 1];
+    for(var ew = 0; ew < _lpExtraWeeks; ew++){
+      var nd = new Date(lastMk + 'T00:00:00');
+      nd.setDate(nd.getDate() + 7 * (ew + 1));
+      var nk = nd.getFullYear() + '-' + String(nd.getMonth()+1).padStart(2,'0')
+             + '-' + String(nd.getDate()).padStart(2,'0');
+      if(!weeks[nk]){ weeks[nk] = {}; wkList.push(nk); }
+    }
+  }
+
   // 같은 날 안에서는 줄 번호(교시) 순서
   wkList.forEach(function(mk){
     wdList.forEach(function(wd){
@@ -14912,11 +14930,13 @@ function _lpGrid(forImage){
                    + String(dd.getMonth()+1).padStart(2,'0') + '-'
                    + String(dd.getDate()).padStart(2,'0');
           var pno = rowPeriod[r] || (r + 1);
-          h += "<td style='border:1px solid #EEF0EA;" + top
+          var ekey = dkey + '|' + pno;
+          h += "<td data-k='" + ekey + "' data-id='' class='lpc'"
+            +    " style='border:1px solid #EEF0EA;" + top
             +    "background:#FCFCFA;padding:" + pad + ";text-align:center;color:#D8DDD2"
             +    (forImage ? "" : ";cursor:pointer") + "'"
             + (forImage ? ""
-               : " onclick='lpNewCell(\"" + dkey + "\"," + pno + ")' title='눌러서 적기'"
+               : " onclick='lpCellTap(event,\"" + ekey + "\")' title='눌러서 적기'"
                  + " ondragover='event.preventDefault()'"
                  + " ondragenter='this.style.outline=\"2px dashed #B4651A\"'"
                  + " ondragleave='this.style.outline=\"\"'"
@@ -14932,11 +14952,14 @@ function _lpGrid(forImage){
         else if(kind === '리뷰'){       bg = '#EFF4EA'; fg = '#2D6A4F'; }
         else if(kind === '발표'){       bg = '#F3EAFB'; fg = '#6B3FA0'; }
 
-        h += "<td style='border:1px solid #EEF0EA;" + top + "background:" + bg + ";"
+        var ckey = e.date + '|' + e.period;
+        h += "<td data-k='" + ckey + "' data-id='" + e.id + "' class='lpc'"
+          +    " style='border:1px solid #EEF0EA;" + top + "background:" + bg + ";"
           +    "padding:" + pad + ";text-align:center;position:relative"
           +    (forImage ? "" : ";cursor:pointer") + "'"
           + (forImage ? ""
-             : " onclick='lpCellClick(\"" + e.id + "\")' title='눌러서 고치기 · 행사를 끌어다 놓을 수 있어요'"
+             : " onclick='lpCellTap(event,\"" + ckey + "\")' "
+               + "title='눌러서 고치기 · Shift 를 누르고 누르면 여러 칸을 고릅니다'"
                + " ondragover='event.preventDefault()'"
                + " ondragenter='this.style.outline=\"2px dashed #B4651A\"'"
                + " ondragleave='this.style.outline=\"\"'"
@@ -15004,7 +15027,17 @@ function renderLessonPlan(problem){
     + "<div style='font-size:11px;color:#A8B09C;margin-bottom:10px'>"
     +   "칸을 눌러 고칠 수 있어요 · 고친 칸(✎)은 다시 만들어도 그대로 남습니다</div>"
     + "<div id='lpEvtTray'></div>"
-    + "<div style='overflow-x:auto'>" + _lpGrid(false) + "</div>";
+    + "<div id='lpSelBar' style='display:none;align-items:center;gap:6px;flex-wrap:wrap;"
+    +   "background:#EFF4EA;border:1px solid #CFE0D3;border-radius:10px;"
+    +   "padding:8px 11px;margin-bottom:10px'></div>"
+    + "<div style='overflow-x:auto'>" + _lpGrid(false) + "</div>"
+    + "<div style='display:flex;align-items:center;gap:8px;margin-top:10px'>"
+    +   "<button type='button' onclick='lpAddWeek()' style='background:#F2F5EE;color:#3F5233;"
+    +     "border:1.5px solid #DDE5D6;border-radius:20px;padding:6px 14px;font-size:12px;"
+    +     "font-weight:700;cursor:pointer'>＋ 주 추가</button>"
+    +   "<span style='font-size:11px;color:#A8B09C'>"
+    +     "칸을 Shift 로 여러 개 고르면 한꺼번에 고칠 수 있어요</span>"
+    + "</div>";
   lpLoadEvents();
 }
 
@@ -15207,6 +15240,204 @@ function lpSaveNewCell(date, period, label){
     })
     .addLessonPlanEntry(_lpCid, _lpTerm, date, period, label, '');
 }
+
+// ════════════════════════════════════════════════════════════
+//  여러 칸 고르기 — 엑셀처럼 쓰기
+//
+//    그냥 누르면      그 칸 하나 고치기
+//    Shift + 누르면   눌렀던 칸부터 여기까지 쭉 고르기
+//    Ctrl(⌘) + 누르면 한 칸씩 더하거나 빼기
+//
+//    고르고 나면 위에 띠가 떠서
+//    [한꺼번에 쓰기] [복사] [붙여넣기] [지우기] 를 할 수 있습니다.
+// ════════════════════════════════════════════════════════════
+var _lpSel     = [];     // 고른 칸들 (date|period)
+var _lpSelLast = '';     // 마지막으로 누른 칸 (Shift 범위의 기준)
+var _lpClip    = [];     // 복사해 둔 글자들
+
+function _lpCells(){
+  return Array.prototype.slice.call(
+    document.querySelectorAll('#lpBox td.lpc'));
+}
+function _lpKeyList(){
+  return _lpCells().map(function(td){ return td.getAttribute('data-k'); });
+}
+function _lpPaint(){
+  _lpCells().forEach(function(td){
+    var on = _lpSel.indexOf(td.getAttribute('data-k')) >= 0;
+    td.style.boxShadow = on ? 'inset 0 0 0 2px #2D6A4F' : '';
+    td.style.background = on ? '#EFF7EE'
+      : (td.getAttribute('data-id') ? td.style.background : td.style.background);
+  });
+  renderLpBar();
+}
+
+function lpCellTap(ev, key){
+  //  행사를 들고 계시면 그걸 먼저 놓습니다
+  if(_lpHeld !== null && _lpEvents[_lpHeld]){
+    var td0 = document.querySelector('#lpBox td[data-k="' + key + '"]');
+    var id0 = td0 ? td0.getAttribute('data-id') : '';
+    var t0  = _lpEvents[_lpHeld].title;
+    _lpHeld = null; renderLpTray();
+    if(id0) lpPutEvent(id0, t0);
+    else {
+      var pp = key.split('|');
+      lpSaveNewCell(pp[0], pp[1], t0);
+    }
+    return;
+  }
+
+  var multi = ev && (ev.ctrlKey || ev.metaKey);
+  var range = ev && ev.shiftKey;
+
+  if(range && _lpSelLast){
+    var keys = _lpKeyList();
+    var a = keys.indexOf(_lpSelLast), b = keys.indexOf(key);
+    if(a >= 0 && b >= 0){
+      var from = Math.min(a, b), to = Math.max(a, b);
+      _lpSel = keys.slice(from, to + 1);
+      _lpPaint();
+      return;
+    }
+  }
+  if(multi){
+    var i = _lpSel.indexOf(key);
+    if(i >= 0) _lpSel.splice(i, 1); else _lpSel.push(key);
+    _lpSelLast = key;
+    _lpPaint();
+    return;
+  }
+
+  //  그냥 누르면 — 고른 게 있으면 먼저 풀고, 아니면 한 칸 고치기
+  if(_lpSel.length > 1){ _lpSel = []; _lpPaint(); }
+  _lpSel = [key]; _lpSelLast = key;
+  _lpPaint();
+
+  var td = document.querySelector('#lpBox td[data-k="' + key + '"]');
+  var id = td ? td.getAttribute('data-id') : '';
+  if(id) lpEditCell(id);
+  else { var p2 = key.split('|'); lpNewCell(p2[0], p2[1]); }
+}
+
+function lpSelClear(){ _lpSel = []; _lpSelLast = ''; _lpPaint(); }
+
+//  계획표 아래에 빈 주를 더 보여 줍니다 (＋ 를 눌러 적으시면 됩니다)
+var _lpExtraWeeks = 0;
+function lpAddWeek(){
+  _lpExtraWeeks++;
+  renderLessonPlan();
+  showToast('빈 주를 한 줄 더 놓았어요 — 칸을 눌러 적으시면 됩니다.');
+}
+
+//  고른 칸 위에 뜨는 띠
+function renderLpBar(){
+  var bar = document.getElementById('lpSelBar');
+  if(!bar) return;
+  if(_lpSel.length < 2){ bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  function btn(txt, fn, main){
+    return "<button type='button' onclick='" + fn + "' style='background:"
+      + (main ? '#2D6A4F' : '#fff') + ";color:" + (main ? '#fff' : '#3F5233')
+      + ";border:1.5px solid " + (main ? '#2D6A4F' : '#DDE5D6') + ";border-radius:20px;"
+      + "padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer'>" + txt + "</button>";
+  }
+  bar.innerHTML =
+      "<span style='font-size:12px;font-weight:800;color:#2D6A4F'>"
+    +   _lpSel.length + "칸 고름</span>"
+    + btn('✏️ 한꺼번에 쓰기', 'lpBulkWrite()', true)
+    + btn('📋 복사', 'lpCopy()')
+    + btn('📄 붙여넣기' + (_lpClip.length ? ' (' + _lpClip.length + ')' : ''), 'lpPaste()')
+    + btn('🧹 지우기', 'lpBulkClear()')
+    + btn('✕ 해제', 'lpSelClear()');
+}
+
+//  고른 칸들을 날짜·교시 순서로
+function _lpSelSorted(){
+  var keys = _lpKeyList();
+  return _lpSel.slice().sort(function(a, b){ return keys.indexOf(a) - keys.indexOf(b); });
+}
+
+function lpCopy(){
+  _lpClip = _lpSelSorted().map(function(k){
+    var e = _lpPlan.filter(function(x){ return (x.date + '|' + x.period) === k; })[0];
+    return e ? (e.label || '') : '';
+  });
+  showToast(_lpClip.length + '칸을 복사했어요.');
+  renderLpBar();
+}
+
+function lpPaste(){
+  if(!_lpClip.length){ showToast('복사해 둔 것이 없어요.'); return; }
+  var keys = _lpSelSorted();
+  _lpApply(keys.map(function(k, i){ return { key:k, text:_lpClip[i % _lpClip.length] }; }));
+}
+
+function lpBulkWrite(){
+  var n = _lpSel.length;
+  wgModal({
+    title: '한꺼번에 쓰기',
+    sub: n + '칸에 같은 내용을 적습니다',
+    saveLabel: '쓰기',
+    fields: [
+      { key:'text', label:'내용', type:'text', required:true,
+        placeholder:'예) Project 수업',
+        hint:'Mid-term Test · Final Test 라고 적으면 시험 칸(빨강)이 됩니다' }
+    ],
+    onSave: function(v){
+      _lpApply(_lpSelSorted().map(function(k){ return { key:k, text:v.text }; }));
+    }
+  });
+}
+
+function lpBulkClear(){
+  var n = _lpSel.length;
+  if(!confirm(n + '칸을 비울까요?\n\n진도는 다시 밀리지 않습니다 — 칸만 비웁니다.')) return;
+  _lpApply(_lpSelSorted().map(function(k){ return { key:k, text:'' }; }));
+}
+
+//  고른 칸들에 글자를 넣습니다 (하나씩 차례대로 저장)
+function _lpApply(list){
+  var i = 0, done = 0, fail = 0;
+  showToast('쓰는 중…');
+  function next(){
+    if(i >= list.length){
+      google.script.run
+        .withSuccessHandler(function(r){
+          _lpPlan = (r && r.entries) || [];
+          _lpSel = []; _lpSelLast = '';
+          renderLessonPlan();
+          showToast(done + '칸 적었어요.' + (fail ? ' ' + fail + '칸 실패' : ''));
+        })
+        .fetchClassLessonPlan(_lpCid, _lpTerm);
+      return;
+    }
+    var it = list[i++];
+    var td = document.querySelector('#lpBox td[data-k="' + it.key + '"]');
+    var id = td ? td.getAttribute('data-id') : '';
+    function ok(){ done++; next(); }
+    function no(){ fail++; next(); }
+    if(id){
+      google.script.run.withSuccessHandler(ok).withFailureHandler(no)
+        .updateLessonPlanEntry(id, it.text, 'replace');
+    } else if(String(it.text).trim()){
+      var pp = it.key.split('|');
+      google.script.run.withSuccessHandler(ok).withFailureHandler(no)
+        .addLessonPlanEntry(_lpCid, _lpTerm, pp[0], pp[1], it.text, '');
+    } else { next(); }
+  }
+  next();
+}
+
+//  키보드 — Ctrl/⌘ + C · V
+document.addEventListener('keydown', function(ev){
+  if(!_lpSel.length) return;
+  var box = document.getElementById('lpBox');
+  if(!box || box.offsetParent === null) return;
+  if(!(ev.ctrlKey || ev.metaKey)) return;
+  var k = String(ev.key || '').toLowerCase();
+  if(k === 'c'){ ev.preventDefault(); lpCopy(); }
+  if(k === 'v'){ ev.preventDefault(); lpPaste(); }
+});
 
 // 칸을 누르면 — 행사를 들고 계시면 그 칸에 놓고, 아니면 고치기 창을 엽니다
 function lpCellClick(id){
@@ -17934,7 +18165,44 @@ function deleteConsultRow(id){
   .deleteConsultation(id);
 }
 var _absModalStudentId = null;
+// 한꺼번에 넣을 날짜들
+var _absDates = [];
+
+function absRenderDateChips(){
+  var box = document.getElementById('absDateChips');
+  if(!box) return;
+  box.innerHTML = _absDates.map(function(d, i){
+    return "<span style='display:inline-flex;align-items:center;gap:5px;background:#EFF4EA;"
+      +   "color:#2D6A4F;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700'>"
+      +   _plEsc(_dateWithDay ? _dateWithDay(d) : d)
+      +   "<button type='button' onclick='absDelDate(" + i + ")' style='background:none;"
+      +     "border:none;color:#7FA189;font-size:13px;cursor:pointer;padding:0;line-height:1'>✕</button>"
+      + "</span>";
+  }).join('');
+}
+
+function absAddDate(){
+  var el = document.getElementById('absDate');
+  var d = el ? el.value : '';
+  if(!d){ showToast('날짜를 고르고 눌러 주세요.'); return; }
+  if(_absDates.indexOf(d) < 0) _absDates.push(d);
+  _absDates.sort();
+  absRenderDateChips();
+  //  다음 날짜를 바로 고르기 좋게 하루 뒤로 옮겨 둡니다
+  var nx = new Date(d + 'T00:00:00');
+  nx.setDate(nx.getDate() + 1);
+  el.value = nx.getFullYear() + '-' + String(nx.getMonth()+1).padStart(2,'0')
+           + '-' + String(nx.getDate()).padStart(2,'0');
+}
+
+function absDelDate(i){
+  _absDates.splice(i, 1);
+  absRenderDateChips();
+}
+
 function openAddAbsenceModal(studentId, studentName){
+  _absDates = [];
+  absRenderDateChips();
   _absModalStudentId = studentId;
   document.getElementById("absModalStudentName").textContent = studentName;
   document.getElementById("absDate").value = getTodayStr();
@@ -17952,29 +18220,53 @@ function _absRefresh(){
 }
 function submitAbsence(){
   if(!_absModalStudentId) return;
-  var date = document.getElementById("absDate").value;
-  if(!date){ showToast("날짜를 입력해주세요."); return; }
+  //  담아 둔 날짜 + 지금 칸에 있는 날짜를 모두 넣습니다
+  var dates = _absDates.slice();
+  var now = (document.getElementById("absDate") || {}).value || '';
+  if(now && dates.indexOf(now) < 0 && !_absDates.length) dates.push(now);
+  if(!dates.length){ showToast("날짜를 입력해주세요."); return; }
+  dates.sort();
+
   var reason = _getAbsReason("absReason","absReasonEtc");
   var makeupDate = document.getElementById("absMakeupDate").value || null;
   var btn = document.getElementById("absSubmitBtn");
   btn.disabled=true; btn.textContent="저장 중...";
-  // 학생 이름 + 반 이름 가져오기
+
   var student = _absStudents.find(function(s){ return s.id===_absModalStudentId; });
   var classSel = document.getElementById("absClassSel");
   var className = classSel.options[classSel.selectedIndex] ? classSel.options[classSel.selectedIndex].text : '';
-  google.script.run
-  .withSuccessHandler(function(r){
-    btn.disabled=false; btn.textContent="저장";
-    if(r&&r.success){
-      // 한국 선생님 메모 자동 생성 (날짜 강조 포함)
-      var memoContent = "[결석] " + _dateWithDay(date) + " | " + className + " " + (student ? student.name : "") + " (" + (reason || "사유 미선택") + ")";
-      google.script.run.createMemo({ content: memoContent, type: "결석", author: _userName||'' });
-      showToast("결석 추가 완료!"); closeAddAbsenceModal(); _absRefresh();
-    } else if(r&&r.duplicate){ showToast("이미 해당 날짜에 결석 기록이 있습니다."); btn.disabled=false; btn.textContent="저장";
-    } else { showToast("저장 실패."); }
-  })
-  .withFailureHandler(function(){ btn.disabled=false; btn.textContent="저장"; showToast("오류가 발생했습니다."); })
-  .createAbsence({ studentId:_absModalStudentId, date:date, reason:reason, makeupDate:makeupDate });
+
+  var ok = 0, dup = 0, fail = 0, i = 0;
+  function next(){
+    if(i >= dates.length){
+      btn.disabled=false; btn.textContent="저장";
+      if(ok){
+        var memoContent = "[결석] "
+          + dates.slice(0, ok).map(function(d){ return _dateWithDay(d); }).join(' · ')
+          + " | " + className + " " + (student ? student.name : "")
+          + " (" + (reason || "사유 미선택") + ")";
+        google.script.run.createMemo({ content: memoContent, type: "결석", author: _userName||'' });
+      }
+      var msg = ok ? ("결석 " + ok + "일 추가 완료!") : "저장된 날이 없어요.";
+      if(dup)  msg += "  이미 있던 날 " + dup + "일은 건너뛰었어요.";
+      if(fail) msg += "  " + fail + "일은 실패했어요.";
+      showToast(msg);
+      if(ok){ closeAddAbsenceModal(); _absRefresh(); }
+      return;
+    }
+    var d = dates[i++];
+    google.script.run
+      .withSuccessHandler(function(r){
+        if(r && r.success) ok++;
+        else if(r && r.duplicate) dup++;
+        else fail++;
+        next();
+      })
+      .withFailureHandler(function(){ fail++; next(); })
+      .createAbsence({ studentId:_absModalStudentId, date:d,
+                       reason:reason, makeupDate:makeupDate });
+  }
+  next();
 }
 var _makeupAbsenceId = null;
 function openMakeupModal(absId, existingDate){
