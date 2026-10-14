@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-15 13:30';
+var APP_VERSION = '2026-10-15 16:10';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -14881,6 +14881,7 @@ function _lpGrid(forImage){
   var manyBooks = books.filter(function(b, i){ return b && books.indexOf(b) === i; }).length > 1;
 
   var shownBook = null;
+  var gRow = -1;                 // 엑셀처럼 쓰려면 칸마다 줄·칼럼 번호가 필요합니다
   wkList.forEach(function(mk, wi){
     // 메인 교재가 바뀌면 구간 머리글을 한 줄 넣습니다
     if(manyBooks && wkBook[mk] !== shownBook){
@@ -14906,6 +14907,7 @@ function _lpGrid(forImage){
     for(var r = 0; r < rows; r++){
       // 주와 주 사이를 굵은 선으로 갈라 줍니다
       var top = (r === 0) ? "border-top:2.5px solid #9AA98F;" : "";
+      gRow++;
       h += "<tr>";
       if(r === 0){
         h += "<td rowspan='" + rows + "' style='background:#F4F6F1;border:1px solid #fff;"
@@ -14920,7 +14922,8 @@ function _lpGrid(forImage){
                 + "전체 " + (wi+1) + "주</span>" : "")
           +    "</td>";
       }
-      wdList.forEach(function(wd){
+      wdList.forEach(function(wd, ci){
+        var rc = " data-r='" + gRow + "' data-c='" + ci + "'";
         var e = (weeks[mk][wd] || [])[r];
         if(!e){
           // 빈 칸 — 눌러서 새로 적을 수 있습니다
@@ -14931,17 +14934,17 @@ function _lpGrid(forImage){
                    + String(dd.getDate()).padStart(2,'0');
           var pno = rowPeriod[r] || (r + 1);
           var ekey = dkey + '|' + pno;
-          h += "<td data-k='" + ekey + "' data-id='' class='lpc'"
+          h += "<td data-k='" + ekey + "' data-id='' class='lpc'" + rc
+            +    " data-bg='#FCFCFA'"
             +    " style='border:1px solid #EEF0EA;" + top
             +    "background:#FCFCFA;padding:" + pad + ";text-align:center;color:#D8DDD2"
-            +    (forImage ? "" : ";cursor:pointer") + "'"
+            +    (forImage ? "" : ";cursor:cell;user-select:none;-webkit-user-select:none") + "'"
             + (forImage ? ""
-               : " onclick='lpCellTap(event,\"" + ekey + "\")' title='눌러서 적기'"
-                 + " ondragover='event.preventDefault()'"
+               : " ondragover='event.preventDefault()'"
                  + " ondragenter='this.style.outline=\"2px dashed #B4651A\"'"
                  + " ondragleave='this.style.outline=\"\"'"
                  + " ondrop='this.style.outline=\"\";lpDropNew(event,\"" + dkey + "\"," + pno + ")'")
-            + ">" + (forImage ? "" : "＋") + "</td>";
+            + ">" + (forImage ? "" : "<span class='lpph'>＋</span>") + "</td>";
           return;
         }
         var kind = _lpKindOf(e.label, e.kind);
@@ -14953,14 +14956,13 @@ function _lpGrid(forImage){
         else if(kind === '발표'){       bg = '#F3EAFB'; fg = '#6B3FA0'; }
 
         var ckey = e.date + '|' + e.period;
-        h += "<td data-k='" + ckey + "' data-id='" + e.id + "' class='lpc'"
+        h += "<td data-k='" + ckey + "' data-id='" + e.id + "' class='lpc'" + rc
+          +    " data-bg='" + bg + "'"
           +    " style='border:1px solid #EEF0EA;" + top + "background:" + bg + ";"
           +    "padding:" + pad + ";text-align:center;position:relative"
-          +    (forImage ? "" : ";cursor:pointer") + "'"
+          +    (forImage ? "" : ";cursor:cell;user-select:none;-webkit-user-select:none") + "'"
           + (forImage ? ""
-             : " onclick='lpCellTap(event,\"" + ckey + "\")' "
-               + "title='눌러서 고치기 · Shift 를 누르고 누르면 여러 칸을 고릅니다'"
-               + " ondragover='event.preventDefault()'"
+             : " ondragover='event.preventDefault()'"
                + " ondragenter='this.style.outline=\"2px dashed #B4651A\"'"
                + " ondragleave='this.style.outline=\"\"'"
                + " ondrop='this.style.outline=\"\";lpDropEvent(event,\"" + e.id + "\")'")
@@ -15024,21 +15026,64 @@ function renderLessonPlan(problem){
     +   "white-space:nowrap'>🖼 사진으로 보기</button>"
     + "<button onclick='closeLessonPlan()' style='background:none;border:none;font-size:20px;"
     +   "cursor:pointer;color:#A8B09C'>✕</button></div>"
-    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:10px'>"
-    +   "칸을 눌러 고칠 수 있어요 · 고친 칸(✎)은 다시 만들어도 그대로 남습니다</div>"
+    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:8px'>"
+    +   "엑셀처럼 쓰세요 — 칸을 <b>끌어서</b> 여러 개 고르고, 바로 <b>글자를 치면</b> 들어갑니다 · "
+    +   "<b>" + _lpMod() + "C / " + _lpMod() + "V</b> 로 엑셀과 주고받을 수 있어요 · "
+    +   "고친 칸(✎)은 다시 만들어도 그대로 남습니다</div>"
     + "<div id='lpEvtTray'></div>"
     + "<div id='lpSelBar' style='display:none;align-items:center;gap:6px;flex-wrap:wrap;"
     +   "background:#EFF4EA;border:1px solid #CFE0D3;border-radius:10px;"
     +   "padding:8px 11px;margin-bottom:10px'></div>"
-    + "<div style='overflow-x:auto'>" + _lpGrid(false) + "</div>"
-    + "<div style='display:flex;align-items:center;gap:8px;margin-top:10px'>"
+    + "<div id='lpSheet' tabindex='0' style='overflow-x:auto;outline:none'>"
+    +   _lpGrid(false) + "</div>"
+    + "<div style='display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap'>"
     +   "<button type='button' onclick='lpAddWeek()' style='background:#F2F5EE;color:#3F5233;"
     +     "border:1.5px solid #DDE5D6;border-radius:20px;padding:6px 14px;font-size:12px;"
     +     "font-weight:700;cursor:pointer'>＋ 주 추가</button>"
-    +   "<span style='font-size:11px;color:#A8B09C'>"
-    +     "칸을 Shift 로 여러 개 고르면 한꺼번에 고칠 수 있어요</span>"
+    +   "<button type='button' onclick='lpKeyHelp()' style='background:#fff;color:#7E8A74;"
+    +     "border:1.5px solid #E2E8D8;border-radius:20px;padding:6px 14px;font-size:12px;"
+    +     "font-weight:700;cursor:pointer'>⌨ 단축키 보기</button>"
     + "</div>";
+  lpGridBind();
+  _lpPaint();
   lpLoadEvents();
+}
+
+//  ⌘ (맥) 인지 Ctrl (윈도우) 인지
+function _lpMod(){
+  return /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '')
+    ? '⌘' : 'Ctrl';
+}
+
+function lpKeyHelp(){
+  var m = _lpMod();
+  wgModal({
+    title: '엑셀처럼 쓰는 법',
+    sub: '레슨플랜 계획표',
+    saveLabel: '알겠어요',
+    html:
+        "<div style='font-size:12.5px;color:#3F5233;line-height:2'>"
+      +   "<b>칸 고르기</b><br>"
+      +   "· 칸을 누른 뒤 <b>끌면</b> 네모로 여러 칸이 골라집니다<br>"
+      +   "· <b>Shift + 누르기</b> — 거기까지 넓히기<br>"
+      +   "· <b>" + m + " + 누르기</b> — 떨어져 있는 칸 더 고르기<br>"
+      +   "· <b>" + m + " + A</b> — 전체<br>"
+      +   "· <b>화살표</b> 로 옮기고, <b>Shift + 화살표</b> 로 넓힙니다<br><br>"
+      +   "<b>쓰기</b><br>"
+      +   "· 칸을 고르고 <b>글자를 바로 치면</b> 덮어 씁니다<br>"
+      +   "· <b>Enter</b> 또는 <b>두 번 누르기</b> — 고치기 (Enter 로 아래 칸)<br>"
+      +   "· <b>Tab</b> — 오른쪽 칸<br>"
+      +   "· <b>Delete</b> — 고른 칸 비우기<br>"
+      +   "· <b>Esc</b> — 해제<br><br>"
+      +   "<b>복사 · 붙여넣기</b><br>"
+      +   "· <b>" + m + " + C / X / V</b><br>"
+      +   "· <b>엑셀에서 복사한 표</b> 를 그대로 붙여넣을 수 있고,<br>"
+      +   "&nbsp;&nbsp;여기서 복사한 것도 <b>엑셀에 그대로</b> 붙습니다<br>"
+      +   "· 고른 네모가 더 크면 그 안을 <b>되풀이해</b> 채웁니다"
+      + "</div>",
+    fields: [],
+    onSave: function(){}
+  });
 }
 
 // ════════════════════════════════════════════════════════════
@@ -15251,77 +15296,360 @@ function lpSaveNewCell(date, period, label){
 //    고르고 나면 위에 띠가 떠서
 //    [한꺼번에 쓰기] [복사] [붙여넣기] [지우기] 를 할 수 있습니다.
 // ════════════════════════════════════════════════════════════
-var _lpSel     = [];     // 고른 칸들 (date|period)
-var _lpSelLast = '';     // 마지막으로 누른 칸 (Shift 범위의 기준)
-var _lpClip    = [];     // 복사해 둔 글자들
+var _lpSel     = [];      // 지금 고른 칸들 (date|period)
+var _lpSelLast = '';      // 호환용
+var _lpClip    = [];      // 안에서 복사해 둔 것 (줄 × 칸)
+var _lpAnchor  = null;    // 네모의 한쪽 끝 {r,c}
+var _lpFocus   = null;    // 지금 칸 (굵은 테두리) {r,c}
+var _lpKeep    = [];      // Ctrl 로 따로 더 고른 칸들
+var _lpDrag    = false;   // 마우스를 끌고 있는 중
+var _lpEditing = false;   // 칸 안에서 글자를 쓰는 중
+var _lpWant    = null;    // 저장 후 다시 돌려줄 자리
 
+// ── 칸 찾기 ──────────────────────────────────────────────
 function _lpCells(){
-  return Array.prototype.slice.call(
-    document.querySelectorAll('#lpBox td.lpc'));
+  return Array.prototype.slice.call(document.querySelectorAll('#lpBox td.lpc'));
 }
 function _lpKeyList(){
   return _lpCells().map(function(td){ return td.getAttribute('data-k'); });
 }
+function _lpAt(r, c){
+  return document.querySelector('#lpBox td.lpc[data-r="' + r + '"][data-c="' + c + '"]');
+}
+function _lpDims(){
+  var rows = 0, cols = 0;
+  _lpCells().forEach(function(td){
+    rows = Math.max(rows, Number(td.getAttribute('data-r')) + 1);
+    cols = Math.max(cols, Number(td.getAttribute('data-c')) + 1);
+  });
+  return { rows:rows, cols:cols };
+}
+function _lpTextOf(key){
+  var e = _lpPlan.filter(function(x){ return (x.date + '|' + x.period) === key; })[0];
+  return e ? String(e.label || '') : '';
+}
+
+// ── 네모(범위) ───────────────────────────────────────────
+function _lpRect(){
+  if(!_lpAnchor || !_lpFocus) return null;
+  return {
+    r1: Math.min(_lpAnchor.r, _lpFocus.r), r2: Math.max(_lpAnchor.r, _lpFocus.r),
+    c1: Math.min(_lpAnchor.c, _lpFocus.c), c2: Math.max(_lpAnchor.c, _lpFocus.c)
+  };
+}
+function _lpSelFromRect(){
+  var R = _lpRect();
+  var out = _lpKeep.slice();
+  if(R){
+    for(var r = R.r1; r <= R.r2; r++){
+      for(var c = R.c1; c <= R.c2; c++){
+        var td = _lpAt(r, c);
+        if(td && out.indexOf(td.getAttribute('data-k')) < 0) out.push(td.getAttribute('data-k'));
+      }
+    }
+  }
+  _lpSel = out;
+  var ftd = _lpFocus ? _lpAt(_lpFocus.r, _lpFocus.c) : null;
+  _lpSelLast = ftd ? ftd.getAttribute('data-k') : '';
+  _lpPaint();
+}
+
+// ── 칠하기 ───────────────────────────────────────────────
 function _lpPaint(){
   _lpCells().forEach(function(td){
-    var on = _lpSel.indexOf(td.getAttribute('data-k')) >= 0;
-    td.style.boxShadow = on ? 'inset 0 0 0 2px #2D6A4F' : '';
-    td.style.background = on ? '#EFF7EE'
-      : (td.getAttribute('data-id') ? td.style.background : td.style.background);
+    var on  = _lpSel.indexOf(td.getAttribute('data-k')) >= 0;
+    var bg  = td.getAttribute('data-bg') || '#fff';
+    var isF = _lpFocus
+           && Number(td.getAttribute('data-r')) === _lpFocus.r
+           && Number(td.getAttribute('data-c')) === _lpFocus.c;
+    td.style.background = on ? '#E9F2E5' : bg;
+    td.style.boxShadow  = isF ? 'inset 0 0 0 2.5px #2D6A4F'
+                        : on  ? 'inset 0 0 0 1px #A9C7AE' : '';
   });
   renderLpBar();
 }
 
-function lpCellTap(ev, key){
-  //  행사를 들고 계시면 그걸 먼저 놓습니다
-  if(_lpHeld !== null && _lpEvents[_lpHeld]){
-    var td0 = document.querySelector('#lpBox td[data-k="' + key + '"]');
-    var id0 = td0 ? td0.getAttribute('data-id') : '';
-    var t0  = _lpEvents[_lpHeld].title;
-    _lpHeld = null; renderLpTray();
-    if(id0) lpPutEvent(id0, t0);
-    else {
-      var pp = key.split('|');
-      lpSaveNewCell(pp[0], pp[1], t0);
-    }
-    return;
-  }
-
-  var multi = ev && (ev.ctrlKey || ev.metaKey);
-  var range = ev && ev.shiftKey;
-
-  if(range && _lpSelLast){
-    var keys = _lpKeyList();
-    var a = keys.indexOf(_lpSelLast), b = keys.indexOf(key);
-    if(a >= 0 && b >= 0){
-      var from = Math.min(a, b), to = Math.max(a, b);
-      _lpSel = keys.slice(from, to + 1);
-      _lpPaint();
-      return;
-    }
-  }
-  if(multi){
-    var i = _lpSel.indexOf(key);
-    if(i >= 0) _lpSel.splice(i, 1); else _lpSel.push(key);
-    _lpSelLast = key;
-    _lpPaint();
-    return;
-  }
-
-  //  그냥 누르면 — 고른 게 있으면 먼저 풀고, 아니면 한 칸 고치기
-  if(_lpSel.length > 1){ _lpSel = []; _lpPaint(); }
-  _lpSel = [key]; _lpSelLast = key;
+function lpSelClear(){
+  _lpSel = []; _lpKeep = []; _lpAnchor = null; _lpFocus = null; _lpSelLast = '';
   _lpPaint();
-
-  var td = document.querySelector('#lpBox td[data-k="' + key + '"]');
-  var id = td ? td.getAttribute('data-id') : '';
-  if(id) lpEditCell(id);
-  else { var p2 = key.split('|'); lpNewCell(p2[0], p2[1]); }
 }
 
-function lpSelClear(){ _lpSel = []; _lpSelLast = ''; _lpPaint(); }
+// ── 마우스 — 끌어서 네모로 고르기 ─────────────────────────
+function lpGridBind(){
+  var sheet = document.getElementById('lpSheet');
+  if(!sheet || sheet._lpBound) return;
+  sheet._lpBound = true;
 
-//  계획표 아래에 빈 주를 더 보여 줍니다 (＋ 를 눌러 적으시면 됩니다)
+  function cellOf(t){
+    while(t && t !== sheet){
+      if(t.className && String(t.className).indexOf('lpc') >= 0 && t.tagName === 'TD') return t;
+      t = t.parentNode;
+    }
+    return null;
+  }
+
+  sheet.addEventListener('mousedown', function(ev){
+    var td = cellOf(ev.target);
+    if(!td) return;
+
+    //  행사를 손에 들고 계시면 그 칸에 놓습니다
+    if(_lpHeld !== null && _lpEvents[_lpHeld]){
+      ev.preventDefault();
+      var key0 = td.getAttribute('data-k'), id0 = td.getAttribute('data-id');
+      var t0 = _lpEvents[_lpHeld].title;
+      _lpHeld = null; renderLpTray();
+      if(id0) lpPutEvent(id0, t0);
+      else { var pp = key0.split('|'); lpSaveNewCell(pp[0], pp[1], t0); }
+      return;
+    }
+
+    //  글자를 쓰고 있던 칸을 그대로 누른 거면 건드리지 않습니다
+    if(_lpEditing && _lpFocus && td === _lpAt(_lpFocus.r, _lpFocus.c)) return;
+    if(_lpEditing) _lpCommitEdit();
+
+    ev.preventDefault();
+    sheet.focus();
+    var r = Number(td.getAttribute('data-r')), c = Number(td.getAttribute('data-c'));
+
+    if(ev.shiftKey && _lpAnchor){
+      _lpFocus = { r:r, c:c };
+    } else if(ev.ctrlKey || ev.metaKey){
+      _lpKeep  = _lpSel.slice();
+      _lpAnchor = { r:r, c:c }; _lpFocus = { r:r, c:c };
+    } else {
+      _lpKeep = [];
+      _lpAnchor = { r:r, c:c }; _lpFocus = { r:r, c:c };
+    }
+    _lpDrag = true;
+    _lpSelFromRect();
+  });
+
+  sheet.addEventListener('mouseover', function(ev){
+    if(!_lpDrag) return;
+    var td = cellOf(ev.target);
+    if(!td) return;
+    _lpFocus = { r:Number(td.getAttribute('data-r')), c:Number(td.getAttribute('data-c')) };
+    _lpSelFromRect();
+  });
+
+  sheet.addEventListener('dblclick', function(ev){
+    var td = cellOf(ev.target);
+    if(!td) return;
+    ev.preventDefault();
+    _lpFocus = { r:Number(td.getAttribute('data-r')), c:Number(td.getAttribute('data-c')) };
+    _lpAnchor = { r:_lpFocus.r, c:_lpFocus.c };
+    _lpKeep = [];
+    _lpSelFromRect();
+    lpStartEdit();
+  });
+
+  if(!document._lpUpBound){
+    document._lpUpBound = true;
+    document.addEventListener('mouseup', function(){ _lpDrag = false; });
+  }
+}
+
+// ── 칸 사이 움직이기 ─────────────────────────────────────
+function lpMoveFocus(dr, dc, extend){
+  var d = _lpDims();
+  if(!d.rows) return;
+  if(!_lpFocus){ _lpFocus = { r:0, c:0 }; _lpAnchor = { r:0, c:0 }; }
+  var r = Math.max(0, Math.min(d.rows - 1, _lpFocus.r + dr));
+  var c = Math.max(0, Math.min(d.cols - 1, _lpFocus.c + dc));
+  //  그 자리에 칸이 없으면(주 머리글 줄) 한 칸 더 갑니다
+  var guard = 0;
+  while(!_lpAt(r, c) && guard++ < d.rows){
+    if(dr){ r += (dr > 0 ? 1 : -1); if(r < 0 || r > d.rows - 1){ r = _lpFocus.r; break; } }
+    else break;
+  }
+  if(!_lpAt(r, c)) return;
+  _lpFocus = { r:r, c:c };
+  if(!extend){ _lpAnchor = { r:r, c:c }; _lpKeep = []; }
+  _lpSelFromRect();
+  var td = _lpAt(r, c);
+  if(td && td.scrollIntoView) td.scrollIntoView({ block:'nearest', inline:'nearest' });
+}
+
+function lpSelectAll(){
+  var d = _lpDims();
+  if(!d.rows) return;
+  _lpKeep = [];
+  _lpAnchor = { r:0, c:0 };
+  _lpFocus  = { r:d.rows - 1, c:d.cols - 1 };
+  _lpSelFromRect();
+}
+
+// ── 칸 안에서 바로 쓰기 ──────────────────────────────────
+function lpStartEdit(seed){
+  if(_lpEditing || !_lpFocus) return;
+  var td = _lpAt(_lpFocus.r, _lpFocus.c);
+  if(!td) return;
+  _lpEditing = true;
+  var key = td.getAttribute('data-k');
+  var cur = (seed === undefined || seed === null) ? _lpTextOf(key) : String(seed);
+
+  td.setAttribute('data-html', td.innerHTML);
+  td.innerHTML = '';
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.className = 'lpedit';
+  inp.value = cur;
+  inp.style.cssText = 'width:100%;box-sizing:border-box;border:2px solid #2D6A4F;'
+    + 'border-radius:3px;padding:2px 3px;font-size:11.5px;font-family:inherit;'
+    + 'text-align:center;outline:none;background:#fff;color:#1F2A1B';
+  td.appendChild(inp);
+  inp.focus();
+  if(seed === undefined || seed === null) inp.select();
+  else inp.setSelectionRange(inp.value.length, inp.value.length);
+
+  inp.addEventListener('keydown', function(ev){
+    var k = ev.key;
+    if(k === 'Enter'){ ev.preventDefault(); ev.stopPropagation(); _lpCommitEdit(1, 0); }
+    else if(k === 'Tab'){ ev.preventDefault(); ev.stopPropagation(); _lpCommitEdit(0, ev.shiftKey ? -1 : 1); }
+    else if(k === 'Escape'){ ev.preventDefault(); ev.stopPropagation(); _lpCancelEdit(); }
+    else ev.stopPropagation();
+  });
+  inp.addEventListener('blur', function(){ if(_lpEditing) _lpCommitEdit(); });
+}
+
+function _lpEditTd(){
+  var inp = document.querySelector('#lpBox input.lpedit');
+  return inp ? inp.parentNode : null;
+}
+function _lpCancelEdit(){
+  var td = _lpEditTd();
+  if(td){ td.innerHTML = td.getAttribute('data-html') || ''; td.removeAttribute('data-html'); }
+  _lpEditing = false;
+  var sheet = document.getElementById('lpSheet');
+  if(sheet) sheet.focus();
+  _lpPaint();
+}
+function _lpCommitEdit(dr, dc){
+  var inp = document.querySelector('#lpBox input.lpedit');
+  if(!inp){ _lpEditing = false; return; }
+  var td  = inp.parentNode;
+  var key = td.getAttribute('data-k');
+  var val = String(inp.value || '').trim();
+  var was = _lpTextOf(key);
+  _lpEditing = false;
+  td.innerHTML = td.getAttribute('data-html') || '';
+  td.removeAttribute('data-html');
+  var sheet = document.getElementById('lpSheet');
+  if(sheet) sheet.focus();
+
+  if(dr || dc) lpMoveFocus(dr || 0, dc || 0, false);
+  else _lpPaint();
+
+  if(val !== was) _lpApply([{ key:key, text:val }]);
+}
+
+// ── 복사 · 붙여넣기 (진짜 엑셀과 주고받습니다) ──────────
+function _lpRectText(){
+  var R = _lpRect();
+  if(!R) return '';
+  var out = [];
+  for(var r = R.r1; r <= R.r2; r++){
+    var row = [];
+    for(var c = R.c1; c <= R.c2; c++){
+      var td = _lpAt(r, c);
+      row.push(td ? _lpTextOf(td.getAttribute('data-k')) : '');
+    }
+    out.push(row.join('\t'));
+  }
+  return out.join('\n');
+}
+
+function _lpWriteClip(text){
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){}
+  try{
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.parentNode.removeChild(ta);
+    var sheet = document.getElementById('lpSheet');
+    if(sheet) sheet.focus();
+    return true;
+  }catch(e){}
+  return false;
+}
+
+function lpCopy(){
+  var txt = _lpRectText();
+  if(!txt && !_lpSel.length){ showToast('고른 칸이 없어요.'); return; }
+  //  앱 안에서도 쓰고, 엑셀에도 넘겨 줍니다
+  _lpClip = txt.split('\n').map(function(l){ return l.split('\t'); });
+  _lpWriteClip(txt);
+  showToast(_lpSel.length + '칸을 복사했어요 — 엑셀에 바로 붙여넣을 수 있습니다.');
+  renderLpBar();
+}
+
+function lpCut(){
+  lpCopy();
+  _lpApply(_lpSelSorted().map(function(k){ return { key:k, text:'' }; }));
+}
+
+//  글자 덩어리(엑셀에서 복사한 것 포함)를 지금 칸부터 채웁니다
+function lpPasteText(text){
+  var lines = String(text).replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  while(lines.length && lines[lines.length - 1] === '') lines.pop();
+  if(!lines.length){ showToast('붙여넣을 것이 없어요.'); return; }
+  var mat = lines.map(function(l){ return l.split('\t'); });
+
+  var R = _lpRect();
+  if(!R){ showToast('먼저 붙여넣을 칸을 눌러 주세요.'); return; }
+
+  var selR = R.r2 - R.r1 + 1, selC = R.c2 - R.c1 + 1;
+  var mR = mat.length, mC = 0;
+  mat.forEach(function(row){ mC = Math.max(mC, row.length); });
+
+  //  고른 네모가 더 크면 그 안을 되풀이해 채웁니다 (엑셀과 같습니다)
+  var hR = (selR > mR || selC > mC) ? selR : mR;
+  var hC = (selR > mR || selC > mC) ? selC : mC;
+
+  var list = [], keys = [];
+  for(var i = 0; i < hR; i++){
+    for(var j = 0; j < hC; j++){
+      var td = _lpAt(R.r1 + i, R.c1 + j);
+      if(!td) continue;
+      var src = mat[i % mR];
+      var v = src[j % Math.max(1, src.length)];
+      if(v === undefined) continue;
+      var key = td.getAttribute('data-k');
+      var txt = String(v).trim();
+      keys.push(key);
+      if(txt !== _lpTextOf(key)) list.push({ key:key, text:txt });
+    }
+  }
+  if(!list.length){ showToast('바뀐 칸이 없어요.'); return; }
+  _lpWant = { focus:_lpFocus, anchor:_lpAnchor, keys:keys };
+  _lpApply(list);
+}
+
+function lpPaste(){
+  //  띠의 [붙여넣기] 버튼 — 앱 안에서 복사한 것을 씁니다
+  if(navigator.clipboard && navigator.clipboard.readText){
+    navigator.clipboard.readText().then(function(t){
+      if(t && String(t).trim()) lpPasteText(t);
+      else _lpPasteInner();
+    }).catch(function(){ _lpPasteInner(); });
+    return;
+  }
+  _lpPasteInner();
+}
+function _lpPasteInner(){
+  if(!_lpClip.length){ showToast('복사해 둔 것이 없어요. (칸을 고르고 ⌘/Ctrl+C)'); return; }
+  lpPasteText(_lpClip.map(function(row){ return row.join('\t'); }).join('\n'));
+}
+
+//  계획표 아래에 빈 주를 더 보여 줍니다
 var _lpExtraWeeks = 0;
 function lpAddWeek(){
   _lpExtraWeeks++;
@@ -15333,7 +15661,7 @@ function lpAddWeek(){
 function renderLpBar(){
   var bar = document.getElementById('lpSelBar');
   if(!bar) return;
-  if(_lpSel.length < 2){ bar.style.display = 'none'; return; }
+  if(!_lpSel.length){ bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
   function btn(txt, fn, main){
     return "<button type='button' onclick='" + fn + "' style='background:"
@@ -15341,35 +15669,37 @@ function renderLpBar(){
       + ";border:1.5px solid " + (main ? '#2D6A4F' : '#DDE5D6') + ";border-radius:20px;"
       + "padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer'>" + txt + "</button>";
   }
+  var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+  var mod = mac ? '⌘' : 'Ctrl';
   bar.innerHTML =
       "<span style='font-size:12px;font-weight:800;color:#2D6A4F'>"
     +   _lpSel.length + "칸 고름</span>"
-    + btn('✏️ 한꺼번에 쓰기', 'lpBulkWrite()', true)
-    + btn('📋 복사', 'lpCopy()')
-    + btn('📄 붙여넣기' + (_lpClip.length ? ' (' + _lpClip.length + ')' : ''), 'lpPaste()')
-    + btn('🧹 지우기', 'lpBulkClear()')
-    + btn('✕ 해제', 'lpSelClear()');
+    + btn('✏️ 쓰기 (Enter)', 'lpStartEdit()', true)
+    + btn('📋 복사 ' + mod + 'C', 'lpCopy()')
+    + btn('📄 붙여넣기 ' + mod + 'V', 'lpPaste()')
+    + btn('🧹 지우기 (Delete)', 'lpBulkClear()')
+    + btn('🖊 한꺼번에 같은 내용', 'lpBulkWrite()')
+    + (_lpSel.length === 1 && _lpFocusId() ? btn('⤓ 끼워 넣고 밀기', 'lpDetail()') : '')
+    + btn('✕ 해제 (Esc)', 'lpSelClear()');
+}
+
+//  지금 칸에 들어 있는 수업의 id (빈 칸이면 '')
+function _lpFocusId(){
+  if(!_lpFocus) return '';
+  var td = _lpAt(_lpFocus.r, _lpFocus.c);
+  return td ? (td.getAttribute('data-id') || '') : '';
+}
+//  한 칸만 골랐을 때 — 끼워 넣고 뒤로 밀기 창
+function lpDetail(){
+  var id = _lpFocusId();
+  if(id) lpEditCell(id);
+  else showToast('수업이 적힌 칸을 골라 주세요.');
 }
 
 //  고른 칸들을 날짜·교시 순서로
 function _lpSelSorted(){
   var keys = _lpKeyList();
   return _lpSel.slice().sort(function(a, b){ return keys.indexOf(a) - keys.indexOf(b); });
-}
-
-function lpCopy(){
-  _lpClip = _lpSelSorted().map(function(k){
-    var e = _lpPlan.filter(function(x){ return (x.date + '|' + x.period) === k; })[0];
-    return e ? (e.label || '') : '';
-  });
-  showToast(_lpClip.length + '칸을 복사했어요.');
-  renderLpBar();
-}
-
-function lpPaste(){
-  if(!_lpClip.length){ showToast('복사해 둔 것이 없어요.'); return; }
-  var keys = _lpSelSorted();
-  _lpApply(keys.map(function(k, i){ return { key:k, text:_lpClip[i % _lpClip.length] }; }));
 }
 
 function lpBulkWrite(){
@@ -15391,22 +15721,32 @@ function lpBulkWrite(){
 
 function lpBulkClear(){
   var n = _lpSel.length;
-  if(!confirm(n + '칸을 비울까요?\n\n진도는 다시 밀리지 않습니다 — 칸만 비웁니다.')) return;
+  if(!n){ showToast('고른 칸이 없어요.'); return; }
+  if(!confirm(n + '칸을 비울까요?\n\n수업이 적혀 있던 칸은 글자만 지워집니다.\n'
+    + '진도는 다시 밀리지 않습니다 — 칸만 비웁니다.')) return;
+  var keep = { focus:_lpFocus, anchor:_lpAnchor, keys:_lpSel.slice() };
+  _lpWant = keep;
   _lpApply(_lpSelSorted().map(function(k){ return { key:k, text:'' }; }));
 }
 
 //  고른 칸들에 글자를 넣습니다 (하나씩 차례대로 저장)
 function _lpApply(list){
   var i = 0, done = 0, fail = 0;
-  showToast('쓰는 중…');
+  var want = _lpWant || { focus:_lpFocus, anchor:_lpAnchor, keys:null };
+  _lpWant = null;
+  if(list.length > 1) showToast('쓰는 중…');
   function next(){
     if(i >= list.length){
       google.script.run
         .withSuccessHandler(function(r){
           _lpPlan = (r && r.entries) || [];
-          _lpSel = []; _lpSelLast = '';
           renderLessonPlan();
-          showToast(done + '칸 적었어요.' + (fail ? ' ' + fail + '칸 실패' : ''));
+          //  고쳐 놓고 자리를 잃지 않게 — 네모를 그대로 되돌립니다
+          _lpFocus = want.focus; _lpAnchor = want.anchor; _lpKeep = [];
+          if(want.keys){ _lpSel = want.keys.slice(); _lpPaint(); }
+          else _lpSelFromRect();
+          if(list.length > 1) showToast(done + '칸 적었어요.' + (fail ? ' ' + fail + '칸 실패' : ''));
+          else if(fail) showToast('저장하지 못했어요.');
         })
         .fetchClassLessonPlan(_lpCid, _lpTerm);
       return;
@@ -15428,15 +15768,97 @@ function _lpApply(list){
   next();
 }
 
-//  키보드 — Ctrl/⌘ + C · V
-document.addEventListener('keydown', function(ev){
-  if(!_lpSel.length) return;
+// ════════════════════════════════════════════════════════════
+//  키보드 — 엑셀과 똑같이
+//
+//    ← ↑ → ↓        칸 옮기기        Shift + 화살표   네모 늘리기
+//    Enter · F2     그 칸에 쓰기      Tab             오른쪽 칸
+//    글자를 바로 치면 그 칸에 덮어 씁니다
+//    ⌘/Ctrl + C · X · V · A         복사 · 잘라내기 · 붙여넣기 · 전체
+//    Delete · Backspace             고른 칸 비우기
+//    Esc                            해제
+// ════════════════════════════════════════════════════════════
+function _lpSheetOn(){
   var box = document.getElementById('lpBox');
-  if(!box || box.offsetParent === null) return;
-  if(!(ev.ctrlKey || ev.metaKey)) return;
-  var k = String(ev.key || '').toLowerCase();
-  if(k === 'c'){ ev.preventDefault(); lpCopy(); }
-  if(k === 'v'){ ev.preventDefault(); lpPaste(); }
+  if(!box || box.offsetParent === null) return false;
+  if(document.getElementById('lpCellBox')) return false;   // 창이 떠 있으면 비켜 줍니다
+  if(document.getElementById('wgModal')) return false;
+  return true;
+}
+
+document.addEventListener('keydown', function(ev){
+  if(_lpEditing) return;
+  if(!_lpSheetOn()) return;
+
+  var t = ev.target;
+  var tag = t && t.tagName;
+  if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+  var mod = ev.ctrlKey || ev.metaKey;
+  var k = ev.key;
+
+  if(mod){
+    var lk = String(k || '').toLowerCase();
+    if(lk === 'c'){ ev.preventDefault(); lpCopy(); return; }
+    if(lk === 'x'){ ev.preventDefault(); lpCut();  return; }
+    if(lk === 'a'){ ev.preventDefault(); lpSelectAll(); return; }
+    if(lk === 'v'){ return; }   // 아래 paste 가 받습니다
+    return;
+  }
+
+  //  칸을 한 번 눌러 두신 뒤에만 키보드가 움직입니다
+  if(!_lpFocus) return;
+
+  if(k === 'ArrowUp'   ){ ev.preventDefault(); lpMoveFocus(-1, 0, ev.shiftKey); return; }
+  if(k === 'ArrowDown' ){ ev.preventDefault(); lpMoveFocus( 1, 0, ev.shiftKey); return; }
+  if(k === 'ArrowLeft' ){ ev.preventDefault(); lpMoveFocus( 0,-1, ev.shiftKey); return; }
+  if(k === 'ArrowRight'){ ev.preventDefault(); lpMoveFocus( 0, 1, ev.shiftKey); return; }
+  if(k === 'Tab'       ){ ev.preventDefault(); lpMoveFocus(0, ev.shiftKey ? -1 : 1, false); return; }
+
+  if(k === 'Enter' || k === 'F2'){ ev.preventDefault(); lpStartEdit(); return; }
+  if(k === 'Escape'){ ev.preventDefault(); lpSelClear(); return; }
+  if(k === 'Delete' || k === 'Backspace'){
+    ev.preventDefault();
+    if(_lpSel.length > 1) lpBulkClear();
+    else {
+      var td = _lpAt(_lpFocus.r, _lpFocus.c);
+      if(td) _lpApply([{ key:td.getAttribute('data-k'), text:'' }]);
+    }
+    return;
+  }
+  //  글자를 바로 치면 그 칸에 덮어 씁니다
+  if(k && k.length === 1 && !ev.altKey){
+    ev.preventDefault();
+    lpStartEdit(k);
+  }
+});
+
+//  엑셀에서 복사한 것을 그대로 받습니다
+document.addEventListener('paste', function(ev){
+  if(_lpEditing) return;
+  if(!_lpSheetOn()) return;
+  if(!_lpFocus) return;
+  var t = ev.target, tag = t && t.tagName;
+  if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+  var txt = '';
+  try{ txt = (ev.clipboardData || window.clipboardData).getData('text'); }catch(e){}
+  if(!txt) return;
+  ev.preventDefault();
+  lpPasteText(txt);
+});
+
+//  엑셀처럼 — 고른 칸을 ⌘C 로 복사
+document.addEventListener('copy', function(ev){
+  if(_lpEditing) return;
+  if(!_lpSheetOn() || !_lpSel.length) return;
+  var t = ev.target, tag = t && t.tagName;
+  if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+  var txt = _lpRectText();
+  if(!txt) return;
+  try{
+    (ev.clipboardData || window.clipboardData).setData('text/plain', txt);
+    ev.preventDefault();
+  }catch(e){}
 });
 
 // 칸을 누르면 — 행사를 들고 계시면 그 칸에 놓고, 아니면 고치기 창을 엽니다
