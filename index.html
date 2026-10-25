@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-15 17:20';
+var APP_VERSION = '2026-10-25 10:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2109,27 +2109,54 @@ async function saveLessonPlanLines(classId, lines, termNo) {
 // ── 생성기 ──────────────────────────────────────────────────
 //   lines[i] = { key, units[], weekdays[], startDate, reviewEvery, isMain, label }
 // ════════════════════════════════════════════════════════════
-//  중간고사를 언제 보나요? — 영역마다 정해진 레슨이 끝난 뒤입니다.
+//  시험을 언제 보나요? — 영역마다 정해진 레슨이 끝난 뒤입니다.
 //
-//    Star · Galaxy
-//      Play House  Lesson 4 까지 → Mid-term      Lesson 8 까지 → Final
-//      Story Club  Lesson 2 까지 → Mid-term      Lesson 4 까지 → Final
-//      Talk Time   Lesson 2 까지 → Mid-term      Lesson 4 까지 → Final
+//    Star · Galaxy — 세 영역이 각각 다른 요일 (주 1회씩)
+//      Play House   8 레슨 · 한 레슨 1차시     L4 끝 → Mid-term   L8 끝 → Final
+//      Story Club   4 레슨 · 한 레슨 2차시     L2 끝 → Mid-term   L4 끝 → Final
+//      Talk Time    4 레슨 · 한 레슨 2차시     L2 끝 → Mid-term   L4 끝 → Final
 //
-//    여기 없는 영역(Junior 등)은 "차시의 절반" 을 지난 때로 봅니다.
+//      → 세 영역 모두 8차시 = 8주.  중간고사가 한 주를 쓰니 한 권이 10주쯤 됩니다.
+//      ※ Star 1-1 은 파닉스라 Play House 한 레슨이 1차시에 안 끝납니다.
+//        그건 교재 차시(curriculum_units)에 적힌 차시 수를 그대로 따르니
+//        레슨 번호로 보는 이 규칙은 그대로 맞습니다.
+//
+//    Junior
+//      Grammar      L5 끝 → Mid-term
+//      Reading      L3 끝 → Mid-term
+//      Speaking     L2 끝 → Mid-term
+//      Final 은 세 영역 진도를 "다 끝내면" 봅니다 (정해진 레슨 번호 없음)
+//
+//    TEMS 는 레슨플랜을 만들지 않습니다.
+//
+//    세 영역이 "모두" 그 레슨을 끝낸 다음 칸에 시험이 들어가고,
+//    그 뒤 회차는 한 칸씩 밀립니다.  Final 을 보면 그 권은 끝입니다.
 // ════════════════════════════════════════════════════════════
-var WG_MID_LESSON = [
-  { match:'playhouse', lesson:4 },
-  { match:'storyclub', lesson:2 },
-  { match:'talktime',  lesson:2 }
+var WG_TEST_LESSON = [
+  // Star · Galaxy
+  { match:'playhouse', mid:4, final:8 },
+  { match:'storyclub', mid:2, final:4 },
+  { match:'talktime',  mid:2, final:4 },
+  // Junior — final:0 은 "진도를 다 끝내면" 이라는 뜻입니다
+  { match:'grammar',   mid:5, final:0 },
+  { match:'reading',   mid:3, final:0 },
+  { match:'speaking',  mid:2, final:0 }
 ];
 
-function _lpMidLesson(key){
+function _lpTestLesson(key){
   var n = String(key || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  for(var i = 0; i < WG_MID_LESSON.length; i++){
-    if(n.indexOf(WG_MID_LESSON[i].match) >= 0) return WG_MID_LESSON[i].lesson;
+  for(var i = 0; i < WG_TEST_LESSON.length; i++){
+    if(n.indexOf(WG_TEST_LESSON[i].match) >= 0) return WG_TEST_LESSON[i];
   }
-  return 0;
+  return null;
+}
+function _lpMidLesson(key){
+  var r = _lpTestLesson(key);
+  return r ? r.mid : 0;
+}
+function _lpFinalLesson(key){
+  var r = _lpTestLesson(key);
+  return r ? r.final : 0;
 }
 
 // "Play House 4" · "Story Club 2 [1/2]" → 4 · 2
@@ -2186,6 +2213,7 @@ function _lpBuildLines(lines, opts) {
     return { no:i + 1, key:l.key, label:l.label || '', reviewLabel:l.reviewLabel || '',
              book:l.book || '',
              midLesson:_lpMidLesson(l.key || l.label || l.book || ''),
+             finalLesson:_lpFinalLesson(l.key || l.label || l.book || ''),
              weekdays:(l.weekdays || []).map(Number),
              from:l.startDate || '', isMain:!!l.isMain, testHost:!!l.testHost,
              oneShot:!!l.oneShot,
@@ -2200,20 +2228,34 @@ function _lpBuildLines(lines, opts) {
   var hosts = L.filter(function(l){ return l.testHost; });
   var lastBook = {};                    // 줄마다 지금 쓰고 있는 책
   var lastPart = {};                    // 줄마다 칸 위에 뜰 이름
-  var midDone = false, finalDone = false, midNo = null;
-  //  그 줄이 "중간고사 보는 레슨" 을 다 끝냈나요?
-  function lineMidReached(l){
+  var midDone = false, finalDone = false, midNo = null, finalByRule = false;
+
+  //  그 줄이 "정해진 레슨" 까지 다 끝냈나요?
+  //    예) Play House 4 → Lesson 4 의 마지막 회차까지 나갔으면 끝난 것
+  function lineReached(l, upto){
     if(!l.total) return true;
-    if(l.midLesson){
-      // 정해진 레슨(예: Play House 4)의 마지막 회차까지 다 나갔으면 끝난 것입니다
+    if(upto){
       var left = l.queue.some(function(u){
         var n = _lpLessonNo(u.label);
-        return n !== null && n <= l.midLesson;
+        return n !== null && n <= upto;
       });
       return !left;
     }
-    // 정해진 게 없는 영역은 절반을 지난 때로 봅니다
+    return null;        // 기준 숫자가 없는 영역
+  }
+
+  function lineMidReached(l){
+    var r = lineReached(l, l.midLesson);
+    if(r !== null) return r;
+    // 기준을 못 받은 영역(Junior · TEMS)은 절반을 지난 때로 봅니다
     return (l.total - l.queue.length) >= Math.floor(l.total / 2);
+  }
+
+  function lineFinalReached(l){
+    var r = lineReached(l, l.finalLesson);
+    if(r !== null) return r;
+    // 기준이 없으면 차시를 다 끝낸 때
+    return l.queue.length === 0;
   }
 
   function midReady(){
@@ -2221,6 +2263,18 @@ function _lpBuildLines(lines, opts) {
     var m = mainLines();
     if(!m.length) return false;
     return m.every(lineMidReached);
+  }
+
+  //  기말 — 메인 영역이 모두 "기말 레슨" 을 끝냈을 때
+  function finalReady(){
+    if(finalDone) return false;
+    var m = mainLines();
+    if(!m.length) return false;
+    return m.every(lineFinalReached);
+  }
+  //  기준 숫자를 가진 메인 줄이 하나라도 있나요? (Star · Galaxy)
+  function hasFinalRule(){
+    return mainLines().some(function(l){ return !!l.finalLesson; });
   }
 
   function _ymd(d){
@@ -2290,7 +2344,9 @@ function _lpBuildLines(lines, opts) {
       }
       p.test = name;
     }
-    function otherThanMid(p){ return hosts.length || p.c.line.no !== midNo; }
+    //  중간·기말을 서로 다른 요일 줄에 떼어 놓지 않습니다.
+    //  (예전에는 그렇게 했는데, 그건 제가 임의로 넣은 규칙이라 뺐습니다)
+    function otherThanMid(p){ return true; }
 
     // 진도를 다 끝낸 "뒤" 의 빈 칸에 놓습니다. 자리가 없으면 false → 다음 주로.
     function placeAfter(name){
@@ -2343,10 +2399,18 @@ function _lpBuildLines(lines, opts) {
       else   midPending = true;                            // 다음 주로 미룹니다
     }
 
-    // ④ 기말고사 — 메인 차시를 다 끝낸 "뒤"
-    if(!finalDone && !finalPending && midDone && mainLeft() === 0){
-      if(!placeAfter('Final Test')) finalPending = true;
-      else finalDone = true;
+    // ④ 기말고사
+    //    ⒜ 기준 숫자가 있으면 — Play House 8 · Story Club 4 · Talk Time 4 를
+    //       세 영역이 모두 끝낸 바로 다음 칸 (그 뒤는 한 칸씩 밀립니다)
+    //    ⒝ 기준이 없으면 — 예전처럼 메인 차시를 다 끝낸 뒤
+    if(!finalDone && !finalPending && midDone){
+      var byRule  = hasFinalRule() && finalReady();
+      var byEmpty = !hasFinalRule() && mainLeft() === 0;
+      if(byRule || byEmpty){
+        finalByRule = byRule;
+        if(!placeAfter('Final Test')) finalPending = true;
+        else finalDone = true;
+      }
     }
 
     // ⑤ 적어 내려갑니다
@@ -2381,9 +2445,12 @@ function _lpBuildLines(lines, opts) {
     });
 
     cur.setDate(cur.getDate() + 7);
+
+    //  Final Test 를 보면 그 권은 끝입니다 — 뒤로 더 늘리지 않습니다
+    if(finalDone && finalByRule) break;
   }
 
-  return { entries:out, weeks:week };
+  return { entries:out, weeks:week, leftover:mainLeft() };
 }
 
 // ── 만들어서 저장 ────────────────────────────────────────────
@@ -2508,8 +2575,9 @@ async function generateClassLessonPlan(classId, opts) {
   if(!build.some(function(b){ return b.isMain; })){
     return { success:false,
              error:'중간·기말을 놓을 메인 교재가 없어요.\n'
-                   + 'Star · Galaxy · New Super Junior 중 한 줄을 넣어주세요.\n'
-                   + '(Bricks Reading 같은 서브 교재는 시험이 없습니다)' };
+                   + 'Star · Galaxy · New Super Junior 중 한 줄을 넣어주세요.\n\n'
+                   + '· Bricks Reading 같은 서브 교재는 시험이 없습니다\n'
+                   + '· TEMS 반은 레슨플랜을 만들지 않습니다' };
   }
 
   var built = _lpBuildLines(build, {
@@ -14799,9 +14867,24 @@ function lpGenerate(btn){
   if(!_lpLines.some(function(l){ return l.textbookId; })){
     showToast("교재를 한 줄이라도 넣어주세요."); return;
   }
-  if(_lpPlan.length && !confirm("처음부터 다시 만들까요?\n\n"
-      + "손으로 고친 칸 · 끼워 넣은 수업이 모두 지워지고\n"
-      + "새 설정대로 깨끗하게 다시 짭니다.")) return;
+  //  ⚠ 손으로 고친 칸을 지울지 먼저 여쭙니다 (기본은 "그대로 두기")
+  var _keepEdits = true;
+  if(_lpPlan.length){
+    var _edited = _lpPlan.filter(function(e){ return e.locked; }).length;
+    if(_edited){
+      _keepEdits = confirm(
+          "손으로 고친 칸이 " + _edited + "개 있어요.\n\n"
+        + "[확인]  고친 칸은 그대로 두고 나머지만 다시 짭니다  ← 권장\n"
+        + "[취소]  고친 칸까지 전부 지우고 깨끗하게 다시 짭니다");
+      if(!_keepEdits){
+        if(!confirm("정말 지울까요?\n\n"
+          + "선생님들이 손으로 고친 칸 " + _edited + "개가 데이터베이스에서 사라집니다.\n"
+          + "지운 칸은 되돌릴 수 없습니다.")) return;
+      }
+    } else {
+      if(!confirm("처음부터 다시 만들까요?\n\n새 설정대로 깨끗하게 다시 짭니다.")) return;
+    }
+  }
   if(btn){ btn.disabled = true; btn.textContent = '만드는 중…'; }
 
   google.script.run
@@ -14818,7 +14901,8 @@ function lpGenerate(btn){
       if(btn){ btn.disabled = false; btn.textContent = '✨ 만들기'; }
       showToast("만들지 못했어요: " + (e && e.message ? e.message : ''));
     })
-    .generateClassLessonPlan(_lpCid, { startDate:start, lines:_lpLines, termNo:_lpTerm });
+    .generateClassLessonPlan(_lpCid, { startDate:start, lines:_lpLines, termNo:_lpTerm,
+                                       keepEdits:_keepEdits });
 }
 
 // ── 계획표 ──────────────────────────────────────────────────
@@ -15124,10 +15208,13 @@ function renderLessonPlan(problem){
     +   "white-space:nowrap'>🖼 사진으로 보기</button>"
     + "<button onclick='closeLessonPlan()' style='background:none;border:none;font-size:20px;"
     +   "cursor:pointer;color:#A8B09C'>✕</button></div>"
-    + "<div style='font-size:11px;color:#A8B09C;margin-bottom:8px'>"
-    +   "엑셀처럼 쓰세요 — 칸을 <b>끌어서</b> 여러 개 고르고, 바로 <b>글자를 치면</b> 들어갑니다 · "
-    +   "<b>" + _lpMod() + "C / " + _lpMod() + "V</b> 로 엑셀과 주고받을 수 있어요 · "
-    +   "고친 칸(✎)은 다시 만들어도 그대로 남습니다</div>"
+    + "<div style='font-size:11.5px;color:#5B6551;margin-bottom:8px;line-height:1.7;"
+    +   "background:#F7FAF5;border:1px solid #E4EBDE;border-radius:9px;padding:8px 11px'>"
+    +   "<b>칸을 하나 누르면</b> 위에 버튼이 뜹니다 — "
+    +   "진도가 밀렸으면 <b>[→ 하루 밀기]</b>, 한 주를 못 했으면 <b>[↓ 한 주 밀기]</b>, "
+    +   "할로윈 같은 건 <b>[🎉 행사 넣기]</b>, 시험 날짜는 <b>[⇄ 자리 바꾸기]</b>.<br>"
+    +   "잘못 눌러도 <b>[↩ 되돌리기]</b> 가 있습니다 · 고친 칸(✎)은 다시 만들어도 남습니다"
+    + "</div>"
     + "<div id='lpEvtTray'></div>"
     + "<div id='lpSelBar' style='display:none;align-items:center;gap:6px;flex-wrap:wrap;"
     +   "background:#EFF4EA;border:1px solid #CFE0D3;border-radius:10px;"
@@ -15156,12 +15243,26 @@ function _lpMod(){
 function lpKeyHelp(){
   var m = _lpMod();
   wgModal({
-    title: '엑셀처럼 쓰는 법',
+    title: '레슨플랜 고치는 법',
     sub: '레슨플랜 계획표',
     saveLabel: '알겠어요',
+    wide: true,
     html:
         "<div style='font-size:12.5px;color:#3F5233;line-height:2'>"
-      +   "<b>칸 고르기</b><br>"
+      +   "<b style='color:#2D6A4F'>자주 하는 일 — 칸 하나 누르고 버튼</b><br>"
+      +   "· <b>진도가 하루 밀렸다</b> → 못 한 날 칸을 누르고 <b>[→ 하루 밀기]</b><br>"
+      +   "&nbsp;&nbsp;그 칸부터 뒤가 전부 한 칸씩 내려가고, 자리가 모자라면 주를 더 만듭니다<br>"
+      +   "· <b>지난주를 아예 못 했다</b> → <b>[↓ 한 주 밀기]</b><br>"
+      +   "· <b>너무 밀어서 되돌리고 싶다</b> → <b>[← 하루 당기기]</b> 또는 <b>[↩ 되돌리기]</b><br>"
+      +   "· <b>할로윈 · 특강을 넣는다</b> → <b>[🎉 행사 넣기]</b> — 넣고 뒤를 한 칸씩 밉니다<br>"
+      +   "· <b>그날 휴강</b> → <b>[🚫 휴강 넣기]</b> — 진도가 다음 칸으로 밀립니다<br>"
+      +   "· <b>시험 날짜를 옮긴다</b> → 시험 칸을 누르고 <b>[⇄ 자리 바꾸기]</b> → 옮길 칸 누르기<br>"
+      +   "&nbsp;&nbsp;(두 칸 내용만 서로 바뀌고 진도는 안 밀립니다)<br>"
+      +   "· <b>↩ 되돌리기</b> 는 바로 전 한 번을 되돌립니다 (" + m + "+Z)<br><br>"
+      +   "<span style='font-size:11.5px;color:#8A9178'>밀기·당기기는 <b>같은 줄(같은 영역)</b> "
+      +   "안에서만 움직입니다. 월요일 Play House 를 밀어도 화요일 Story Club 은 그대로입니다."
+      +   "</span><br><br>"
+      +   "<b style='color:#2D6A4F'>엑셀처럼 — 여러 칸을 한꺼번에</b><br>"
       +   "· 칸을 누른 뒤 <b>끌면</b> 네모로 여러 칸이 골라집니다<br>"
       +   "· <b>Shift + 누르기</b> — 거기까지 넓히기<br>"
       +   "· <b>" + m + " + 누르기</b> — 떨어져 있는 칸 더 고르기<br>"
@@ -15501,6 +15602,13 @@ function lpGridBind(){
       return;
     }
 
+    //  ⇄ 자리 바꾸기 — 집어 든 상태면 이 칸과 바꿉니다
+    if(_lpSwapFrom){
+      ev.preventDefault();
+      lpSwapWith(td.getAttribute('data-k'));
+      return;
+    }
+
     //  글자를 쓰고 있던 칸을 그대로 누른 거면 건드리지 않습니다
     if(_lpEditing && _lpFocus && td === _lpAt(_lpFocus.r, _lpFocus.c)) return;
     if(_lpEditing) _lpCommitEdit();
@@ -15769,6 +15877,39 @@ function renderLpBar(){
   }
   var mac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
   var mod = mac ? '⌘' : 'Ctrl';
+  var undoBtn = _lpUndo ? btn('↩ 되돌리기 (' + _lpUndo.label + ')', 'lpUndo()') : '';
+
+  //  ① 자리 바꾸는 중
+  if(_lpSwapFrom){
+    bar.innerHTML =
+        "<span style='font-size:12px;font-weight:800;color:#B4651A'>"
+      +   "⇄ 바꿀 칸을 눌러 주세요</span>"
+      + "<span style='font-size:11px;color:#8A9178'>두 칸의 내용이 서로 바뀝니다</span>"
+      + btn('✕ 취소 (Esc)', 'lpSwapCancel()');
+    return;
+  }
+
+  //  ② 한 칸 — 선생님들이 제일 자주 하는 일들
+  if(_lpSel.length === 1){
+    bar.innerHTML =
+        "<span style='font-size:12px;font-weight:800;color:#2D6A4F'>이 칸</span>"
+      + btn('✏️ 쓰기', 'lpStartEdit()', true)
+      + "<span style='width:1px;height:18px;background:#D5E0D0'></span>"
+      + btn('→ 하루 밀기',   'lpPush(1)')
+      + btn('← 하루 당기기', 'lpPull(1)')
+      + btn('↓ 한 주 밀기',   'lpPushWeek()')
+      + btn('↑ 한 주 당기기', 'lpPullWeek()')
+      + "<span style='width:1px;height:18px;background:#D5E0D0'></span>"
+      + btn('🎉 행사 넣기', 'lpInsertEvent()')
+      + btn('🚫 휴강 넣기', 'lpInsertOff()')
+      + btn('⇄ 자리 바꾸기', 'lpSwapStart()')
+      + btn('🧹 비우기', 'lpBulkClear()')
+      + undoBtn
+      + btn('✕ 해제 (Esc)', 'lpSelClear()');
+    return;
+  }
+
+  //  ③ 여러 칸 — 엑셀처럼
   bar.innerHTML =
       "<span style='font-size:12px;font-weight:800;color:#2D6A4F'>"
     +   _lpSel.length + "칸 고름</span>"
@@ -15777,8 +15918,195 @@ function renderLpBar(){
     + btn('📄 붙여넣기 ' + mod + 'V', 'lpPaste()')
     + btn('🧹 지우기 (Delete)', 'lpBulkClear()')
     + btn('🖊 한꺼번에 같은 내용', 'lpBulkWrite()')
-    + (_lpSel.length === 1 && _lpFocusId() ? btn('⤓ 끼워 넣고 밀기', 'lpDetail()') : '')
+    + undoBtn
     + btn('✕ 해제 (Esc)', 'lpSelClear()');
+}
+
+// ════════════════════════════════════════════════════════════
+//  밀기 · 당기기
+//
+//  선생님들이 하는 말을 그대로 버튼으로 만들었습니다.
+//    "진도가 하루 밀렸어요"      → [→ 하루 밀기]
+//    "지난주를 못 했어요"        → [↓ 한 주 밀기]
+//    "할로윈 수업을 넣어야 해요" → [🎉 행사 넣기]  (넣고 뒤를 한 칸씩 밉니다)
+//    "시험을 다음 주로"          → [⇄ 자리 바꾸기]
+//
+//  같은 줄(같은 영역) 안에서만 움직입니다 — 월요일 Play House 를 밀면
+//  화요일 Story Club 은 그대로 있습니다.
+//  뒤로 밀려서 자리가 모자라면 주를 알아서 더 만듭니다.
+//  무엇을 하든 [↩ 되돌리기] 가 한 번 생깁니다.
+// ════════════════════════════════════════════════════════════
+var _lpUndo     = null;    // { list:[{key,text}], label }
+var _lpSwapFrom = null;    // 자리 바꾸기 — 집어 든 칸
+
+//  그 줄(교시)의 칸들을 날짜 순서로
+function _lpLineSeq(period){
+  var out = [];
+  _lpCells().forEach(function(td){
+    var k  = td.getAttribute('data-k');
+    var pp = String(k).split('|');
+    if(Number(pp[1]) !== Number(period)) return;
+    out.push({ key:k, date:pp[0] });
+  });
+  out.sort(function(a, b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  return out;
+}
+
+//  그 줄은 한 주에 몇 번 수업인가요 (요일 가짓수)
+function _lpWeekSlots(period){
+  var wd = {};
+  _lpLineSeq(period).forEach(function(x){
+    wd[new Date(x.date + 'T00:00:00').getDay()] = 1;
+  });
+  return Math.max(1, Object.keys(wd).length);
+}
+
+//  뒤로 밀 자리가 모자라면 같은 요일로 한 주씩 더 만듭니다
+function _lpSeqWithRoom(period, need){
+  var seq = _lpLineSeq(period);
+  var per = _lpWeekSlots(period);
+  for(var i = 0; i < need; i++){
+    var base = seq[seq.length - per] || seq[seq.length - 1];
+    if(!base) break;
+    var d = new Date(base.date + 'T00:00:00');
+    d.setDate(d.getDate() + 7);
+    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+           + '-' + String(d.getDate()).padStart(2,'0');
+    seq.push({ key:ds + '|' + period, date:ds });
+  }
+  return seq;
+}
+
+//  지금 고른 칸 → { key, period }
+function _lpHere(){
+  if(!_lpFocus){ showToast('칸을 하나 눌러 주세요.'); return null; }
+  var td = _lpAt(_lpFocus.r, _lpFocus.c);
+  if(!td){ showToast('칸을 하나 눌러 주세요.'); return null; }
+  var k = td.getAttribute('data-k');
+  return { key:k, period:Number(String(k).split('|')[1]) };
+}
+
+//  밀기 — 이 칸부터 뒤로 step 칸.  fill 을 주면 이 칸에 그 글자를 씁니다.
+function lpPush(step, fill){
+  var h = _lpHere(); if(!h) return;
+  step = Number(step) || 1;
+
+  var seq0 = _lpLineSeq(h.period);
+  var i0 = -1;
+  seq0.forEach(function(x, i){ if(x.key === h.key) i0 = i; });
+  if(i0 < 0){ showToast('이 칸은 밀 수 없어요.'); return; }
+
+  // 내용이 있는 마지막 칸이 어디까지 밀려 나가는지 보고 자리를 만듭니다
+  var lastFilled = -1;
+  seq0.forEach(function(x, i){ if(String(_lpTextOf(x.key)).trim()) lastFilled = i; });
+  var need = Math.max(0, (lastFilled + step) - (seq0.length - 1));
+
+  var seq    = _lpSeqWithRoom(h.period, need);
+  var before = seq.map(function(x){ return _lpTextOf(x.key); });
+  var after  = before.slice();
+  for(var i = after.length - 1; i >= i0; i--){
+    after[i] = (i - step >= i0) ? before[i - step] : '';
+  }
+  if(fill !== undefined && fill !== null) after[i0] = String(fill);
+
+  _lpCommitShift(seq, before, after,
+    (fill ? String(fill) + ' 넣기' : (step === 1 ? '하루 밀기' : step + '칸 밀기')));
+}
+
+//  당기기 — 이 칸으로 뒤 내용을 step 칸 끌어옵니다
+function lpPull(step){
+  var h = _lpHere(); if(!h) return;
+  step = Number(step) || 1;
+
+  var seq = _lpLineSeq(h.period);
+  var i0 = -1;
+  seq.forEach(function(x, i){ if(x.key === h.key) i0 = i; });
+  if(i0 < 0){ showToast('이 칸은 당길 수 없어요.'); return; }
+
+  var before = seq.map(function(x){ return _lpTextOf(x.key); });
+  var after  = before.slice();
+  for(var i = i0; i < after.length; i++){
+    after[i] = (i + step < before.length) ? before[i + step] : '';
+  }
+  _lpCommitShift(seq, before, after, step === 1 ? '하루 당기기' : step + '칸 당기기');
+}
+
+function lpPushWeek(){
+  var h = _lpHere(); if(!h) return;
+  lpPush(_lpWeekSlots(h.period));
+}
+function lpPullWeek(){
+  var h = _lpHere(); if(!h) return;
+  lpPull(_lpWeekSlots(h.period));
+}
+
+//  행사 · 특강 넣기 — 이 칸에 넣고 뒤를 한 칸씩 밉니다
+function lpInsertEvent(){
+  if(!_lpHere()) return;
+  wgModal({
+    title: '행사 · 특강 넣기',
+    sub: '이 칸에 넣고, 뒤 회차는 한 칸씩 밀립니다',
+    saveLabel: '넣기',
+    fields: [
+      { key:'t', label:'무엇인가요?', type:'text', required:true,
+        placeholder:'예) 할로윈 파티',
+        hint:'진도는 지워지지 않고 다음 칸으로 밀려납니다' }
+    ],
+    onSave: function(v){ lpPush(1, v.t); }
+  });
+}
+//  휴강 넣기 — 쉬는 날이라 진도가 한 칸 밀립니다
+function lpInsertOff(){
+  if(!_lpHere()) return;
+  lpPush(1, '휴강');
+}
+
+//  자리 바꾸기 — 집어 들고, 바꿀 칸을 누릅니다
+function lpSwapStart(){
+  var h = _lpHere(); if(!h) return;
+  _lpSwapFrom = h.key;
+  showToast('바꿀 칸을 눌러 주세요. (취소는 Esc)');
+  renderLpBar();
+}
+function lpSwapCancel(){
+  _lpSwapFrom = null;
+  renderLpBar();
+}
+function lpSwapWith(key){
+  var from = _lpSwapFrom;
+  _lpSwapFrom = null;
+  if(!from || from === key){ renderLpBar(); return; }
+  var a = _lpTextOf(from), b = _lpTextOf(key);
+  if(a === b){ showToast('두 칸이 같아요.'); renderLpBar(); return; }
+  _lpUndo = { list:[{ key:from, text:a }, { key:key, text:b }], label:'자리 바꾸기' };
+  _lpWant = { focus:_lpFocus, anchor:_lpAnchor, keys:[key] };
+  _lpApply([{ key:from, text:b }, { key:key, text:a }]);
+  showToast('두 칸을 바꿨어요. 되돌리려면 ↩ 를 누르세요.');
+}
+
+//  바뀐 칸만 모아 저장하고, 되돌리기를 만들어 둡니다
+function _lpCommitShift(seq, before, after, label){
+  var list = [], undo = [];
+  for(var i = 0; i < seq.length; i++){
+    var b = String(before[i] || ''), a = String(after[i] || '');
+    if(b === a) continue;
+    list.push({ key:seq[i].key, text:a });
+    undo.push({ key:seq[i].key, text:b });
+  }
+  if(!list.length){ showToast('움직일 것이 없어요.'); return; }
+  _lpUndo = { list:undo, label:label };
+  _lpWant = { focus:_lpFocus, anchor:_lpAnchor, keys:_lpSel.slice() };
+  _lpApply(list);
+  showToast(label + ' — ' + list.length + '칸을 옮겼어요. 되돌리려면 ↩ 를 누르세요.');
+}
+
+function lpUndo(){
+  if(!_lpUndo){ showToast('되돌릴 것이 없어요.'); return; }
+  var u = _lpUndo;
+  _lpUndo = null;
+  _lpWant = { focus:_lpFocus, anchor:_lpAnchor, keys:_lpSel.slice() };
+  _lpApply(u.list);
+  showToast(u.label + ' 을 되돌렸어요.');
 }
 
 //  지금 칸에 들어 있는 수업의 id (빈 칸이면 '')
@@ -15900,6 +16228,7 @@ document.addEventListener('keydown', function(ev){
     if(lk === 'c'){ ev.preventDefault(); lpCopy(); return; }
     if(lk === 'x'){ ev.preventDefault(); lpCut();  return; }
     if(lk === 'a'){ ev.preventDefault(); lpSelectAll(); return; }
+    if(lk === 'z'){ ev.preventDefault(); lpUndo(); return; }
     if(lk === 'v'){ return; }   // 아래 paste 가 받습니다
     return;
   }
@@ -15914,7 +16243,11 @@ document.addEventListener('keydown', function(ev){
   if(k === 'Tab'       ){ ev.preventDefault(); lpMoveFocus(0, ev.shiftKey ? -1 : 1, false); return; }
 
   if(k === 'Enter' || k === 'F2'){ ev.preventDefault(); lpStartEdit(); return; }
-  if(k === 'Escape'){ ev.preventDefault(); lpSelClear(); return; }
+  if(k === 'Escape'){
+    ev.preventDefault();
+    if(_lpSwapFrom) lpSwapCancel(); else lpSelClear();
+    return;
+  }
   if(k === 'Delete' || k === 'Backspace'){
     ev.preventDefault();
     if(_lpSel.length > 1) lpBulkClear();
