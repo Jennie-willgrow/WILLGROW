@@ -523,7 +523,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
     <div style="display:flex;flex-direction:column;gap:8px">
       <div style="background:white;border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
         <span style="background:#2E7D32;color:white;font-size:11px;font-weight:700;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</span>
-        <div><div style="font-size:12px;font-weight:700;color:#1B5E20">Supabase 로그인 계정 생성</div><div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5">Supabase Dashboard → Authentication → Users → <b>Add User</b><br>이메일: <b>[이름소문자]@willgrow.local</b> / 비밀번호 설정 후 선생님께 전달</div></div>
+        <div><div style="font-size:12px;font-weight:700;color:#1B5E20">Supabase 로그인 계정 생성</div><div style="font-size:11px;color:#555;margin-top:3px;line-height:1.5">Supabase Dashboard → Authentication → Users → <b>Add user</b> → <b>Create new user</b><br>이메일: <b>[이름소문자·띄어쓰기 없이]@willgrow.local</b> &nbsp;예) Sophie → <b>sophie@willgrow.local</b><br>비밀번호: <b>PIN 4자리 + wg</b> &nbsp;예) PIN 1234 → <b>1234wg</b><br><b>Auto Confirm User</b> 를 꼭 체크 → 선생님께는 <b>PIN 4자리만</b> 알려 주세요</div></div>
       </div>
       <div style="background:white;border-radius:8px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
         <span style="background:#2E7D32;color:white;font-size:11px;font-weight:700;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</span>
@@ -650,7 +650,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-10-25 10:30';
+var APP_VERSION = '2026-11-10 11:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -848,11 +848,45 @@ async function sbGetSoft(table, paramsNew, paramsOld) {
   }
 }
 
+// ════════════════════════════════════════════════════════════
+//  시간은 늘 한국 시간으로
+//
+//  Supabase 는 "언제" 를 세계 표준시(UTC)로 돌려줍니다.
+//    오전 10:23 에 쓴 메모  →  "2026-11-10T01:23:00+00:00"
+//  화면은 이 글자를 잘라 쓰기 때문에 01:23 으로 보이고,
+//  아침 9시 전에 쓴 건 어제 날짜로 묶였습니다.
+//  상담 시간도 오후 2시가 오전 5시로 보였습니다.
+//
+//  그래서 읽어 오는 순간 한국 시간 글자로 바꿔 둡니다.
+//    "2026-11-10T01:23:00+00:00"  →  "2026-11-10T10:23:00+09:00"
+//  같은 순간을 다르게 적은 것뿐이라, 다시 저장해도 시각이 바뀌지 않습니다.
+//  날짜만 있는 칸("2026-11-10")은 건드리지 않습니다.
+// ════════════════════════════════════════════════════════════
+var _UTC_TS = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(\.\d+)?(Z|[+-]00(?::?00)?)$/;
+function _toKst(v){
+  if(typeof v !== 'string') return v;
+  var m = _UTC_TS.exec(v);
+  if(!m) return v;
+  var d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) + 9*3600*1000);
+  function p(n){ return String(n).padStart(2, '0'); }
+  return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate())
+       + 'T' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds())
+       + (m[7] || '') + '+09:00';
+}
+function _kstRows(x){
+  if(Array.isArray(x)){ for(var i = 0; i < x.length; i++) x[i] = _kstRows(x[i]); return x; }
+  if(x && typeof x === 'object'){
+    Object.keys(x).forEach(function(k){ x[k] = _kstRows(x[k]); });
+    return x;
+  }
+  return _toKst(x);
+}
+
 async function sbGet(table, params) {
   var url = SUPABASE_URL + '/rest/v1/' + table + (params ? '?' + params : '');
   var res = await fetch(url, { headers: _sbH() });
   if (!res.ok) { var t=await res.text(); if(_handleAuthError(res.status)) throw new Error('AUTH'); throw new Error('[sbGet] '+table+' HTTP '+res.status+': '+t); }
-  return await res.json();
+  return _kstRows(await res.json());
 }
 async function sbInsert(table, data, opts) {
   console.log('[sbInsert] table='+table+' data=', JSON.stringify(data));
@@ -866,7 +900,7 @@ async function sbInsert(table, data, opts) {
     if(!(opts && opts.quiet)) alert('저장 오류 ('+table+'):\n' + t);
     throw new Error('[sbInsert] '+table+': '+t);
   }
-  var rows = await res.json(); return rows[0] || null;
+  var rows = _kstRows(await res.json()); return rows[0] || null;
 }
 async function sbPatch(table, filter, data) {
   console.log('[sbPatch] table='+table+' filter='+filter+' data=', JSON.stringify(data));
@@ -961,7 +995,7 @@ function activeTeachers(list, keepId){
 async function setTeacherActive(teacherId, active, retiredAt) {
   await sbPatch('teachers', 'id=' + _eq(teacherId), {
     is_active:  !!active,
-    retired_at: active ? null : (retiredAt || new Date().toISOString().slice(0,10))
+    retired_at: active ? null : (retiredAt || getTodayStr())
   });
   return { success:true };
 }
@@ -2132,6 +2166,113 @@ async function saveLessonPlanLines(classId, lines, termNo) {
 //    세 영역이 "모두" 그 레슨을 끝낸 다음 칸에 시험이 들어가고,
 //    그 뒤 회차는 한 칸씩 밀립니다.  Final 을 보면 그 권은 끝입니다.
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+//  교재별 고정 레슨플랜  (원장님이 주신 "교재별 레슨플랜" 표 그대로)
+//
+//  왜 고정인가요?
+//    시험 자리를 계산해서 맞추는 게 아니라, 교재마다 주차별로
+//    무엇을 하는지가 이미 정해져 있습니다.  그래서 그 표를 그대로 담아 둡니다.
+//
+//  어떻게 날짜에 깔리나요?
+//    아래 줄은 "몇 주차에 무엇" 입니다.  반의 요일에 하나씩 놓습니다.
+//    공휴일·휴강이 끼면 그 날은 건너뛰고 뒤로 한 칸씩 밀립니다
+//    — 그래서 Mid-term · Final 날짜가 고정이 아닙니다.
+//
+//  주 2회인 영역(Junior Grammar)은 그 주의 칸 수만큼 같은 줄이 들어갑니다.
+// ════════════════════════════════════════════════════════════
+var WG_PLAN_TEMPLATES = {
+
+  //  Star 1-1 — 파닉스라 첫 레슨만 길게 갑니다 (11주)
+  'STAR1_1': {
+    label: 'Star 1-1',
+    playhouse: ['PLAYHOUSE 1 [1/2]', 'PLAYHOUSE 1 [2/2]', 'PLAYHOUSE 2', 'PLAYHOUSE 3',
+                'PLAYHOUSE 4', 'REVIEW', 'PLAYHOUSE 5', 'PLAYHOUSE 6', 'PLAYHOUSE 7',
+                'PLAYHOUSE 8', 'FINAL TEST'],
+    storyclub: ['STORYCLUB 1 [1/3]', 'STORYCLUB 1 [2/3]', 'STORYCLUB 1 [3/3]',
+                'STORYCLUB 2 [1/2]', 'STORYCLUB 2 [2/2]', 'MIDTERM',
+                'STORYCLUB 3 [1/2]', 'STORYCLUB 3 [2/2]',
+                'STORYCLUB 4 [1/2]', 'STORYCLUB 4 [2/2]', 'READING TEST'],
+    talktime:  ['TALKTIME 1 [1/3]', 'TALKTIME 1 [2/3]', 'TALKTIME 1 [3/3]',
+                'TALKTIME 2 [1/2]', 'TALKTIME 2 [2/2]',
+                'TALKTIME 3 [1/2]', 'TALKTIME 3 [2/2]',
+                'TALKTIME 4 [1/2]', 'TALKTIME 4 [2/2]',
+                'WORKBOOK[B] Writing', 'PRESENTATION']
+  },
+
+  //  나머지 Star · Galaxy 전부 (10주)
+  'STARGALAXY': {
+    label: 'Star · Galaxy',
+    playhouse: ['PLAYHOUSE 1', 'PLAYHOUSE 2', 'PLAYHOUSE 3', 'PLAYHOUSE 4', 'REVIEW',
+                'PLAYHOUSE 5', 'PLAYHOUSE 6', 'PLAYHOUSE 7', 'PLAYHOUSE 8', 'FINAL TEST'],
+    storyclub: ['STORYCLUB 1 [1/2]', 'STORYCLUB 1 [2/2]',
+                'STORYCLUB 2 [1/2]', 'STORYCLUB 2 [2/2]', 'MIDTERM',
+                'STORYCLUB 3 [1/2]', 'STORYCLUB 3 [2/2]',
+                'STORYCLUB 4 [1/2]', 'STORYCLUB 4 [2/2]', 'READING TEST'],
+    talktime:  ['TALKTIME 1 [1/2]', 'TALKTIME 1 [2/2]',
+                'TALKTIME 2 [1/2]', 'TALKTIME 2 [2/2]',
+                'TALKTIME 3 [1/2]', 'TALKTIME 3 [2/2]',
+                'TALKTIME 4 [1/2]', 'TALKTIME 4 [2/2]',
+                'WORKBOOK[B] Writing', 'PRESENTATION']
+  },
+
+  //  Junior (12주) — Grammar 는 주 2회라 한 주에 같은 줄이 두 번 들어갑니다
+  'JUNIOR': {
+    label: 'Junior',
+    grammar:  ['GRAMMAR L1', 'GRAMMAR L2', 'GRAMMAR L3', 'GRAMMAR L4', 'GRAMMAR L5',
+               'REVIEW / MID-TERM', 'GRAMMAR L6', 'GRAMMAR L7', 'GRAMMAR L8',
+               'GRAMMAR L9', 'GRAMMAR L10', 'FINAL / REVIEW'],
+    reading:  ['READING p1-2', 'READING p3-4', 'READING p5-6', 'READING p7-8', 'READING p9',
+               'READING p10-11', 'READING p12-13', 'READING p14-15', 'READING p16-17',
+               'READING p18-19', 'READING p20-21', 'READING TEST'],
+    speaking: ['SPEAKING 1 [1/2]', 'SPEAKING 1 [2/2]', 'SPEAKING 2 [1/2]', 'SPEAKING 2 [2/2]',
+               'SPEAKING 3 [1/2]', 'SPEAKING 3 [2/2]', 'SPEAKING 4 [1/2]', 'SPEAKING 4 [2/2]',
+               'SPEAKING 5 [1/2]', 'SPEAKING 5 [2/2]',
+               'PRESENTATION WRITING', 'PRESENTATION']
+  }
+};
+
+//  이 반 · 이 교재가 어느 고정 표를 쓰나요?
+function _lpTemplateKey(course, bookName){
+  var c = String(course || '').toUpperCase();
+  var b = String(bookName || '');
+  if(c === 'STAR' || c === 'GALAXY'){
+    //  Star 1-1 만 따로 (1-1 · 1_1 · 1.1 모두 같게 봅니다)
+    if(/1\s*[-_.]\s*1/.test(b)) return 'STAR1_1';
+    return 'STARGALAXY';
+  }
+  if(c === 'JUNIOR') return 'JUNIOR';
+  return '';
+}
+
+//  영역 이름 → 고정 표의 칼럼
+function _lpTemplateArea(tplKey, section, bookName){
+  var t = WG_PLAN_TEMPLATES[tplKey];
+  if(!t) return null;
+  var n = _lpNorm(section || bookName || '');
+  var keys = Object.keys(t).filter(function(k){ return k !== 'label'; });
+  for(var i = 0; i < keys.length; i++){
+    if(n.indexOf(keys[i]) >= 0) return keys[i];
+  }
+  return null;
+}
+
+//  고정 표 한 칼럼 → 차시 목록
+//    주 N회인 영역은 한 주 줄을 N번 넣습니다 (Junior Grammar)
+function _lpTemplateUnits(tplKey, area, perWeek){
+  var rows = (WG_PLAN_TEMPLATES[tplKey] || {})[area] || [];
+  var n = Math.max(1, Number(perWeek) || 1);
+  var out = [];
+  rows.forEach(function(label, wi){
+    for(var k = 1; k <= n; k++){
+      out.push({ id:null, label:label, kind:_lpKindOf(label, ''),
+                 sessionNo:1, sessionOf:1,            // 표 글자에 [1/2] 가 이미 들어 있습니다
+                 pageFrom:null, pageTo:null,
+                 tplWeek:wi + 1, tplSlot:k, tplOf:n });
+    }
+  });
+  return out;
+}
+
 var WG_TEST_LESSON = [
   // Star · Galaxy
   { match:'playhouse', mid:4, final:8 },
@@ -2168,6 +2309,8 @@ function _lpLessonNo(label){
 function _lpBuildLines(lines, opts) {
   opts = opts || {};
   var nonClass = opts.nonClass || {}, maxWeeks = opts.maxWeeks || 40;
+  //  고정 표를 쓰는 반 — 시험이 표 안에 있으니 자동 배치를 하지 않습니다
+  var noAutoTest = !!opts.noAutoTest;
   var blocked = opts.blocked || {};          // 손으로 끼워 넣은 칸 (date|줄번호)
   var planStart = opts.startDate;
 
@@ -2288,7 +2431,7 @@ function _lpBuildLines(lines, opts) {
   var cur = new Date(planStart + 'T00:00:00');
   cur.setDate(cur.getDate() - ((cur.getDay() || 7) - 1));        // 그 주 월요일
 
-  while((mainLeft() > 0 || !finalDone) && week < maxWeeks){
+  while((mainLeft() > 0 || (!noAutoTest && !finalDone)) && week < maxWeeks){
     week++;
 
     // 이번 주의 칸들 — 날짜 순서, 그 다음 줄 순서
@@ -2300,12 +2443,13 @@ function _lpBuildLines(lines, opts) {
       var wd = d.getDay() === 0 ? 7 : d.getDay();
       L.forEach(function(l){
         if(l.weekdays.indexOf(wd) < 0) return;
-        //  🔴 휴강만 칸을 비웁니다.
-        //  🟡 학원 행사(특별수업)는 반마다 들어가는 날이 달라서
-        //     선생님이 계획표에서 직접 끌어다 놓으시게 두었습니다.
+        //  수업을 안 하는 날 — 진도를 안 쓰고 넘깁니다 (뒤가 한 칸씩 밀립니다)
+        //    🔴 휴강     공휴일 · 학원 휴원
+        //    🟡 특별수업 학사일정에서 "진도 멈춤" 으로 고른 행사
+        //  반 하나만 쉬는 날은 계획표에서 [🚫 휴강 넣기] 로 선생님이 넣습니다.
         var nc = nonClass[key];
         var hit = (nc && (nc.periods === null || nc.periods.indexOf(l.no) >= 0)) ? nc : null;
-        var off = (hit && hit.mode === '휴강') ? hit : null;
+        var off = (hit && (hit.mode === '휴강' || hit.mode === '특별수업')) ? hit : null;
         cells.push({ date:key, line:l, off:off });
       });
     }
@@ -2382,18 +2526,19 @@ function _lpBuildLines(lines, opts) {
       return placed[put];
     }
 
-    // ② 미뤄 둔 시험 먼저
-    if(midPending && !midDone){
+    // ② 미뤄 둔 시험 먼저   (고정 표를 쓰면 ②③④ 를 모두 건너뜁니다)
+    if(noAutoTest){ midDone = true; finalDone = true; }
+    if(!noAutoTest && midPending && !midDone){
       var mp = placeFirst('Mid-term Test');
       if(mp){ midDone = true; midNo = mp.c.line.no; midPending = false; }
     }
-    if(finalPending && !finalDone && midDone){
+    if(!noAutoTest && finalPending && !finalDone && midDone){
       var fp = placeFirst('Final Test');
       if(fp){ finalDone = true; finalPending = false; }
     }
 
     // ③ 중간고사 — 메인 교재가 모두 절반을 넘기고 "그 차시를 끝낸 뒤"
-    if(!midDone && !midPending && !finalDone && midReady()){
+    if(!noAutoTest && !midDone && !midPending && !finalDone && midReady()){
       var mm = placeAfter('Mid-term Test');
       if(mm){ midDone = true; midNo = mm.c.line.no; }
       else   midPending = true;                            // 다음 주로 미룹니다
@@ -2403,7 +2548,7 @@ function _lpBuildLines(lines, opts) {
     //    ⒜ 기준 숫자가 있으면 — Play House 8 · Story Club 4 · Talk Time 4 를
     //       세 영역이 모두 끝낸 바로 다음 칸 (그 뒤는 한 칸씩 밀립니다)
     //    ⒝ 기준이 없으면 — 예전처럼 메인 차시를 다 끝낸 뒤
-    if(!finalDone && !finalPending && midDone){
+    if(!noAutoTest && !finalDone && !finalPending && midDone){
       var byRule  = hasFinalRule() && finalReady();
       var byEmpty = !hasFinalRule() && mainLeft() === 0;
       if(byRule || byEmpty){
@@ -2447,7 +2592,7 @@ function _lpBuildLines(lines, opts) {
     cur.setDate(cur.getDate() + 7);
 
     //  Final Test 를 보면 그 권은 끝입니다 — 뒤로 더 늘리지 않습니다
-    if(finalDone && finalByRule) break;
+    if(!noAutoTest && finalDone && finalByRule) break;
   }
 
   return { entries:out, weeks:week, leftover:mainLeft() };
@@ -2505,12 +2650,33 @@ async function generateClassLessonPlan(classId, opts) {
   var nextIds = setup.lines.map(function(l){ return l.nextTextbookId; }).filter(Boolean);
   var nextUnits = nextIds.length ? await _lpUnitsFor(nextIds) : {};
 
-  var build = [], noWd = [], why = [], nextBad = [];
+  var build = [], noWd = [], why = [], nextBad = [], tplUsed = [];
   setup.lines.forEach(function(l){
     var own = _lpPick(setup.units, l.textbookId, l.section);
     var name = l.bookName || setup.bookName[l.textbookId] || '';
     var isMainCourse = LP_MAIN_COURSES.indexOf(setup.bookCourse[l.textbookId]) >= 0;
     if(!l.weekdays.length) noWd.push(name);
+
+    //  ── 고정 레슨플랜 표가 있는 영역이면 그 표를 그대로 씁니다 ──
+    //     (Star · Galaxy · Junior 의 Play House · Story Club · Talk Time ·
+    //      Grammar · Reading · Speaking)
+    var tplKey  = isMainCourse ? _lpTemplateKey(setup.bookCourse[l.textbookId], name) : '';
+    var tplArea = tplKey ? _lpTemplateArea(tplKey, l.section, name) : null;
+    if(tplArea){
+      var tq = _lpTemplateUnits(tplKey, tplArea, l.weekdays.length);
+      var pk0 = l.section || name || ('줄 ' + l.lineNo);
+      tq.forEach(function(u){ u.book = name; u.partKey = pk0; });
+      tplUsed.push((WG_PLAN_TEMPLATES[tplKey].label || tplKey) + ' · ' + pk0);
+      build.push({
+        key: pk0, label: (l.section ? (name + ' · ' + l.section) : name),
+        reviewLabel: '', units: tq,
+        weekdays: l.weekdays, startDate: l.startDate || '', startSeq: l.startSeq || 1,
+        reviewEvery: 0, isMain: true, testHost: false, useBookReview: false,
+        oneShot: false, book: name
+      });
+      return;                       // 아래 차시 계산은 건너뜁니다
+    }
+
     var w = _lpWhyNoUnits(setup.units, l.textbookId, l.section, name);
     if(w) why.push(w);
 
@@ -2580,8 +2746,10 @@ async function generateClassLessonPlan(classId, opts) {
                    + '· TEMS 반은 레슨플랜을 만들지 않습니다' };
   }
 
+  //  고정 표를 쓰면 시험이 이미 그 표 안에 있습니다 → 자동 배치를 끕니다
   var built = _lpBuildLines(build, {
-    startDate: planStart, nonClass: setup.nonClass, blocked: blocked, maxWeeks: 40
+    startDate: planStart, nonClass: setup.nonClass, blocked: blocked, maxWeeks: 60,
+    noAutoTest: tplUsed.length > 0
   });
   if(built.error) return { success:false, error:built.error };
 
@@ -3420,7 +3588,7 @@ async function fetchPendingStudents(status) {
 }
 
 async function fetchNewStudents() {
-  var cutoff = new Date(); cutoff.setDate(cutoff.getDate()-30);
+  var cutoff = new Date(getTodayStr() + 'T00:00:00Z'); cutoff.setUTCDate(cutoff.getUTCDate()-30);
   var cutoffStr = cutoff.toISOString().split('T')[0];
   var rows = await sbGet('students',
     'select=id,name,school,grade,parent_phone,enrolled_at,class_id,pickup_bus,dropoff_bus,attendance_checklist,classes!class_id(name)&status=eq.재원&enrolled_at=gte.'+cutoffStr+'&order=enrolled_at.desc');
@@ -3571,7 +3739,7 @@ async function _sbGetSafe(table, params) {
     var res = await fetch(url, { headers: _sbH() });
     if(res.status === 401) { _handleAuthError(401); return []; }  // 진짜 토큰 만료만 로그아웃
     if(!res.ok) return []; // 403 등 권한 오류는 빈 배열로 처리
-    return await res.json();
+    return _kstRows(await res.json());
   } catch(e) { return []; }
 }
 async function fetchWithdrawnStudents() {
@@ -6729,16 +6897,40 @@ function _pgCellsOf(book, lessonName){
   return out;
 }
 
-function openPlannerGuide(pageId){
+// ── 저장하면 가이드를 자동으로 띄울까요? (선생님마다 끄고 켤 수 있습니다) ──
+function _pgAutoOn(){
+  try { return localStorage.getItem('wgPlannerGuideOff') !== '1'; } catch(e){ return true; }
+}
+function _pgAutoSet(on){
+  try { localStorage.setItem('wgPlannerGuideOff', on ? '0' : '1'); } catch(e){}
+  showToast(on ? '저장할 때 가이드를 보여줍니다.' : '이제 저장할 때 안 띄웁니다. (📋 Guide 로 언제든 볼 수 있어요)');
+  wgModalClose();
+}
+
+//  opt = { lessonName, classId, auto }
+//    저장 직후에는 수정칸이 사라지므로 값을 넘겨받아서 그립니다
+function openPlannerGuide(pageId, opt){
+  opt = opt || {};
   var sel = document.getElementById('plform-' + pageId);
   var v = sel ? sel.value : '';
-  if(!v){ showToast('Pick a form first.'); return; }
-  var ln = v.split('|')[1];
-  var classId = (document.getElementById('class-' + pageId) || {}).value || '';
+  var ln = opt.lessonName || (v ? v.split('|')[1] : '');
+  if(!ln){
+    if(!opt.auto) showToast('Pick a form first.');
+    return;
+  }
+  var classId = opt.classId
+             || (document.getElementById('class-' + pageId) || {}).value || '';
   var book = _pgBookOf(classId, ln);
   var page = WG_PLANNER_PAGES[book];
+  if(!page || !page.cells){
+    //  알림장 양식을 못 찾았습니다 — 자동으로 뜬 거면 조용히 지나갑니다
+    if(!opt.auto) showToast('이 수업의 알림장 양식을 못 찾았어요. Class Hub 에서 반의 프로그램을 골라 주세요.');
+    return;
+  }
   var hits = _pgCellsOf(book, ln);
   var hit  = hits.length ? hits[0] : -1;
+  //  자동으로 뜨는 경우에는, 적을 칸을 못 찾았으면 조용히 지나갑니다
+  if(hit < 0 && opt.auto) return;
 
   var cls = (classList || []).filter(function(x){ return x.id === classId; })[0];
   var progTxt = (cls && cls.program) ? cls.program : '';
@@ -6788,7 +6980,7 @@ function openPlannerGuide(pageId){
            + page.cells.map(cellHtml).join('') + "</div>";
 
   wgModal({
-    title: 'Where do I write it?',
+    title: (opt.auto ? '✅ Saved — Where do I write it?' : 'Where do I write it?'),
     sub: (progTxt ? progTxt + ' · ' : '') + ln,
     wide: true,
     saveLabel: 'Got it',
@@ -6821,7 +7013,22 @@ function openPlannerGuide(pageId){
           + "(한 면에 그 주 수업이 다 들어갑니다)</div>")
       + (progTxt ? "" :
           "<div style='font-size:11px;color:#A8B09C;margin-top:7px'>"
-          + "※ 이 반의 프로그램이 아직 안 정해져 있어 수업 이름으로 짐작했습니다.</div>"),
+          + "※ 이 반의 프로그램이 아직 안 정해져 있어 수업 이름으로 짐작했습니다.</div>")
+      //  저장하면 자동으로 뜨는 걸 끄고 켭니다
+      + "<div style='display:flex;align-items:center;gap:8px;margin-top:10px;"
+      +   "padding-top:9px;border-top:1px solid #EEF1EA'>"
+      +   "<span style='font-size:10.5px;color:#A8B09C;flex:1'>"
+      +     (_pgAutoOn()
+            ? "숙제를 저장하면 이 가이드가 자동으로 뜹니다"
+            : "지금은 저장할 때 자동으로 뜨지 않습니다 — 📋 Guide 로 보실 수 있어요")
+      +   "</span>"
+      +   "<button type='button' onclick='_pgAutoSet(" + (_pgAutoOn() ? 'false' : 'true') + ")' "
+      +     "style='background:#fff;border:1.5px solid #DDE5D6;border-radius:20px;"
+      +     "padding:4px 12px;font-size:11px;font-weight:700;color:#5B6551;cursor:pointer;"
+      +     "white-space:nowrap'>"
+      +     (_pgAutoOn() ? '그만 띄우기' : '자동으로 띄우기')
+      +   "</button>"
+      + "</div>",
     fields: [],
     onSave: function(){}
   });
@@ -7660,6 +7867,10 @@ function doSubmit(pageId){
   if(!test){ showToast("Please select a Test."); return; }
   if(!lesson || !hw){ showToast("Please fill in Today's Lesson and Homework."); return; }
 
+  //  저장하면 수정칸이 사라지니, 가이드에 쓸 값을 미리 챙겨 둡니다
+  var _gLesson = pl ? pl.lessonName : '';
+  var _gClass  = classId;
+
   var btn = document.getElementById("btn-"+pageId);
   btn.disabled = true; btn.textContent = "Saving...";
   var data = {
@@ -7678,6 +7889,12 @@ function doSubmit(pageId){
     btn.disabled = false; btn.textContent = "Save";
     toggleReportEdit(pageId, false);     // 적고 나면 보기로 돌아갑니다
     showToast("Saved!");
+    //  알림장 폼으로 적었으면 "어디에 적나요?" 가이드를 바로 보여 줍니다
+    if(_gLesson && _pgAutoOn()){
+      setTimeout(function(){
+        openPlannerGuide(pageId, { lessonName:_gLesson, classId:_gClass, auto:true });
+      }, 320);
+    }
   })
   .withFailureHandler(function(){
     btn.disabled = false;
@@ -21198,7 +21415,7 @@ async function openQuickPayModal(sid, name, defaultFee){
   document.getElementById('piStudentId').value = sid;
   document.getElementById('piDueDate').value = dueDate;
   var amEl=document.getElementById('piAmount'); if(amEl) amEl.value=defaultFee||'';
-  var pdEl=document.getElementById('piPaidDate'); if(pdEl){ var t=new Date(); pdEl.value=t.toISOString().split('T')[0]; }
+  var pdEl=document.getElementById('piPaidDate'); if(pdEl){ pdEl.value=getTodayStr(); }
   document.getElementById('piMethod').value='카드';
   document.getElementById('piMemo').value='';
   document.getElementById('paymentInputModal').style.display='flex';
@@ -21215,7 +21432,7 @@ function openPaymentInputModal(studentId, studentName, dueDate, defaultAmount){
   var amEl = document.getElementById('piAmount');
   if(amEl) amEl.value = defaultAmount||'';
   var pdEl = document.getElementById('piPaidDate');
-  if(pdEl){ var t=new Date(); pdEl.value=t.toISOString().split('T')[0]; }
+  if(pdEl){ pdEl.value=getTodayStr(); }
   document.getElementById('piMethod').value = '카드';
   document.getElementById('piMemo').value = '';
   document.getElementById('paymentInputModal').style.display='flex';
@@ -23119,7 +23336,7 @@ function submitFullReport(){
   var book       = ((document.getElementById('fr_book')||{}).value||'').trim();
   var comments   = ((document.getElementById('fr_comments')||{}).value||'').trim();
   var bookOrders = ((document.getElementById('fr_bookorders')||{}).value||'').trim();
-  var dateStr    = typeof selectedDate !== 'undefined' ? selectedDate : new Date().toISOString().split('T')[0];
+  var dateStr    = typeof selectedDate !== 'undefined' ? selectedDate : getTodayStr();
   var btn = document.getElementById('fr_submitBtn');
   if(btn){ btn.disabled=true; btn.textContent='Saving...'; }
   google.script.run
@@ -23135,6 +23352,12 @@ function submitFullReport(){
       closeFullReportModal();
       showToast('✅ Report saved!');
       setTimeout(function(){ loadReports(); }, 800);
+      //  적은 수업이 알림장 양식에 있으면 "어디에 적나요?" 를 보여 줍니다
+      if(todayLesson && _pgAutoOn()){
+        setTimeout(function(){
+          openPlannerGuide(r.pageId, { lessonName:todayLesson, classId:classId, auto:true });
+        }, 400);
+      }
     })
     .withFailureHandler(function(e){
       if(btn){ btn.disabled=false; btn.textContent='✅ Save Report'; }
