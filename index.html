@@ -672,7 +672,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-11-26 17:40';
+var APP_VERSION = '2026-11-27 10:30';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -904,11 +904,49 @@ function _kstRows(x){
   return _toKst(x);
 }
 
+// ════════════════════════════════════════════════════════════
+//  1,000 줄 넘게 읽기
+//
+//  Supabase 는 한 번에 1,000 줄까지만 돌려주고, 넘는 건 말없이 잘라 버립니다.
+//  (연간납부에서 납부한 달이 비어 보이던 이유입니다 — 1년치가 1,000 줄을 넘어서)
+//
+//  그래서 1,000 줄이 꽉 차서 오면 "더 있을 수 있다" 고 보고,
+//  처음부터 1,000 줄씩 나눠서 끝까지 다시 받아 옵니다.
+//  순서가 섞이지 않게 id 를 마지막 정렬 기준으로 붙입니다.
+//  (id 칸이 없는 표라서 실패하면 처음 받은 것을 그대로 씁니다 — 예전과 같음)
+// ════════════════════════════════════════════════════════════
+var _SB_PAGE = 1000;
+async function _sbMorePages(table, params, firstRows){
+  var p = params || '';
+  if(!Array.isArray(firstRows) || firstRows.length < _SB_PAGE) return firstRows;
+  if(/(^|&)(limit|offset)=/.test(p)) return firstRows;          // 일부러 개수를 정한 경우
+  if(/(^|&)order=/.test(p)){
+    if(!/(^|[=,])id\.(asc|desc)/.test(p))
+      p = p.replace(/(^|&)order=([^&]*)/, function(m, a, b){ return a + 'order=' + b + ',id.asc'; });
+  } else {
+    p += (p ? '&' : '') + 'order=id.asc';
+  }
+  try {
+    var all = [];
+    for(var off = 0; off < 200000; off += _SB_PAGE){
+      var url = SUPABASE_URL + '/rest/v1/' + table + '?' + p
+              + '&limit=' + _SB_PAGE + '&offset=' + off;
+      var r = await fetch(url, { headers: _sbH() });
+      if(!r.ok) return firstRows;
+      var page = await r.json();
+      all = all.concat(page);
+      if(page.length < _SB_PAGE) break;
+    }
+    console.log('[읽기] ' + table + ' — ' + all.length + ' 줄 (1,000 줄 넘어서 나눠 받음)');
+    return all;
+  } catch(e){ return firstRows; }
+}
+
 async function sbGet(table, params) {
   var url = SUPABASE_URL + '/rest/v1/' + table + (params ? '?' + params : '');
   var res = await fetch(url, { headers: _sbH() });
   if (!res.ok) { var t=await res.text(); if(_handleAuthError(res.status)) throw new Error('AUTH'); throw new Error('[sbGet] '+table+' HTTP '+res.status+': '+t); }
-  return _kstRows(await res.json());
+  return _kstRows(await _sbMorePages(table, params, await res.json()));
 }
 async function sbInsert(table, data, opts) {
   console.log('[sbInsert] table='+table+' data=', JSON.stringify(data));
@@ -3765,7 +3803,7 @@ async function _sbGetSafe(table, params) {
     var res = await fetch(url, { headers: _sbH() });
     if(res.status === 401) { _handleAuthError(401); return []; }  // 진짜 토큰 만료만 로그아웃
     if(!res.ok) return []; // 403 등 권한 오류는 빈 배열로 처리
-    return _kstRows(await res.json());
+    return _kstRows(await _sbMorePages(table, params, await res.json()));
   } catch(e) { return []; }
 }
 async function fetchWithdrawnStudents() {
@@ -21566,7 +21604,12 @@ function renderMonthlyPayments(yr, mo, payments){
   if(!el) return;
   // paymentMap: studentId -> payment
   var pmMap = {};
-  payments.forEach(function(p){ pmMap[p.studentId] = p; });
+  payments.forEach(function(p){
+    //  같은 달에 기록이 둘 이상이면 낸 기록을 앞세웁니다
+    var prev = pmMap[p.studentId];
+    if(prev && prev.paidDate && !p.paidDate) return;
+    pmMap[p.studentId] = p;
+  });
   _monthlyPmMap = pmMap;            // [수정] 을 누르면 적어 둔 값을 다시 채우려고
   // 재원생만 (등록일 <= 이달 말, 퇴원일 없거나 이달 1일 이후)
   var firstOfMonth = new Date(yr, mo-1, 1);
@@ -22143,6 +22186,11 @@ function renderYearlyView(yr, payments, dayChanges){
     var dueMo=parseInt(p.due_date.substring(5,7));
     var dueDay=parseInt(p.due_date.substring(8,10));
     if(!payMap[p.student_id]) payMap[p.student_id]={};
+    //  같은 달에 기록이 둘 이상이면 (연락만 한 기록 + 실제 납부 등)
+    //  낸 기록을 앞세웁니다. 나중에 읽힌 빈 기록이 덮어써서 안 보이던 일이 있었습니다.
+    var prev = payMap[p.student_id][dueMo];
+    if(prev && prev.isPaid && !p.paid_date) return;
+    if(prev && prev.isPaid && p.paid_date && String(prev.paidDate) > String(p.paid_date)) return;
     payMap[p.student_id][dueMo]={ dueDay:dueDay, amount:p.amount, isPaid:!!p.paid_date, paidDate:p.paid_date||null, dueDate:p.due_date };
   });
 
