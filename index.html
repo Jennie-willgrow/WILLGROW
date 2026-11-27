@@ -672,7 +672,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-11-28 10:20';
+var APP_VERSION = '2026-11-28 14:10';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -2908,7 +2908,25 @@ async function generateClassLessonPlan(classId, opts) {
 //    한 반에 한 교재는 한 번만 뜹니다.
 // ════════════════════════════════════════════════════════════
 var LP_ORDER_LEAD_DAYS = 21;          // 며칠 전에 알릴지
-var LP_WG_COURSES = ['STAR', 'GALAXY', 'Junior', 'PHONICS'];   // 우리 교재
+var LP_WG_COURSES = ['STAR', 'GALAXY', 'Junior', 'PHONICS'];   // (예전 목록 — 아래 _isWGCourse 를 씁니다)
+
+// ════════════════════════════════════════════════════════════
+//  WG 교재인가요, 외부 교재인가요?  — 앱 전체가 이 한 곳만 봅니다
+//
+//  데이터베이스(textbook_series) 에 이미 시리즈 코드로 나뉘어 있습니다 (RUN_ME_9).
+//    WG (윌그로우 자체 교재)  PHONICS(Sounds Great) · STAR(Little Junior Star)
+//                            GALAXY(Little Junior Galaxy) · Junior(New Super Junior) · TEMS
+//    외부 교재                BRICKS · HIH · ET · LISTEN · READING · 외부
+//  앱은 그 구분을 그대로 따릅니다 (대소문자 상관없이).
+//
+//  예전에는 앱 안의 목록에 TEMS 가 빠져 있었고, WG 주문서가 외부 시리즈까지
+//  덧붙여 보여 줘서 WG / 외부가 섞였습니다.
+// ════════════════════════════════════════════════════════════
+var WG_OWN_COURSES = ['PHONICS', 'STAR', 'GALAXY', 'JUNIOR', 'TEMS'];
+function _isWGCourse(code){
+  var c = String(code || '').trim().toUpperCase();
+  return !!c && WG_OWN_COURSES.indexOf(c) >= 0;
+}
 
 function _lpDaysBetween(a, b){
   return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000);
@@ -2948,7 +2966,7 @@ async function fetchBookOrderDue() {
     (s.books || []).forEach(function(b){
       bInfo[b.id] = { id:b.id, name:_bookFullName({ series:s, book:b }),
                       course:s.code, series:s.name,
-                      isWG: LP_WG_COURSES.indexOf(s.code) >= 0 };
+                      isWG: _isWGCourse(s.code) };
     });
   });
 
@@ -5368,7 +5386,7 @@ async function fetchWeeklyBrief(weekStart) {
     (cat ? cat.series : []).forEach(function(s){
       (s.books || []).forEach(function(b){
         bInfo[b.id] = { id:b.id, name:_bookFullName({ series:s, book:b }),
-                        isWG: LP_WG_COURSES.indexOf(s.code) >= 0 };
+                        isWG: _isWGCourse(s.code) };
       });
     });
 
@@ -5633,8 +5651,11 @@ async function updateSchedule(pageId, label, status, b64, fname, mime) {
 
 async function fetchWGBooks() {
   var courseOrder=['TEMS','PHONICS','STAR','GALAXY','Junior'];
-  var data=(await sbGet('textbooks','select=id,name,course,supplements&order=name.asc'))
-    .filter(function(r){ return r.name; })
+  var all=(await sbGet('textbooks','select=id,name,course,supplements&order=name.asc'))
+    .filter(function(r){ return r.name; });
+  //  WG 교재만 — 외부 교재가 WG 주문서에 섞이지 않게 (하나도 안 남으면 예전처럼 전부)
+  var onlyWG = all.filter(function(r){ return _isWGCourse(r.course); });
+  var data=(onlyWG.length ? onlyWG : all)
     .map(function(r){ return { id:r.id, name:r.name, course:r.course||'', supplements:r.supplements||[] }; })
     .sort(function(a,b){
       var ai=courseOrder.indexOf(a.course), bi=courseOrder.indexOf(b.course);
@@ -9610,12 +9631,19 @@ function initNewStudentScreen(){
       return;
     }
     // 아직 체크리스트가 안 끝난 학생 수
-    var _left = students.filter(function(x){
+    var _leftList = students.filter(function(x){
       var n = 0;
       if(x.checkedItems) String(x.checkedItems).split(',').forEach(function(v){ if(v) n++; });
       return n < NEW_STUDENT_CHECKS.length;
-    }).length;
-    if(typeof setNavBadge === 'function') setNavBadge('newstudent', _left);
+    });
+    var _left = _leftList.length;
+    //  빨간 동그라미는 2분마다 다시 세는 것과 똑같이 — 담임 선생님은 내 반만
+    var _mineLeft = _leftList;
+    if(!isMasterUser()){
+      var _mine = _myClassNames();
+      if(_mine.length) _mineLeft = _leftList.filter(function(x){ return _mine.indexOf(x.className) >= 0; });
+    }
+    if(typeof setNavBadge === 'function') setNavBadge('newstudent', _mineLeft.length);
     var _head = _left
       ? "<div style='display:flex;align-items:center;gap:8px;background:#FFF0F0;"
         + "border:1px solid #FFCDD2;border-radius:11px;padding:10px 13px;margin-bottom:12px'>"
@@ -10323,6 +10351,21 @@ function getExtSupMats(){
   }
   return out;
 }
+//  적은 이름이 WG 교재 이름과 같으면 그 이름을 돌려줍니다
+function _wgBookByName(name){
+  var n = _lpNorm(name);
+  if(!n || typeof _catCache === 'undefined' || !_catCache) return '';
+  var hit = '';
+  _catCache.series.forEach(function(sr){
+    if(hit || !_isWGCourse(sr.code)) return;
+    (sr.books || []).forEach(function(b){
+      if(hit) return;
+      var full = _bookFullName({ series:sr, book:b });
+      if(_lpNorm(full) === n || _lpNorm(b.name) === n) hit = full;
+    });
+  });
+  return hit;
+}
 function submitExtOrderForm(){
   var className = document.getElementById("extClassSel").value;
   var bookName  = document.getElementById("extBookName").value.trim();
@@ -10330,6 +10373,14 @@ function submitExtOrderForm(){
   if(!className){ showToast("반을 선택해주세요."); return; }
   if(!bookName){ showToast("교재명을 입력해주세요."); return; }
   if(!qty||qty<1){ showToast("필요부수를 입력해주세요."); return; }
+  //  WG 교재를 외부 주문으로 넣으려는 건 아닌지
+  var _wgHit = _wgBookByName(bookName);
+  if(_wgHit && !confirm("'" + _wgHit + "' 은(는) WG 교재로 등록돼 있어요.\n\n"
+      + "[확인] 그래도 외부 교재로 주문\n[취소] 멈추고 WG 교재 주문으로 가기")){
+    switchBookTab(0);
+    showToast("WG 교재 탭에서 교재를 골라 주세요.");
+    return;
+  }
   var supMats = getExtSupMats();
   var btn = document.getElementById("extSubmitBtn");
   btn.disabled=true; btn.textContent="신청 중...";
@@ -10474,7 +10525,7 @@ function loadWGOrders(){
     if(done) done.innerHTML = renderMonthGroups(d, _orderDate, renderWGCard,
                                                 'mgWGO', '완료된 주문이 없습니다.');
     _bokInline('wgPendingInline', p, renderWGCard, 'WG 교재');
-    if(typeof setNavBadge === 'function') setNavBadge('wgorder', p.length);
+    if(typeof setNavBadge === 'function') setNavBadge('wgorder', canSeeDuty('wgorder') ? p.length : 0);
   })
   .withFailureHandler(function(){
     if(pending) pending.innerHTML = "<div class='empty'>Error. Please try again.</div>";
@@ -10497,7 +10548,7 @@ function loadExtOrders(){
     if(done) done.innerHTML = renderMonthGroups(d, _orderDate, renderExtCard,
                                                 'mgEXO', '완료된 주문이 없습니다.');
     _bokInline('extPendingInline', p, renderExtCard, '외부 교재');
-    if(typeof setNavBadge === 'function') setNavBadge('extorder', p.length);
+    if(typeof setNavBadge === 'function') setNavBadge('extorder', canSeeDuty('extorder') ? p.length : 0);
   })
   .withFailureHandler(function(){
     if(pending) pending.innerHTML = "<div class='empty'>Error. Please try again.</div>";
