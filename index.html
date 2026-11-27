@@ -672,7 +672,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-11-27 20:10';
+var APP_VERSION = '2026-11-28 10:20';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -7405,7 +7405,9 @@ function plHwView(text, opts){
   var lh     = big ? "line-height:1.16;" : "";
   var padH   = big ? '12px'      : '10px';
   var gap    = big ? '16px'      : '10px';   // 숙제와 Spelling 사이 최소 틈
-  var wrap   = big ? "white-space:nowrap;" : "word-break:break-word;";
+  //  nowrap: 줄을 바꾸지 않고 옆으로 길게 (학부모 페이지 — 옆으로 밀어서 봅니다)
+  var oneLine = big || !!opts.nowrap;
+  var wrap   = oneLine ? "white-space:nowrap;" : "word-break:break-word;";
 
   // 격자로 짭니다 — 칸이 서로 겹칠 수 없고 세로줄이 딱 맞습니다
   //   [체크] [교재 이름] [숙제] [Spelling/Meaning]
@@ -7415,10 +7417,12 @@ function plHwView(text, opts){
          + "display:flex;align-items:baseline;" + style + "'>" + inner + "</div>";
   }
 
-  var h = "<div style='display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;"
+  var h = "<div style='display:grid;grid-template-columns:auto auto "
+        +   (opts.nowrap ? "auto" : "minmax(0,1fr)") + " auto;"
         +   "align-items:stretch;border:1px solid #E1E6DA;border-radius:10px;"
         +   "overflow:hidden;background:#fff;"
-        +   (big ? "width:100%;" : "") + "'>"
+        +   (big ? "width:100%;" : "")
+        +   (opts.nowrap ? "width:max-content;min-width:100%;" : "") + "'>"
 
         // 머리줄 — 네 칸을 통째로 씁니다
         + "<div style='grid-column:1/-1;display:flex;align-items:baseline;gap:" + gap + ";"
@@ -8282,18 +8286,27 @@ function ppWeek(step){
 //  카드 하나 — 왼쪽 알림장 · 오른쪽 날짜 띠
 function _ppCard(r){
   var d = new Date(r.date + 'T00:00:00');
-  var hwForm = plHwView(r.homework || '');
+  //  숙제는 줄을 바꾸지 않고 옆으로 — 길면 손가락으로 밀어서 봅니다
+  var hwForm = plHwView(r.homework || '', { nowrap:true });
   var hwHtml = hwForm
     ? hwForm
     : "<div style='font-size:14px;color:#363D2E;font-weight:600;line-height:1.55;"
-      + "white-space:pre-wrap;word-break:break-word'>"
+      + "white-space:pre'>"         // 선생님이 Enter 친 곳에서만 줄이 바뀝니다
       + (r.homework ? _plEsc(r.homework) : "<span style='color:#C3C9BB'>No homework</span>")
       + "</div>";
 
   return "<div style='display:flex;align-items:stretch;background:#fff;border-radius:14px;"
     +   "overflow:hidden;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06),"
     +   "0 0 0 1px rgba(0,0,0,.05)'>"
-    +   "<div style='flex:1;min-width:0;padding:11px;overflow-x:auto'>" + hwHtml + "</div>"
+    +   "<div style='flex:1;min-width:0;position:relative'>"
+    +     "<div class='pp-scroll' onscroll='_ppFade(this)' style='padding:11px;overflow-x:auto;"
+    +       "-webkit-overflow-scrolling:touch;scrollbar-width:thin'>" + hwHtml + "</div>"
+    //  옆에 더 있다는 표시 — 오른쪽 끝이 흐려지고 → 가 보입니다
+    +     "<div class='pp-fade' style='display:none;position:absolute;top:0;right:0;bottom:0;width:34px;"
+    +       "background:linear-gradient(to right,rgba(255,255,255,0),#fff 75%);pointer-events:none;"
+    +       "align-items:center;justify-content:flex-end;padding-right:3px;color:#B5BDAA;"
+    +       "font-size:14px;font-weight:800'>›</div>"
+    +   "</div>"
     +   "<div style='width:88px;flex-shrink:0;background:#363D2E;color:#fff;display:flex;"
     +     "flex-direction:column;align-items:center;justify-content:center;"
     +     "padding:12px 6px;text-align:center;box-sizing:border-box'>"
@@ -8315,6 +8328,17 @@ function _ppCard(r){
           : "")
     +   "</div>"
     + "</div>";
+}
+
+//  옆으로 넘친 카드에만 흐림 표시 — 끝까지 밀면 사라집니다
+function _ppFade(sc){
+  var f = sc && sc.nextSibling;
+  if(!f) return;
+  var more = sc.scrollWidth - sc.clientWidth - sc.scrollLeft > 4;
+  f.style.display = more ? 'flex' : 'none';
+}
+function _ppFadeAll(){
+  Array.prototype.forEach.call(document.querySelectorAll('#ppPage .pp-scroll'), _ppFade);
 }
 
 //  "Wed 11/26"
@@ -8341,25 +8365,62 @@ function _ppSchedAt(sched, ymd){
 //    · 휴강 · 공휴일 · 특별수업 날은 건너뛰고 그 다음 수업으로
 //    · 시간표에서 이 수업을 못 찾으면 마감일을 붙이지 않습니다
 // ════════════════════════════════════════════════════════════
-function _ppDueDate(r, sched, nc){
+//  리포트가 시간표의 어느 칸인지 찾기
+//    ① 교시가 적혀 있으면 그 교시
+//    ② 그날 수업이 하나면 그것
+//    ③ 알림장 양식의 수업 이름(Grammar · Reading …)이나 교재 이름으로
+function _ppFindSlot(r, today, cat){
+  if(r.period){
+    var a = today.filter(function(x){ return String(x.period) === String(r.period); })[0];
+    if(a) return a;
+  }
+  if(today.length === 1) return today[0];
+  var names = [];
+  var pl = (typeof plTextToItems === 'function') ? plTextToItems(r.homework || '') : null;
+  if(pl && pl.lessonName) names.push(pl.lessonName);
+  if(r.book) names.push(r.book);
+  names = names.map(_lpNorm).filter(Boolean);
+  if(!names.length) return null;
+  function label(x){
+    var f = cat ? findTextbook(cat, x.textbookId) : null;
+    return _lpNorm((f ? _bookFullName(f) : '') + ' ' + (x.section || '') + ' ' + (x.subject || ''));
+  }
+  //  영역(Grammar 등)이 맞는 칸을 먼저, 없으면 교재 이름이 맞는 칸
+  for(var i = 0; i < names.length; i++){
+    var n = names[i];
+    var hit = today.filter(function(x){
+      var sec = _lpNorm(x.section || '');
+      return sec && (n.indexOf(sec) >= 0 || sec.indexOf(n) >= 0);
+    })[0] || today.filter(function(x){
+      var l = label(x);
+      return l && (l.indexOf(n) >= 0 || n.indexOf(l) >= 0);
+    })[0];
+    if(hit) return hit;
+  }
+  return null;
+}
+
+function _ppYmd(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+       + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function _ppDueDate(r, sched, nc, cat){
   var d0  = new Date(r.date + 'T00:00:00');
   var wd0 = d0.getDay() || 7;
   var today = _ppSchedAt(sched, r.date).filter(function(x){ return x.weekday === wd0; });
-  var me = null;
-  if(r.period) me = today.filter(function(x){ return String(x.period) === String(r.period); })[0];
-  if(!me && today.length === 1) me = today[0];
-  if(!me) return null;
-  var key = _ngBookKey(me);
+  var me = _ppFindSlot(r, today, cat);
+  var key = me ? _ngBookKey(me) : null;
+
+  //  같은 교재 · 영역의 다음 수업 날 (쉬는 날은 건너뜁니다)
+  //  칸을 못 찾았으면 — 그 반의 다음 수업 날
   for(var i = 1; i <= 35; i++){
     var d = new Date(d0); d.setDate(d0.getDate() + i);
-    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
-           + '-' + String(d.getDate()).padStart(2,'0');
-    var wd = d.getDay() || 7;
-    var hit = _ppSchedAt(sched, ds).filter(function(x){
-      return x.weekday === wd && _ngBookKey(x) === key; })[0];
-    if(!hit) continue;
-    if(_nonClassAt(nc, ds, hit.period)) continue;      // 쉬는 날이면 다음 수업으로
-    return ds;
+    var ds = _ppYmd(d), wd = d.getDay() || 7;
+    var hits = _ppSchedAt(sched, ds).filter(function(x){
+      return x.weekday === wd && (!key || _ngBookKey(x) === key); });
+    var open = hits.filter(function(x){ return !_nonClassAt(nc, ds, x.period); });
+    if(open.length) return ds;
   }
   return null;
 }
@@ -8412,7 +8473,9 @@ async function ppLoad(){
     var _tillS = _till.getFullYear() + '-' + String(_till.getMonth()+1).padStart(2,'0')
                + '-' + String(_till.getDate()).padStart(2,'0');
     var _nc    = await fetchNonClassDays(wk.start, _tillS) || {};
-    rows.forEach(function(r){ r._due = _ppDueDate(r, _sched, _nc); });
+    var _cat   = null;
+    try { _cat = await fetchTextbookCatalog(false); } catch(e2){}
+    rows.forEach(function(r){ r._due = _ppDueDate(r, _sched, _nc, _cat); });
   } catch(e){ console.warn('[학부모 페이지] 마감일 계산 실패', e); }
 
   //  숙제가 적힌 수업만, 날짜 순서대로
@@ -8430,6 +8493,7 @@ async function ppLoad(){
     return;
   }
 
+  setTimeout(_ppFadeAll, 30);
   page.innerHTML = head
     + list.map(_ppCard).join('')
     + "<div style='text-align:center;font-size:10.5px;color:#C3C9BB;padding:6px 0 18px'>"
