@@ -243,7 +243,7 @@ select:hover {border-color:#B2BAA0;background-color:#F7F8F2!important}
   </div>
 </div>
 
-<div id="enrollScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="flex:1"><div style="font-size:15px;font-weight:700;color:#363D2E">🌟 신규등록</div><div style="font-size:11px;color:#999;margin-top:2px">문의 → 상담 예약 → 상담 내용 → 등록 — 한 사람이 카드 하나</div></div><button onclick="inqToggleQuick()" id="inqQuickBtn" style="background:#2D6A4F;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 빠른 등록</button><button onclick="loadInquiries()" style="background:#f0f0f0;color:#555;border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div id="inqQuickBox" style="display:none;background:#F1F6EE;border:1.5px solid #BBD3BE;border-radius:12px;padding:13px 15px;margin-bottom:14px"></div><div class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="inqTab0" onclick="inqSwitchTab(0)">🌟 진행 중</button><button class="etab" id="inqTab1" onclick="inqSwitchTab(1)">📇 상담 기록 찾기</button></div><div id="inqPane0"><div id="inqFilter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div><div id="inqList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div><div id="inqPane1" style="display:none"><div style="display:flex;gap:7px;margin-bottom:12px"><input id="crQuery" placeholder="학생 이름으로 찾기" onkeydown="if(event.key==='Enter') crSearch()" style="flex:1;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:13.5px;box-sizing:border-box;outline:none"><button onclick="crSearch()" style="background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">찾기</button></div><div id="crList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">학생 이름을 적고 [찾기] 를 눌러주세요.<br><span style="font-size:11.5px">비우고 찾으면 상담 기록이 있는 학생을 모두 보여줍니다</span></div></div></div></div></div><div id="consultCalScreen" style="display:none"><div style="max-width:680px;margin:0 auto;padding:16px"><div style="background:white;border-radius:14px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.07);margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 신규상담 일정</div><div style="font-size:12px;color:#999;margin-top:2px">상담 예정 학생 일정을 확인합니다</div></div><div id="ccUpcoming" style="margin-right:8px"></div><button onclick="loadConsultCal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div style="background:white;border-radius:14px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.07)"><div id="consultCalContainer"><div style="text-align:center;color:#bbb;padding:40px;font-size:13px">Loading...</div></div></div></div></div><div id="withdrawScreen" style="display:none"><div class="container"><div class="etab-bar"><button class="etab active" id="wtab0" onclick="switchWithdrawTab(0)">🚪 Process Withdrawal</button><button class="etab" id="wtab1" onclick="switchWithdrawTab(1)">📋 Withdrawn List</button></div><div id="withdrawTab0"><div class="top-box"><label>Select Class</label><select id="withdrawClassSel" onchange="loadWithdrawStudents()"><option value="">-- Select Class --</option></select></div><div id="withdrawStudentList"></div></div><div id="withdrawTab1" style="display:none"><div id="withdrawnList"></div></div></div></div><div id="bookOrderScreen" style="display:none"><div class="container"><div class="etab-bar"><button class="etab active" id="btab0" onclick="switchBookTab(0)">📝 주문 신청</button><button class="etab" id="btab1" onclick="switchBookTab(1)">📋 주문 현황</button></div><div id="bookMainTab0"><div id="bookSubTabBar" class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="bsubtab0" onclick="switchBookSubTab(0)">📗 WG교재</button><button class="etab" id="bsubtab1" onclick="switchBookSubTab(1)">📔 외부교재</button></div><div id="bookSubTab0"><div class="top-box"><div class="ef"><label>반 선택 <span class="req">*</span></label><select id="wgClassSel"><option value="">-- 반 선택 --</option></select></div><div class="ef"><label>교재 선택 <span class="req">*</span></label><select id="wgBookSel" onchange="onWgBookPick()"><option value="">-- 교재 선택 --</option></select></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>필요부수 <span class="req">*</span></label><input type="number" id="wgQty" min="1" value="1"></div><div class="ef" style="flex:1"><label>교사용 부수</label><input type="number" id="wgTeacher" min="0" value="0"></div></div><div class="ef"><label>교재시작일</label><div id="wgStartDateCon"></div></div><div class="ef"><label>부가자료 <span style="font-weight:500;color:#999">(만들 것만 고르세요)</span></label><div id="wgSupmatChkBox" style="display:flex;flex-wrap:wrap;align-items:center;padding:4px 2px"></div></div><button class="btn" id="wgSubmitBtn" onclick="submitWGOrderForm()">📗 WG교재 주문 신청</button><div id="wgPendingInline"></div></div></div><div id="bookSubTab1" style="display:none"><div class="top-box"><div class="ef"><label>반 선택 <span class="req">*</span></label><select id="extClassSel"><option value="">-- 반 선택 --</option></select></div><div class="ef"><label>교재명 <span class="req">*</span></label><input type="text" id="extBookName" placeholder="교재 이름을 입력하세요"></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>필요부수 <span class="req">*</span></label><input type="number" id="extQty" min="1" value="1"></div><div class="ef" style="flex:1"><label>교사용 부수</label><input type="number" id="extTeacher" min="0" value="0"></div></div><div class="ef"><label>시작일</label><div id="extStartDateCon"></div></div><div class="ef"><label>부가자료</label><div id="extSupmatChkBox" style="display:flex;flex-wrap:wrap;padding:8px 0"><span style="color:#bbb;font-size:12px">로딩 중...</span></div></div><button class="btn" id="extSubmitBtn" onclick="submitExtOrderForm()">📔 외부교재 주문 신청</button><div id="extPendingInline"></div></div></div></div><div id="bookMainTab1" style="display:none"><div id="bookStatusTabBar" class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="bstab0" onclick="switchBookStatusTab(0)">📗 WG주문</button><button class="etab" id="bstab1" onclick="switchBookStatusTab(1)">📔 외부주문</button></div><div id="bookStatusTab0"><div class="mini-tab-bar"><button class="mini-tab active" id="wgOrdMini0" onclick="switchWGOrderMini(0)">📋 주문전</button><button class="mini-tab" id="wgOrdMini1" onclick="switchWGOrderMini(1)">✅ 주문완료</button></div><div id="wgOrderPendingList"></div><div id="wgOrderDoneList" style="display:none"></div></div><div id="bookStatusTab1" style="display:none"><div class="mini-tab-bar"><button class="mini-tab active" id="extOrdMini0" onclick="switchExtOrderMini(0)">📋 주문전</button><button class="mini-tab" id="extOrdMini1" onclick="switchExtOrderMini(1)">✅ 주문완료</button></div><div id="extOrderPendingList"></div><div id="extOrderDoneList" style="display:none"></div></div></div></div></div><div id="extraOrderScreen" style="display:none"><div class="container"><div class="top-box"><div class="ef"><label>반 선택 <span class="req">*</span></label><select id="extraClassSel"><option value="">-- 반 선택 --</option></select></div><div class="ef"><label>교재명 <span class="req">*</span></label><input type="text" id="extraBookName" placeholder="교재 이름"></div><div class="ef"><label>부가자료 내용 <span class="req">*</span></label><input type="text" id="extraSupMat" placeholder="예: Workbook, Fun Book..."></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>필요부수 <span class="req">*</span></label><input type="number" id="extraQty" min="1" value="1"></div><div class="ef" style="flex:1"><label>시작일</label><div id="extraStartDateCon"></div></div></div><div class="ef"><label>작성자</label><select id="extraRequesterSel"><option value="">-- 작성자 선택 --</option></select></div><button class="btn" id="extraSubmitBtn" onclick="submitExtraOrderForm()">➕ 추가주문 신청</button></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">📋 추가주문 목록</div><div id="extraOrderList"></div></div></div><div id="supmatScreen" style="display:none"><div class="container"><div class="mini-tab-bar"><button class="mini-tab active" id="smMini0" onclick="switchSupmatMini(0)">🔧 제작전/제작중</button><button class="mini-tab" id="smMini1" onclick="switchSupmatMini(1)">✅ 제작완료</button></div><div id="supmatActivePane"><div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #eee">📗 WG교재</div><div id="wgSupmatActiveList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">📔 외부교재</div><div id="extSupmatActiveList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">➕ 추가주문</div><div id="extraSupmatActiveList"></div></div><div id="supmatDonePane" style="display:none"><div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #eee">📗 WG교재</div><div id="wgSupmatDoneList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">📔 외부교재</div><div id="extSupmatDoneList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">➕ 추가주문</div><div id="extraSupmatDoneList"></div></div></div></div><div id="parentMsgScreen" style="display:none"><div class="container"><div style="font-size:15px;font-weight:700;margin-bottom:6px;color:#333">📚 교재구입메세지</div><div style="font-size:12px;color:#999;margin-bottom:14px">외부교재 주문별 교재 구입 관련 학부모 메세지 발송 여부를 관리합니다.</div><div id="msgCalContainer" style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)"><div id="msgCalInner"><div style="text-align:center;color:#B2BAA0;padding:20px;font-size:13px">Loading...</div></div></div><div id="parentMsgList"></div></div></div><div id="memoBoardScreen" style="display:none"><div class="container"><div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🚌 오늘 남는 학생</div><div style="font-size:11px;color:#999;margin-top:2px">귀가 완료 학생은 귀가완료 버튼을 눌러주세요</div></div><button onclick="openStayForm()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ 학생 추가</button></div><div id="stayForm" style="display:none;background:#f8fdf8;border:1.5px solid #b7e4c7;border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:#363D2E;margin-bottom:10px">남는 학생 추가</div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:2px">반 / 학생이름 <span class="req">*</span></label><input id="stayName" type="text" placeholder="예: G3 / 김민준" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px;display:block">사유</label><div style="display:flex;flex-wrap:wrap;gap:8px"><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="숙제 미완" style="display:none">✏️ 숙제 미완</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="보충" style="display:none">📖 보충</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="재시험" style="display:none">📝 재시험</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="학부모대기" style="display:none">👨‍👩‍👧 학부모대기</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="기타" style="display:none">💬 기타</label></div></div><div style="display:flex;gap:8px;margin-top:10px"><button onclick="submitStay()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeStayForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button></div></div><div id="stayList"><div style="text-align:center;color:#bbb;padding:20px;font-size:13px">불러오는 중...</div></div><div style="margin-top:12px;text-align:center"><button onclick="toggleDepartedSection()" style="background:#fff;border:1.5px solid #b0bec5;color:#607d8b;border-radius:8px;padding:7px 18px;font-size:12px;font-weight:600;cursor:pointer">귀가완료 목록 보기 ▼</button></div><div id="departedSection" style="display:none;margin-top:10px"><div id="departedList"></div></div></div><div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🗒️ 선생님 메모보드</div><div style="font-size:11px;color:#999;margin-top:2px">최신 메모가 위에 표시됩니다</div></div><div style="display:flex;gap:6px"><button onclick="openAbsMemoForm()" style="background:#fff;color:#C0392B;border:1.5px solid #F0C4BE;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 결석</button><button onclick="openMemoForm()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 새 메모</button></div></div><div id="memoForm" style="display:none;background:#f8fdf8;border:1.5px solid #b7e4c7;border-radius:10px;padding:14px;margin-bottom:12px"><div class="ef" id="memoTypeRow"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:2px">유형</label><select id="memoType" onchange="onMemoTypeChange()" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"><option value="">-- 선택 --</option><option value="미등원">미등원</option><option value="신규상담">신규상담</option><option value="재학생상담">재학생상담</option><option value="자료오류">자료오류</option><option value="기타">기타</option></select></div><div id="memoAbsSection" style="display:none;background:#f0f7f4;border:1.5px solid #b7e4c7;border-radius:10px;padding:13px 14px;margin-bottom:10px"><div style="font-size:13px;font-weight:700;color:#2D6A4F;margin-bottom:12px">➕ 결석 추가</div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 학생 <span class="req">*</span></label><div style="display:flex;gap:6px"><select id="memoAbsClassSel" onchange="loadMemoAbsStudents()" style="flex:1;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white;box-sizing:border-box"><option value="">-- 반 선택 --</option></select><select id="memoAbsStudentSel" onchange="onMemoAbsStudentChange()" style="flex:1;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white;box-sizing:border-box"><option value="">-- 학생 선택 --</option></select></div></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 날짜 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="date" id="memoAbsDate" onchange="autoFillMemoContent()" style="flex:1;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"><button type="button" onclick="mAbsAddDate()" style="background:#EFF4EA;color:#2D6A4F;border:1.5px solid #CFE0D3;border-radius:8px;padding:0 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 날짜 더하기</button></div><div id="memoAbsDateChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div><div style="font-size:10.5px;color:#A8B09C;margin-top:4px">여러 날을 한꺼번에 넣을 수 있어요 — 날짜를 고르고 [＋ 날짜 더하기]</div></div><div class="ef" style="margin-top:10px" id="memoAbsReasonRow"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">사유</label><select id="memoAbsReason" onchange="onMemoAbsReasonChange()" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white;box-sizing:border-box"><option value="">-- 선택 --</option><option value="병결">병결</option><option value="가족여행">가족여행</option><option value="가족행사">가족행사</option><option value="개인사정">개인사정</option><option value="미통보결석">미통보결석</option><option value="기타">기타</option></select><input type="text" id="memoAbsReasonEtc" placeholder="기타 사유 직접 입력..." style="display:none;width:100%;margin-top:6px;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box" oninput="autoFillMemoContent()"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충일 <span style="color:#999;font-weight:400">(선택)</span></label><input type="date" id="memoAbsMakeupDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="font-size:11px;color:#8A9178;margin-top:9px;line-height:1.6">학생을 고르시면 출석부에도 결석이 함께 기록됩니다</div></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">받는 사람 <span style="color:#999;font-weight:400">(안 고르면 전체 공지)</span></label><div id="memoRecipBox" style="display:flex;flex-wrap:wrap;gap:5px"></div></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:2px">내용 <span class="req">*</span></label><textarea id="memoContent" rows="4" placeholder="전달할 내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">첨부파일 <span style="color:#999;font-weight:400">(선택, 최대 5MB)</span></label><label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:#f0f0f0;border:1.5px dashed #ccc;border-radius:8px;padding:9px 12px"><span style="font-size:18px">📎</span><span style="font-size:12px;color:#666">파일 선택하기</span><input type="file" id="memoFile" onchange="onMemoFileChange(this)" style="display:none"></label><div id="memoFileName" style="font-size:11px;color:#2D6A4F;margin-top:4px"></div></div><div style="display:flex;gap:8px;margin-top:10px"><button onclick="submitMemo()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeMemoForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button></div></div><div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">&#128197; 주간 결석 현황</div><div style="display:flex;align-items:center;gap:8px"><button onclick="changeWeekCal(-1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8249;</button><span id="weekCalLabel" style="font-size:13px;font-weight:600;color:#555;min-width:140px;text-align:center"></span><button onclick="changeWeekCal(1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8250;</button><button onclick="changeWeekCal(0)" style="background:#f0f7f4;border:1px solid #b7e4c7;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#2D6A4F;font-weight:600">이번 주</button><button id="weekCalToggleBtn" onclick="toggleWeekCal()" style="background:#363D2E;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#fff;font-weight:600">펼치기</button></div></div><div id="weekCalGrid" style="display:none;overflow-x:auto"></div></div><div id="memoSplit" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><div id="memoAllWrap" style="flex:3 1 340px;min-width:0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;margin-top:2px"><div style="font-size:14px;font-weight:700;color:#363D2E">📋 메모 목록</div><button onclick="toggleAbsMemoPanel()" style="display:flex;align-items:center;gap:6px;background:#ffebee;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:#c62828;cursor:pointer">🗓️ 결석 메모 <span id="absMemoCountBadge" style="background:#ef5350;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;min-width:16px;text-align:center"></span></button></div><div id="absMemoPanel" style="display:none;background:#fff8f8;border:1.5px solid #ef9a9a;border-radius:10px;padding:12px;margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:#c62828;margin-bottom:8px">🗓️ 결석 메모</div><div id="absMemoList"><div style="text-align:center;color:#bbb;font-size:12px">없음</div></div></div><div id="memoList"><div style="text-align:center;color:#bbb;padding:20px;font-size:13px">불러오는 중...</div></div></div><div id="adminMemoWrap" style="display:none;flex:2 1 290px;min-width:0;background:#FAF8FD;border:1.5px solid #EEE8F6;border-radius:12px;padding:13px 14px"><div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px"><div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:800;color:#5B3F86">🔒 관리자 전용<span id="adminMemoBadge" style="display:none;background:#E25555;color:#fff;border-radius:10px;padding:0 6px;font-size:10.5px;margin-left:5px;vertical-align:2px"></span></div><div style="font-size:10.5px;font-weight:600;color:#A79BBD;margin-top:2px">원장님만 보입니다</div></div><button onclick="openAdminMemoForm()" style="background:#7B57A3;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:700;cursor:pointer;flex-shrink:0">＋ 쓰기</button></div><div id="adminMemoForm" style="display:none"></div><div id="adminMemoList"></div></div></div></div></div><div id="memoEditModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9500;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">✏️ 메모 수정</div><button onclick="closeMemoEditModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">유형</label><select id="memoEditType" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">-- 선택 --</option><option value="결석">결석</option><option value="미등원">미등원</option><option value="신규상담">신규상담</option><option value="재학생상담">재학생상담</option><option value="자료오류">자료오류</option><option value="기타">기타</option></select></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">받는 선생님 <span style="font-weight:500;color:#999">(아무도 안 고르면 전체 공지)</span></label><div id="memoEditRecipBox" style="display:flex;flex-wrap:wrap;gap:5px"></div></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">내용 <span style="color:#e53935">*</span></label><textarea id="memoEditContent" rows="5" placeholder="내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea></div><div style="display:flex;gap:8px;margin-top:14px"><button onclick="closeMemoEditModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="memoEditSaveBtn" onclick="saveMemoEdit()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div></div><div id="rosterScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Class</label><select id="rosterClassSel" onchange="loadRoster()"><option value="">-- Select Class --</option></select></div><div id="rosterSummary" class="roster-summary" style="display:none"><div class="roster-total">Active Students</div><div><div id="rosterCountNum" class="roster-count">0<span>students</span></div></div></div><div id="rosterBody"></div></div></div><div id="mainScreen" style="display:none"><div class="container" style="max-width:820px"><div class="top-box"><label>Select Teacher</label><select id="tsel" onchange="loadReports()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="dateSelContainer"></div></div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px"><button id="createReportBtn" onclick="triggerCreateReports()" style="padding:9px 18px;background:#4a90d9;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">📅 Auto-Generate</button><div style="font-size:10px;color:#aaa;line-height:1.4">⚠️ Requires last week's same-weekday report to be completed first</div></div><div id="list"></div><div id="addReportArea" style="display:none;margin-top:16px;border:1.5px dashed #c8d8c0;border-radius:12px;padding:14px;background:#f8fdf8"><div style="font-weight:700;color:#363D2E;margin-bottom:10px;font-size:13px">➕ Add Report</div><button onclick="openFullReportModal()" style="width:100%;padding:12px;background:#363D2E;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:16px">✏️</span> New Report</button></div></div></div><div id="scheduleScreen" style="display:none"><div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #eee"><div style="font-size:15px;font-weight:700;color:#363D2E">📅 Schedule</div><div style="display:flex;gap:8px"><button onclick="openScheduleUpload()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ 새 업로드</button><button onclick="initScheduleScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer">🔄</button></div></div><div id="scheduleForm" style="display:none;background:#f8fdf8;border-bottom:2px solid #b7e4c7;padding:14px 16px"><div id="scheduleFormTitle" style="font-size:13px;font-weight:700;color:#363D2E;margin-bottom:12px"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#888;font-weight:600;display:block;margin-bottom:4px">날짜</label><input type="text" id="scheduleDateInput" placeholder="예) 2026 June 15th~" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;color:#333"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#888;font-weight:600;display:block;margin-bottom:4px">진행상태</label><select id="scheduleStatusSelect" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;color:#333;background:#fff"><option value="진행예정">진행예정</option><option value="진행중">진행중</option><option value="진행완료">진행완료</option></select></div><div style="margin-bottom:12px"><label style="font-size:11px;color:#888;font-weight:600;display:block;margin-bottom:4px">시간표 이미지 <span id="scheduleFileRequired" style="color:#c62828">(필수)</span></label><label style="display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2D6A4F;border:1.5px solid #b7e4c7;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer">📷 이미지 선택<input type="file" id="scheduleFileInput" accept="image/*" onchange="onScheduleFileChange(this)" style="display:none"></label><div id="scheduleFileName" style="font-size:11px;color:#2D6A4F;margin-top:5px"></div></div><div style="display:flex;gap:8px"><button id="scheduleSubmitBtn" onclick="submitScheduleForm()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeScheduleForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button></div></div><div id="scheduleContent" style="padding:14px 16px 80px"><div style="text-align:center;color:#bbb;padding:40px;font-size:13px">Loading...</div></div></div><div id="commentsScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">💬 Comments</div><div style="font-size:11px;color:#999;margin-top:2px">Reports with comments written</div></div><button onclick="initCommentsScreen()" style="background:#4a90d9;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button></div><div id="commentsList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="bookOrderBoardScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📦 Book Orders</div><div style="font-size:11px;color:#999;margin-top:2px">곧 끝나는 교재 · 선생님이 요청한 주문</div></div><button onclick="initBookOrderBoardScreen()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button></div><div id="bookOrderDueBox" style="margin-bottom:16px"></div><div style="height:1px;background:#E7EAE3;margin:18px 0 12px"></div><div style="font-size:13.5px;font-weight:800;color:#2D3A28;margin-bottom:9px">🗂️ Daily Report 북오더 전체 기록<span style="font-size:10.5px;font-weight:600;color:#A8B09C;margin-left:8px">최근 300개 리포트</span></div><div id="bookOrderBoardList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="nativeBoardScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🌍 Memo Board</div><div style="font-size:11px;color:#999;margin-top:2px">Native teacher memo board</div></div><div style="display:flex;gap:8px"><button onclick="openNativeMemoForm()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ New Memo</button><button onclick="initNativeBoardScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div id="nativeMemoForm" style="display:none;background:#f8fdf8;border:1.5px solid #b7e4c7;border-radius:10px;padding:14px;margin-bottom:14px"><div style="font-size:13px;font-weight:700;color:#363D2E;margin-bottom:10px">New Memo</div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px;display:block">To <span style="color:#999;font-weight:400">(leave empty = everyone)</span></label><div id="nativeRecipBox" style="display:flex;flex-wrap:wrap;gap:5px"></div></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;display:block">Content <span class="req">*</span></label><input id="nativeMemoTitle" type="text" placeholder="Enter memo content..." style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;display:block">Category</label><select id="nativeMemoCategory" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;background:white"><option value="">-- Select Category --</option><option value="Student">Student</option><option value="Class">Class</option><option value="Schedule">Schedule</option><option value="General">General</option></select></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;display:block">Attachment (optional)</label><label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:#f0f0f0;border:1.5px dashed #ccc;border-radius:8px;padding:9px 12px"><span style="font-size:18px">📎</span><span style="font-size:12px;color:#666">Select file (max 5MB)</span><input type="file" id="nativeMemoFile" onchange="onNativeMemoFileChange(this)" style="display:none"></label><div id="nativeMemoFileName" style="font-size:11px;color:#2D6A4F;margin-top:4px"></div></div><div style="display:flex;gap:8px;margin-top:10px"><button id="nativeMemoSubmitBtn" onclick="submitNativeMemo()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Save</button><button onclick="closeNativeMemoForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button></div></div><div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">&#128197; Weekly Absences</div><div style="display:flex;align-items:center;gap:8px"><button onclick="changeNativeWeekCal(-1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8249;</button><span id="nativeWeekCalLabel" style="font-size:13px;font-weight:600;color:#555;min-width:140px;text-align:center"></span><button onclick="changeNativeWeekCal(1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8250;</button><button onclick="changeNativeWeekCal(0)" style="background:#f0f7f4;border:1px solid #b7e4c7;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#2D6A4F;font-weight:600">This Week</button><button id="nativeWeekCalToggleBtn" onclick="toggleNativeWeekCal()" style="background:#363D2E;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#fff;font-weight:600">Collapse</button></div></div><div id="nativeWeekCalGrid" style="overflow-x:auto"></div></div><div id="nativeMemoList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="nativeMemoEditModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9500;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">✏️ Edit Memo</div><button onclick="closeNativeMemoEditModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Category</label><select id="nativeMemoEditCategory" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">-- Select --</option><option value="Student">Student</option><option value="Class">Class</option><option value="Schedule">Schedule</option><option value="General">General</option></select></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Content <span style="color:#e53935">*</span></label><textarea id="nativeMemoEditContent" rows="5" placeholder="Enter memo content..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea></div><div style="display:flex;gap:8px;margin-top:14px"><button onclick="closeNativeMemoEditModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button><button id="nativeMemoEditSaveBtn" onclick="saveNativeMemoEdit()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">Save</button></div></div></div><div id="studentListScreen" style="display:none"><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">👥 학생명단</div><div style="font-size:11px;color:#999;margin-top:2px">재원생 전체 명단</div></div><div style="display:flex;gap:8px"><button onclick="openStuListSheet(this)" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📄 A4 명단</button><button onclick="openAddStudentModal()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">+ 학생 추가</button><button onclick="initStudentListScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><input id="studentSearch" type="text" placeholder="🔍 이름 또는 반 검색..." oninput="filterStudentList()" style="width:100%;padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;margin-bottom:12px;outline:none"></div><div style="overflow-x:auto;padding:0 18px 18px"><table style="width:100%;border-collapse:collapse;font-size:12px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)"><thead><tr style="background:#2D6A4F;color:white"><th style="padding:10px;text-align:left;white-space:nowrap">반</th><th style="padding:10px;text-align:left;white-space:nowrap">이름</th><th style="padding:10px;text-align:left;white-space:nowrap">영어이름</th><th style="padding:10px;text-align:left;white-space:nowrap">학교</th><th style="padding:10px;text-align:left;white-space:nowrap">학년</th><th style="padding:10px;text-align:left;white-space:nowrap">부모님 전화</th><th style="padding:10px;text-align:left;white-space:nowrap">학생 전화</th><th style="padding:10px;text-align:left">주소</th><th style="padding:10px;text-align:left;white-space:nowrap">등원차량</th><th style="padding:10px;text-align:left;white-space:nowrap">하원차량</th><th style="padding:10px;text-align:center;white-space:nowrap">수정</th><th style="padding:10px;text-align:center;white-space:nowrap">퇴원</th></tr></thead><tbody id="studentListTable"><tr><td colspan="12" style="text-align:center;color:#bbb;padding:28px">Loading...</td></tr></tbody></table></div><div id="editStudentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,420px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:16px">✏️ 학생 정보 수정</div><input type="hidden" id="esId"><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">이름</label><input id="esName" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">영어 이름</label><input id="esEng" type="text" placeholder="English name" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학교</label><input id="esSchool" type="text" placeholder="예) 철산초" onblur="wgFmt(this,'school')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학년</label><input id="esGrade" type="text" inputmode="numeric" maxlength="2" placeholder="예) 3" oninput="wgGradeTyping(this)" onblur="wgFmt(this,'grade')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">부모님 전화</label><input id="esParentTel" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학생 전화</label><input id="esStudentTel" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">주소</label><input id="esAddress" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등원차량</label><input id="esBusIn" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">하원차량</label><input id="esBusOut" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:18px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등록일 (납부일 기준)</label><input id="esEnrollDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div id="esSibBox" style="display:none;margin:-8px 0 18px;background:#FFF8EC;border:1.5px solid #F0DDB8;border-radius:10px;padding:10px 12px"><label style="font-size:11px;color:#8A5A10;font-weight:700;display:block;margin-bottom:6px">👫 형제 할인 <span style="font-weight:500;color:#B49A6A">(원비에서 빠지는 금액 · 만원)</span></label><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><input id="esSibling" type="number" min="0" step="0.5" placeholder="없음" style="width:90px;padding:8px 10px;border:1.5px solid #E8D3AA;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none;background:#fff"><span style="font-size:12px;color:#8A5A10;font-weight:700">만원</span><button type="button" onclick="document.getElementById('esSibling').value=''" style="margin-left:auto;background:#fff;border:1.5px solid #E8D3AA;border-radius:16px;padding:4px 11px;font-size:11px;font-weight:700;color:#8A5A10;cursor:pointer">형제 없음</button></div><div style="font-size:10.5px;color:#B49A6A;margin-top:5px;line-height:1.5">적으면 수납관리의 원비에서 바로 빠집니다 · 형제 모두에게 적어 주세요</div></div><div style="display:flex;gap:10px"><button onclick="closeEditStudentModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitEditStudent()" style="flex:2;padding:10px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="addStudentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,460px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:4px">➕ 학생 추가 (재원생)</div><div style="font-size:11px;color:#999;margin-bottom:16px">신입상담에서 등록 완료된 학생을 재원생으로 직접 추가합니다</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">이름 <span style="color:#e53935">*</span></label><input id="asName" type="text" placeholder="학생 이름" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">영어 이름</label><input id="asEng" type="text" placeholder="English name" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등록일 <span style="color:#e53935">*</span></label><input id="asEnrollDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">반 <span style="color:#e53935">*</span></label><select id="asClass" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white;outline:none"><option value="">-- 반 선택 --</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학교</label><input id="asSchool" type="text" placeholder="예) 철산초" onblur="wgFmt(this,'school')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학년</label><input id="asGrade" type="text" inputmode="numeric" maxlength="2" placeholder="예) 3" oninput="wgGradeTyping(this)" onblur="wgFmt(this,'grade')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">부모님 전화</label><input id="asParentPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000" oninput="wgPhoneTyping(this)" onblur="wgFmt(this,'phone')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학생 전화</label><input id="asPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000" oninput="wgPhoneTyping(this)" onblur="wgFmt(this,'phone')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">주소</label><input id="asAddress" type="text" placeholder="주소" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등원차량</label><select id="asPickup" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white;outline:none"><option value="">-- 선택 --</option><option>도보</option><option>6호차</option><option>5호차</option></select></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">하원차량</label><select id="asDropoff" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white;outline:none"><option value="">-- 선택 --</option><option>도보</option><option>6호차</option><option>5호차</option></select></div></div><div style="display:flex;gap:10px"><button onclick="closeAddStudentModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="asSubmitBtn" onclick="submitAddStudent()" style="flex:2;padding:10px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="withdrawStudentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#c62828;margin-bottom:6px">🚪 퇴원 처리</div><div style="font-size:13px;color:#555;margin-bottom:16px"><b id="wsName"></b> 학생을 퇴원 처리합니다.</div><input type="hidden" id="wsPid"><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">퇴원 날짜</label><input id="wsDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:18px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">퇴원 사유</label><textarea id="wsReason" rows="3" placeholder="퇴원 사유 입력..." style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none;resize:none"></textarea></div><div style="display:flex;gap:10px"><button onclick="closeWithdrawStudentModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitWithdrawStudent()" style="flex:2;padding:10px;background:#c62828;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">퇴원 확인</button></div></div></div><div style="padding:0 18px 8px;text-align:center"><button id="withdrawnToggleBtn" onclick="toggleWithdrawnSection()" style="background:#fff3f3;color:#c62828;border:1.5px solid #f5c6c6;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer">🔽 퇴원생 명단 보기</button></div><div id="withdrawnSection" style="display:none;padding:0 18px 18px"><div style="font-size:12px;font-weight:700;color:#c62828;margin-bottom:8px">🚪 퇴원생 명단</div><table style="width:100%;border-collapse:collapse;font-size:12px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)"><thead><tr style="background:#b71c1c;color:white"><th style="padding:8px 10px;text-align:left;white-space:nowrap">이름</th><th style="padding:8px 10px;text-align:left;white-space:nowrap">이전 반</th><th style="padding:8px 10px;text-align:left;white-space:nowrap">퇴원일</th><th style="padding:8px 10px;text-align:left">사유</th><th style="padding:8px 10px;text-align:center;white-space:nowrap">재등원</th></tr></thead><tbody id="withdrawnTable"><tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px">-</td></tr></tbody></table></div><div id="reEnrollModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#2D6A4F;margin-bottom:6px">🔄 재등원 처리</div><div style="font-size:13px;color:#555;margin-bottom:16px"><b id="reNameLabel"></b> 학생을 재등원 처리합니다.</div><input type="hidden" id="rePid"><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">반 선택</label><select id="reClassSel" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"><option value="">-- 반 선택 --</option></select></div><div style="margin-bottom:18px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">재등원 날짜 (등록일)</label><input id="reDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:flex;gap:10px"><button onclick="closeReEnrollModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitReEnroll()" style="flex:2;padding:10px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">재등원 확인</button></div></div></div></div><div id="parentPreviewScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px"><div style="flex:1;min-width:180px"><div style="font-size:15px;font-weight:700;color:#363D2E">👪 학부모 페이지 <span style="font-size:11px;font-weight:800;background:#FFF1D6;color:#A86A12;border-radius:7px;padding:2px 7px;margin-left:4px">샘플</span></div><div style="font-size:11px;color:#999;margin-top:2px">학부모님께는 아직 안 보입니다 · 원장님·관리자만 미리 보는 화면이에요</div></div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#F6F8F3;border:1px solid #E4EBDE;border-radius:12px;padding:9px 11px;margin-bottom:14px"><select id="ppClass" onchange="ppLoad()" style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid #DDE5D6;border-radius:9px;font-size:13px;background:#fff"><option value="">반 고르기…</option></select><button onclick="ppWeek(-1)" style="background:#fff;border:1.5px solid #DDE5D6;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;color:#5B6551;cursor:pointer">◀ 지난 주</button><button onclick="ppWeek(0)" style="background:#fff;border:1.5px solid #DDE5D6;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;color:#5B6551;cursor:pointer">이번 주</button><button onclick="ppWeek(1)" style="background:#fff;border:1.5px solid #DDE5D6;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;color:#5B6551;cursor:pointer">다음 주 ▶</button></div><div id="ppPage" style="max-width:440px;margin:0 auto"></div></div></div><div id="tuitionScreen" style="display:none">
+<div id="enrollScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="flex:1"><div style="font-size:15px;font-weight:700;color:#363D2E">🌟 신규등록</div><div style="font-size:11px;color:#999;margin-top:2px">문의 → 상담 예약 → 상담 내용 → 등록 — 한 사람이 카드 하나</div></div><button onclick="inqToggleQuick()" id="inqQuickBtn" style="background:#2D6A4F;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 빠른 등록</button><button onclick="loadInquiries()" style="background:#f0f0f0;color:#555;border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div><div id="inqQuickBox" style="display:none;background:#F1F6EE;border:1.5px solid #BBD3BE;border-radius:12px;padding:13px 15px;margin-bottom:14px"></div><div class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="inqTab0" onclick="inqSwitchTab(0)">🌟 진행 중</button><button class="etab" id="inqTab1" onclick="inqSwitchTab(1)">📇 상담 기록 찾기</button></div><div id="inqPane0"><div id="inqFilter" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div><div id="inqList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div><div id="inqPane1" style="display:none"><div style="display:flex;gap:7px;margin-bottom:12px"><input id="crQuery" placeholder="학생 이름으로 찾기" onkeydown="if(event.key==='Enter') crSearch()" style="flex:1;padding:10px 13px;border:1.5px solid #E2E8D8;border-radius:10px;font-size:13.5px;box-sizing:border-box;outline:none"><button onclick="crSearch()" style="background:#2D6A4F;color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">찾기</button></div><div id="crList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">학생 이름을 적고 [찾기] 를 눌러주세요.<br><span style="font-size:11.5px">비우고 찾으면 상담 기록이 있는 학생을 모두 보여줍니다</span></div></div></div></div></div><div id="consultCalScreen" style="display:none"><div style="max-width:680px;margin:0 auto;padding:16px"><div style="background:white;border-radius:14px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.07);margin-bottom:12px"><div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📅 신규상담 일정</div><div style="font-size:12px;color:#999;margin-top:2px">상담 예정 학생 일정을 확인합니다</div></div><div id="ccUpcoming" style="margin-right:8px"></div><button onclick="loadConsultCal()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div style="background:white;border-radius:14px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.07)"><div id="consultCalContainer"><div style="text-align:center;color:#bbb;padding:40px;font-size:13px">Loading...</div></div></div></div></div><div id="withdrawScreen" style="display:none"><div class="container"><div class="etab-bar"><button class="etab active" id="wtab0" onclick="switchWithdrawTab(0)">🚪 Process Withdrawal</button><button class="etab" id="wtab1" onclick="switchWithdrawTab(1)">📋 Withdrawn List</button></div><div id="withdrawTab0"><div class="top-box"><label>Select Class</label><select id="withdrawClassSel" onchange="loadWithdrawStudents()"><option value="">-- Select Class --</option></select></div><div id="withdrawStudentList"></div></div><div id="withdrawTab1" style="display:none"><div id="withdrawnList"></div></div></div></div><div id="bookOrderScreen" style="display:none"><div class="container"><div class="etab-bar"><button class="etab active" id="btab0" onclick="switchBookTab(0)">📝 주문 신청</button><button class="etab" id="btab1" onclick="switchBookTab(1)">📋 주문 현황</button></div><div id="bookMainTab0"><div id="bookSubTabBar" class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="bsubtab0" onclick="switchBookSubTab(0)">📗 WG교재</button><button class="etab" id="bsubtab1" onclick="switchBookSubTab(1)">📔 외부교재</button></div><div id="bookSubTab0"><div class="top-box"><div class="ef"><label>반 선택 <span class="req">*</span></label><select id="wgClassSel"><option value="">-- 반 선택 --</option></select></div><div class="ef"><label>교재 선택 <span class="req">*</span></label><select id="wgBookSel" onchange="onWgBookPick()"><option value="">-- 교재 선택 --</option></select></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>필요부수 <span class="req">*</span></label><input type="number" id="wgQty" min="1" value="1"></div><div class="ef" style="flex:1"><label>교사용 부수</label><input type="number" id="wgTeacher" min="0" value="0"></div></div><div class="ef"><label>교재시작일</label><div id="wgStartDateCon"></div></div><div class="ef"><label>부가자료 <span style="font-weight:500;color:#999">(만들 것만 고르세요)</span></label><div id="wgSupmatChkBox" style="display:flex;flex-wrap:wrap;align-items:center;padding:4px 2px"></div></div><button class="btn" id="wgSubmitBtn" onclick="submitWGOrderForm()">📗 WG교재 주문 신청</button><div id="wgPendingInline"></div></div></div><div id="bookSubTab1" style="display:none"><div class="top-box"><div class="ef"><label>반 선택 <span class="req">*</span></label><select id="extClassSel"><option value="">-- 반 선택 --</option></select></div><div class="ef"><label>교재명 <span class="req">*</span></label><input type="text" id="extBookName" placeholder="교재 이름을 입력하세요"></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>필요부수 <span class="req">*</span></label><input type="number" id="extQty" min="1" value="1"></div><div class="ef" style="flex:1"><label>교사용 부수</label><input type="number" id="extTeacher" min="0" value="0"></div></div><div class="ef"><label>시작일</label><div id="extStartDateCon"></div></div><div class="ef"><label>부가자료</label><div id="extSupmatChkBox" style="display:flex;flex-wrap:wrap;padding:8px 0"><span style="color:#bbb;font-size:12px">로딩 중...</span></div></div><button class="btn" id="extSubmitBtn" onclick="submitExtOrderForm()">📔 외부교재 주문 신청</button><div id="extPendingInline"></div></div></div></div><div id="bookMainTab1" style="display:none"><div id="bookStatusTabBar" class="etab-bar" style="margin-bottom:12px"><button class="etab active" id="bstab0" onclick="switchBookStatusTab(0)">📗 WG주문</button><button class="etab" id="bstab1" onclick="switchBookStatusTab(1)">📔 외부주문</button></div><div id="bookStatusTab0"><div class="mini-tab-bar"><button class="mini-tab active" id="wgOrdMini0" onclick="switchWGOrderMini(0)">📋 주문전</button><button class="mini-tab" id="wgOrdMini1" onclick="switchWGOrderMini(1)">✅ 주문완료</button></div><div id="wgOrderPendingList"></div><div id="wgOrderDoneList" style="display:none"></div></div><div id="bookStatusTab1" style="display:none"><div class="mini-tab-bar"><button class="mini-tab active" id="extOrdMini0" onclick="switchExtOrderMini(0)">📋 주문전</button><button class="mini-tab" id="extOrdMini1" onclick="switchExtOrderMini(1)">✅ 주문완료</button></div><div id="extOrderPendingList"></div><div id="extOrderDoneList" style="display:none"></div></div></div></div></div><div id="extraOrderScreen" style="display:none"><div class="container"><div class="top-box"><div class="ef"><label>반 선택 <span class="req">*</span></label><select id="extraClassSel"><option value="">-- 반 선택 --</option></select></div><div class="ef"><label>교재명 <span class="req">*</span></label><input type="text" id="extraBookName" placeholder="교재 이름"></div><div class="ef"><label>부가자료 내용 <span class="req">*</span></label><input type="text" id="extraSupMat" placeholder="예: Workbook, Fun Book..."></div><div style="display:flex;gap:10px"><div class="ef" style="flex:1"><label>필요부수 <span class="req">*</span></label><input type="number" id="extraQty" min="1" value="1"></div><div class="ef" style="flex:1"><label>시작일</label><div id="extraStartDateCon"></div></div></div><div class="ef"><label>작성자</label><select id="extraRequesterSel"><option value="">-- 작성자 선택 --</option></select></div><button class="btn" id="extraSubmitBtn" onclick="submitExtraOrderForm()">➕ 추가주문 신청</button></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">📋 추가주문 목록</div><div id="extraOrderList"></div></div></div><div id="supmatScreen" style="display:none"><div class="container"><div class="mini-tab-bar"><button class="mini-tab active" id="smMini0" onclick="switchSupmatMini(0)">🔧 제작전/제작중</button><button class="mini-tab" id="smMini1" onclick="switchSupmatMini(1)">✅ 제작완료</button></div><div id="supmatActivePane"><div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #eee">📗 WG교재</div><div id="wgSupmatActiveList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">📔 외부교재</div><div id="extSupmatActiveList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">➕ 추가주문</div><div id="extraSupmatActiveList"></div></div><div id="supmatDonePane" style="display:none"><div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #eee">📗 WG교재</div><div id="wgSupmatDoneList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">📔 외부교재</div><div id="extSupmatDoneList"></div><div style="font-size:13px;font-weight:600;color:#555;margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid #eee">➕ 추가주문</div><div id="extraSupmatDoneList"></div></div></div></div><div id="parentMsgScreen" style="display:none"><div class="container"><div style="font-size:15px;font-weight:700;margin-bottom:6px;color:#333">📚 교재구입메세지</div><div style="font-size:12px;color:#999;margin-bottom:14px">외부교재 주문별 교재 구입 관련 학부모 메세지 발송 여부를 관리합니다.</div><div id="msgCalContainer" style="background:white;border-radius:12px;padding:14px 16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.05)"><div id="msgCalInner"><div style="text-align:center;color:#B2BAA0;padding:20px;font-size:13px">Loading...</div></div></div><div id="parentMsgList"></div></div></div><div id="memoBoardScreen" style="display:none"><div class="container"><div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🚌 오늘 남는 학생</div><div style="font-size:11px;color:#999;margin-top:2px">귀가 완료 학생은 귀가완료 버튼을 눌러주세요</div></div><button onclick="openStayForm()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ 학생 추가</button></div><div id="stayForm" style="display:none;background:#f8fdf8;border:1.5px solid #b7e4c7;border-radius:10px;padding:14px;margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:#363D2E;margin-bottom:10px">남는 학생 추가</div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:2px">반 / 학생이름 <span class="req">*</span></label><input id="stayName" type="text" placeholder="예: G3 / 김민준" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px;display:block">사유</label><div style="display:flex;flex-wrap:wrap;gap:8px"><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="숙제 미완" style="display:none">✏️ 숙제 미완</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="보충" style="display:none">📖 보충</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="재시험" style="display:none">📝 재시험</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="학부모대기" style="display:none">👨‍👩‍👧 학부모대기</label><label onclick="toggleStayChip(this)" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#fff;border:2px solid #e0e0e0;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:#666;transition:all 0.15s;user-select:none"><input type="checkbox" class="stay-reason" value="기타" style="display:none">💬 기타</label></div></div><div style="display:flex;gap:8px;margin-top:10px"><button onclick="submitStay()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeStayForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button></div></div><div id="stayList"><div style="text-align:center;color:#bbb;padding:20px;font-size:13px">불러오는 중...</div></div><div style="margin-top:12px;text-align:center"><button onclick="toggleDepartedSection()" style="background:#fff;border:1.5px solid #b0bec5;color:#607d8b;border-radius:8px;padding:7px 18px;font-size:12px;font-weight:600;cursor:pointer">귀가완료 목록 보기 ▼</button></div><div id="departedSection" style="display:none;margin-top:10px"><div id="departedList"></div></div></div><div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🗒️ 선생님 메모보드</div><div style="font-size:11px;color:#999;margin-top:2px">최신 메모가 위에 표시됩니다</div></div><div style="display:flex;gap:6px"><button onclick="openAbsMemoForm()" style="background:#fff;color:#C0392B;border:1.5px solid #F0C4BE;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 결석</button><button onclick="openMemoForm()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 새 메모</button></div></div><div id="memoForm" style="display:none;background:#f8fdf8;border:1.5px solid #b7e4c7;border-radius:10px;padding:14px;margin-bottom:12px"><div class="ef" id="memoTypeRow"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:2px">유형</label><select id="memoType" onchange="onMemoTypeChange()" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px"><option value="">-- 선택 --</option><option value="미등원">미등원</option><option value="신규상담">신규상담</option><option value="재학생상담">재학생상담</option><option value="자료오류">자료오류</option><option value="기타">기타</option></select></div><div id="memoAbsSection" style="display:none;background:#f0f7f4;border:1.5px solid #b7e4c7;border-radius:10px;padding:13px 14px;margin-bottom:10px"><div style="font-size:13px;font-weight:700;color:#2D6A4F;margin-bottom:12px">➕ 결석 추가</div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 학생 <span class="req">*</span></label><div style="display:flex;gap:6px"><select id="memoAbsClassSel" onchange="loadMemoAbsStudents()" style="flex:1;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white;box-sizing:border-box"><option value="">-- 반 선택 --</option></select><select id="memoAbsStudentSel" onchange="onMemoAbsStudentChange()" style="flex:1;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white;box-sizing:border-box"><option value="">-- 학생 선택 --</option></select></div></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">결석 날짜 <span class="req">*</span></label><div style="display:flex;gap:6px"><input type="date" id="memoAbsDate" onchange="autoFillMemoContent()" style="flex:1;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"><button type="button" onclick="mAbsAddDate()" style="background:#EFF4EA;color:#2D6A4F;border:1.5px solid #CFE0D3;border-radius:8px;padding:0 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">＋ 날짜 더하기</button></div><div id="memoAbsDateChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px"></div><div style="font-size:10.5px;color:#A8B09C;margin-top:4px">여러 날을 한꺼번에 넣을 수 있어요 — 날짜를 고르고 [＋ 날짜 더하기]</div></div><div class="ef" style="margin-top:10px" id="memoAbsReasonRow"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">사유</label><select id="memoAbsReason" onchange="onMemoAbsReasonChange()" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;background:white;box-sizing:border-box"><option value="">-- 선택 --</option><option value="병결">병결</option><option value="가족여행">가족여행</option><option value="가족행사">가족행사</option><option value="개인사정">개인사정</option><option value="미통보결석">미통보결석</option><option value="기타">기타</option></select><input type="text" id="memoAbsReasonEtc" placeholder="기타 사유 직접 입력..." style="display:none;width:100%;margin-top:6px;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box" oninput="autoFillMemoContent()"></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">보충일 <span style="color:#999;font-weight:400">(선택)</span></label><input type="date" id="memoAbsMakeupDate" style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div style="font-size:11px;color:#8A9178;margin-top:9px;line-height:1.6">학생을 고르시면 출석부에도 결석이 함께 기록됩니다</div></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">받는 사람 <span style="color:#999;font-weight:400">(안 고르면 전체 공지)</span></label><div id="memoRecipBox" style="display:flex;flex-wrap:wrap;gap:5px"></div></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:2px">내용 <span class="req">*</span></label><textarea id="memoContent" rows="4" placeholder="전달할 내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box"></textarea></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">첨부파일 <span style="color:#999;font-weight:400">(선택, 최대 5MB)</span></label><label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:#f0f0f0;border:1.5px dashed #ccc;border-radius:8px;padding:9px 12px"><span style="font-size:18px">📎</span><span style="font-size:12px;color:#666">파일 선택하기</span><input type="file" id="memoFile" onchange="onMemoFileChange(this)" style="display:none"></label><div id="memoFileName" style="font-size:11px;color:#2D6A4F;margin-top:4px"></div></div><div style="display:flex;gap:8px;margin-top:10px"><button onclick="submitMemo()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeMemoForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button></div></div><div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">&#128197; 주간 결석 현황</div><div style="display:flex;align-items:center;gap:8px"><button onclick="changeWeekCal(-1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8249;</button><span id="weekCalLabel" style="font-size:13px;font-weight:600;color:#555;min-width:140px;text-align:center"></span><button onclick="changeWeekCal(1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8250;</button><button onclick="changeWeekCal(0)" style="background:#f0f7f4;border:1px solid #b7e4c7;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#2D6A4F;font-weight:600">이번 주</button><button id="weekCalToggleBtn" onclick="toggleWeekCal()" style="background:#363D2E;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#fff;font-weight:600">펼치기</button></div></div><div id="weekCalGrid" style="display:none;overflow-x:auto"></div></div><div id="memoSplit" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap"><div id="memoAllWrap" style="flex:3 1 340px;min-width:0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;margin-top:2px"><div style="font-size:14px;font-weight:700;color:#363D2E">📋 메모 목록</div><button onclick="toggleAbsMemoPanel()" style="display:flex;align-items:center;gap:6px;background:#ffebee;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:#c62828;cursor:pointer">🗓️ 결석 메모 <span id="absMemoCountBadge" style="background:#ef5350;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;min-width:16px;text-align:center"></span></button></div><div id="absMemoPanel" style="display:none;background:#fff8f8;border:1.5px solid #ef9a9a;border-radius:10px;padding:12px;margin-bottom:12px"><div style="font-size:13px;font-weight:700;color:#c62828;margin-bottom:8px">🗓️ 결석 메모</div><div id="absMemoList"><div style="text-align:center;color:#bbb;font-size:12px">없음</div></div></div><div id="memoList"><div style="text-align:center;color:#bbb;padding:20px;font-size:13px">불러오는 중...</div></div></div><div id="adminMemoWrap" style="display:none;flex:2 1 290px;min-width:0;background:#FAF8FD;border:1.5px solid #EEE8F6;border-radius:12px;padding:13px 14px"><div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px"><div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:800;color:#5B3F86">🔒 관리자 전용<span id="adminMemoBadge" style="display:none;background:#E25555;color:#fff;border-radius:10px;padding:0 6px;font-size:10.5px;margin-left:5px;vertical-align:2px"></span></div><div style="font-size:10.5px;font-weight:600;color:#A79BBD;margin-top:2px">원장님만 보입니다</div></div><button onclick="openAdminMemoForm()" style="background:#7B57A3;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11.5px;font-weight:700;cursor:pointer;flex-shrink:0">＋ 쓰기</button></div><div id="adminMemoForm" style="display:none"></div><div id="adminMemoList"></div></div></div></div></div><div id="memoEditModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9500;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">✏️ 메모 수정</div><button onclick="closeMemoEditModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">유형</label><select id="memoEditType" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">-- 선택 --</option><option value="결석">결석</option><option value="미등원">미등원</option><option value="신규상담">신규상담</option><option value="재학생상담">재학생상담</option><option value="자료오류">자료오류</option><option value="기타">기타</option></select></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">받는 선생님 <span style="font-weight:500;color:#999">(아무도 안 고르면 전체 공지)</span></label><div id="memoEditRecipBox" style="display:flex;flex-wrap:wrap;gap:5px"></div></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">내용 <span style="color:#e53935">*</span></label><textarea id="memoEditContent" rows="5" placeholder="내용을 입력하세요..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea></div><div style="display:flex;gap:8px;margin-top:14px"><button onclick="closeMemoEditModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="memoEditSaveBtn" onclick="saveMemoEdit()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div></div><div id="rosterScreen" style="display:none"><div class="container"><div class="top-box"><label>Select Class</label><select id="rosterClassSel" onchange="loadRoster()"><option value="">-- Select Class --</option></select></div><div id="rosterSummary" class="roster-summary" style="display:none"><div class="roster-total">Active Students</div><div><div id="rosterCountNum" class="roster-count">0<span>students</span></div></div></div><div id="rosterBody"></div></div></div><div id="mainScreen" style="display:none"><div class="container" style="max-width:820px"><div class="top-box"><label>Select Teacher</label><select id="tsel" onchange="loadReports()"><option value="">-- Select --</option></select><div class="date-row"><label>Date</label><div id="dateSelContainer"></div></div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px"><button id="createReportBtn" onclick="triggerCreateReports()" style="padding:9px 18px;background:#4a90d9;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">📅 Auto-Generate</button><div style="font-size:10px;color:#aaa;line-height:1.4">⚠️ Requires last week's same-weekday report to be completed first</div></div><div id="list"></div><div id="addReportArea" style="display:none;margin-top:16px;border:1.5px dashed #c8d8c0;border-radius:12px;padding:14px;background:#f8fdf8"><div style="font-weight:700;color:#363D2E;margin-bottom:10px;font-size:13px">➕ Add Report</div><button onclick="openFullReportModal()" style="width:100%;padding:12px;background:#363D2E;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-size:16px">✏️</span> New Report</button></div></div></div><div id="scheduleScreen" style="display:none"><div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #eee"><div style="font-size:15px;font-weight:700;color:#363D2E">📅 Schedule</div><div style="display:flex;gap:8px"><button onclick="openScheduleUpload()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ 새 업로드</button><button onclick="initScheduleScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer">🔄</button></div></div><div id="scheduleForm" style="display:none;background:#f8fdf8;border-bottom:2px solid #b7e4c7;padding:14px 16px"><div id="scheduleFormTitle" style="font-size:13px;font-weight:700;color:#363D2E;margin-bottom:12px"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#888;font-weight:600;display:block;margin-bottom:4px">날짜</label><input type="text" id="scheduleDateInput" placeholder="예) 2026 June 15th~" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;color:#333"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#888;font-weight:600;display:block;margin-bottom:4px">진행상태</label><select id="scheduleStatusSelect" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;color:#333;background:#fff"><option value="진행예정">진행예정</option><option value="진행중">진행중</option><option value="진행완료">진행완료</option></select></div><div style="margin-bottom:12px"><label style="font-size:11px;color:#888;font-weight:600;display:block;margin-bottom:4px">시간표 이미지 <span id="scheduleFileRequired" style="color:#c62828">(필수)</span></label><label style="display:inline-flex;align-items:center;gap:6px;background:#e8f5e9;color:#2D6A4F;border:1.5px solid #b7e4c7;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer">📷 이미지 선택<input type="file" id="scheduleFileInput" accept="image/*" onchange="onScheduleFileChange(this)" style="display:none"></label><div id="scheduleFileName" style="font-size:11px;color:#2D6A4F;margin-top:5px"></div></div><div style="display:flex;gap:8px"><button id="scheduleSubmitBtn" onclick="submitScheduleForm()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button><button onclick="closeScheduleForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button></div></div><div id="scheduleContent" style="padding:14px 16px 80px"><div style="text-align:center;color:#bbb;padding:40px;font-size:13px">Loading...</div></div></div><div id="commentsScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">💬 Comments</div><div style="font-size:11px;color:#999;margin-top:2px">Reports with comments written</div></div><button onclick="initCommentsScreen()" style="background:#4a90d9;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button></div><div id="commentsList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="bookOrderBoardScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">📦 Book Orders</div><div style="font-size:11px;color:#999;margin-top:2px">곧 끝나는 교재 · 선생님이 요청한 주문</div></div><button onclick="initBookOrderBoardScreen()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button></div><div id="bookOrderDueBox" style="margin-bottom:16px"></div><div style="height:1px;background:#E7EAE3;margin:18px 0 12px"></div><div style="font-size:13.5px;font-weight:800;color:#2D3A28;margin-bottom:9px">🗂️ Daily Report 북오더 전체 기록<span style="font-size:10.5px;font-weight:600;color:#A8B09C;margin-left:8px">최근 300개 리포트</span></div><div id="bookOrderBoardList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="nativeBoardScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">🌍 Memo Board</div><div style="font-size:11px;color:#999;margin-top:2px">Native teacher memo board</div></div><div style="display:flex;gap:8px"><button onclick="openNativeMemoForm()" style="background:#2D6A4F;color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer">+ New Memo</button><button onclick="initNativeBoardScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><div id="nativeMemoForm" style="display:none;background:#f8fdf8;border:1.5px solid #b7e4c7;border-radius:10px;padding:14px;margin-bottom:14px"><div style="font-size:13px;font-weight:700;color:#363D2E;margin-bottom:10px">New Memo</div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px;display:block">To <span style="color:#999;font-weight:400">(leave empty = everyone)</span></label><div id="nativeRecipBox" style="display:flex;flex-wrap:wrap;gap:5px"></div></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;display:block">Content <span class="req">*</span></label><input id="nativeMemoTitle" type="text" placeholder="Enter memo content..." style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;box-sizing:border-box"></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;display:block">Category</label><select id="nativeMemoCategory" style="width:100%;padding:8px 10px;border:1.5px solid #ccc;border-radius:8px;font-size:13px;background:white"><option value="">-- Select Category --</option><option value="Student">Student</option><option value="Class">Class</option><option value="Schedule">Schedule</option><option value="General">General</option></select></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;display:block">Attachment (optional)</label><label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:#f0f0f0;border:1.5px dashed #ccc;border-radius:8px;padding:9px 12px"><span style="font-size:18px">📎</span><span style="font-size:12px;color:#666">Select file (max 5MB)</span><input type="file" id="nativeMemoFile" onchange="onNativeMemoFileChange(this)" style="display:none"></label><div id="nativeMemoFileName" style="font-size:11px;color:#2D6A4F;margin-top:4px"></div></div><div style="display:flex;gap:8px;margin-top:10px"><button id="nativeMemoSubmitBtn" onclick="submitNativeMemo()" style="flex:1;padding:9px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Save</button><button onclick="closeNativeMemoForm()" style="flex:1;padding:9px;background:#f5f5f5;color:#666;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button></div></div><div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,0.07)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:15px;font-weight:700;color:#363D2E">&#128197; Weekly Absences</div><div style="display:flex;align-items:center;gap:8px"><button onclick="changeNativeWeekCal(-1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8249;</button><span id="nativeWeekCalLabel" style="font-size:13px;font-weight:600;color:#555;min-width:140px;text-align:center"></span><button onclick="changeNativeWeekCal(1)" style="background:#f5f5f5;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:16px">&#8250;</button><button onclick="changeNativeWeekCal(0)" style="background:#f0f7f4;border:1px solid #b7e4c7;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#2D6A4F;font-weight:600">This Week</button><button id="nativeWeekCalToggleBtn" onclick="toggleNativeWeekCal()" style="background:#363D2E;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:#fff;font-weight:600">Collapse</button></div></div><div id="nativeWeekCalGrid" style="overflow-x:auto"></div></div><div id="nativeMemoList"><div style="text-align:center;color:#bbb;padding:28px;font-size:13px">Loading...</div></div></div></div><div id="nativeMemoEditModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9500;align-items:center;justify-content:center"><div style="background:#fff;border-radius:16px;padding:22px 20px;width:min(92%,400px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:14px;font-weight:700;color:#363D2E">✏️ Edit Memo</div><button onclick="closeNativeMemoEditModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888">✕</button></div><div class="ef"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Category</label><select id="nativeMemoEditCategory" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px"><option value="">-- Select --</option><option value="Student">Student</option><option value="Class">Class</option><option value="Schedule">Schedule</option><option value="General">General</option></select></div><div class="ef" style="margin-top:10px"><label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px">Content <span style="color:#e53935">*</span></label><textarea id="nativeMemoEditContent" rows="5" placeholder="Enter memo content..." style="width:100%;padding:9px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea></div><div style="display:flex;gap:8px;margin-top:14px"><button onclick="closeNativeMemoEditModal()" style="flex:1;background:#f0f0f0;color:#555;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button><button id="nativeMemoEditSaveBtn" onclick="saveNativeMemoEdit()" style="flex:2;background:#363D2E;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">Save</button></div></div></div><div id="studentListScreen" style="display:none"><div style="padding:16px 18px 0"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div><div style="font-size:15px;font-weight:700;color:#363D2E">👥 학생명단</div><div style="font-size:11px;color:#999;margin-top:2px">재원생 전체 명단</div></div><div style="display:flex;gap:8px"><button onclick="openStuListSheet(this)" style="background:#2D6A4F;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📄 A4 명단</button><button onclick="openAddStudentModal()" style="background:#F1F3EE;color:#4A5344;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">+ 학생 추가</button><button onclick="initStudentListScreen()" style="background:#f0f0f0;color:#555;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer">🔄</button></div></div><input id="studentSearch" type="text" placeholder="🔍 이름 또는 반 검색..." oninput="filterStudentList()" style="width:100%;padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;margin-bottom:12px;outline:none"></div><div style="overflow-x:auto;padding:0 18px 18px"><table style="width:100%;border-collapse:collapse;font-size:12px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)"><thead><tr style="background:#2D6A4F;color:white"><th style="padding:10px;text-align:left;white-space:nowrap">반</th><th style="padding:10px;text-align:left;white-space:nowrap">이름</th><th style="padding:10px;text-align:left;white-space:nowrap">영어이름</th><th style="padding:10px;text-align:left;white-space:nowrap">학교</th><th style="padding:10px;text-align:left;white-space:nowrap">학년</th><th style="padding:10px;text-align:left;white-space:nowrap">부모님 전화</th><th style="padding:10px;text-align:left;white-space:nowrap">학생 전화</th><th style="padding:10px;text-align:left">주소</th><th style="padding:10px;text-align:left;white-space:nowrap">등원차량</th><th style="padding:10px;text-align:left;white-space:nowrap">하원차량</th><th style="padding:10px;text-align:center;white-space:nowrap">수정</th><th style="padding:10px;text-align:center;white-space:nowrap">퇴원</th></tr></thead><tbody id="studentListTable"><tr><td colspan="12" style="text-align:center;color:#bbb;padding:28px">Loading...</td></tr></tbody></table></div><div id="editStudentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,420px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:16px">✏️ 학생 정보 수정</div><input type="hidden" id="esId"><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">이름</label><input id="esName" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">영어 이름</label><input id="esEng" type="text" placeholder="English name" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학교</label><input id="esSchool" type="text" placeholder="예) 철산초" onblur="wgFmt(this,'school')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학년</label><input id="esGrade" type="text" inputmode="numeric" maxlength="2" placeholder="예) 3" oninput="wgGradeTyping(this)" onblur="wgFmt(this,'grade')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">부모님 전화</label><input id="esParentTel" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학생 전화</label><input id="esStudentTel" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">주소</label><input id="esAddress" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등원차량</label><input id="esBusIn" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">하원차량</label><input id="esBusOut" type="text" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:18px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등록일 (납부일 기준)</label><input id="esEnrollDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div id="esSibBox" style="display:none;margin:-8px 0 18px;background:#FFF8EC;border:1.5px solid #F0DDB8;border-radius:10px;padding:10px 12px"><label style="font-size:11px;color:#8A5A10;font-weight:700;display:block;margin-bottom:6px">👫 형제</label><div id="esSibChips" style="display:flex;flex-wrap:wrap;gap:5px;min-height:22px;font-size:11.5px;color:#B49A6A">불러오는 중…</div><div id="esSibLinkRow" style="display:flex;gap:6px;margin-top:7px"><input id="esSibFind" list="esSibList" placeholder="형제 이름 적기 → 목록에서 고르기" style="flex:1;min-width:0;padding:7px 10px;border:1.5px solid #E8D3AA;border-radius:8px;font-size:12.5px;box-sizing:border-box;outline:none;background:#fff"><datalist id="esSibList"></datalist><button type="button" onclick="esSibLink()" style="background:#fff;border:1.5px solid #E8D3AA;border-radius:16px;padding:4px 11px;font-size:11px;font-weight:700;color:#8A5A10;cursor:pointer;white-space:nowrap">＋ 형제로 묶기</button></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px dashed #EBD7AE"><span style="font-size:11px;color:#8A5A10;font-weight:700">할인</span><input id="esSibling" type="number" min="0" step="0.5" placeholder="없음" style="width:80px;padding:7px 10px;border:1.5px solid #E8D3AA;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none;background:#fff"><span style="font-size:12px;color:#8A5A10;font-weight:700">만원</span><span style="font-size:10.5px;color:#B49A6A">형제가 같이 다닐 때만 빠집니다</span></div><div id="esSibState" style="font-size:11px;margin-top:7px;line-height:1.5"></div></div><div id="esOthBox" style="display:none;margin:-8px 0 18px;background:#F3F7FC;border:1.5px solid #D3E0F0;border-radius:10px;padding:10px 12px"><label style="font-size:11px;color:#3C5A8A;font-weight:700;display:block;margin-bottom:6px">🏷 기타 할인 <span style="font-weight:500;color:#8EA3C2">(장학 · 직원 자녀 · 다과목 등 — 하나만)</span></label><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input id="esOthAmt" type="number" min="0" step="0.5" placeholder="없음" style="width:76px;padding:7px 10px;border:1.5px solid #C9D7EA;border-radius:8px;font-size:12.5px;box-sizing:border-box;outline:none;background:#fff"><span style="font-size:12px;color:#3C5A8A;font-weight:700">만원</span><input id="esOthReason" list="esOthReasons" placeholder="사유" style="flex:1;min-width:110px;padding:7px 10px;border:1.5px solid #C9D7EA;border-radius:8px;font-size:12.5px;box-sizing:border-box;outline:none;background:#fff"><datalist id="esOthReasons"><option value="장학"><option value="직원 자녀"><option value="다과목"><option value="이벤트"><option value="소개"></datalist></div><div style="display:flex;gap:6px;align-items:center;margin-top:7px;flex-wrap:wrap"><span style="font-size:11px;color:#3C5A8A;font-weight:700">끝나는 달</span><input id="esOthUntil" type="month" style="padding:7px 10px;border:1.5px solid #C9D7EA;border-radius:8px;font-size:12.5px;box-sizing:border-box;outline:none;background:#fff"><span style="font-size:10.5px;color:#8EA3C2">그 달까지 적용 · 비우면 계속</span><button type="button" onclick="esOthClear()" style="margin-left:auto;background:#fff;border:1.5px solid #D3E0F0;border-radius:16px;padding:4px 11px;font-size:11px;font-weight:700;color:#3C5A8A;cursor:pointer">할인 없음</button></div><div id="esOthState" style="font-size:11px;margin-top:7px;font-weight:700"></div></div><div style="display:flex;gap:10px"><button onclick="closeEditStudentModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitEditStudent()" style="flex:2;padding:10px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="addStudentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,460px);max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#363D2E;margin-bottom:4px">➕ 학생 추가 (재원생)</div><div style="font-size:11px;color:#999;margin-bottom:16px">신입상담에서 등록 완료된 학생을 재원생으로 직접 추가합니다</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">이름 <span style="color:#e53935">*</span></label><input id="asName" type="text" placeholder="학생 이름" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">영어 이름</label><input id="asEng" type="text" placeholder="English name" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등록일 <span style="color:#e53935">*</span></label><input id="asEnrollDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">반 <span style="color:#e53935">*</span></label><select id="asClass" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white;outline:none"><option value="">-- 반 선택 --</option></select></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학교</label><input id="asSchool" type="text" placeholder="예) 철산초" onblur="wgFmt(this,'school')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학년</label><input id="asGrade" type="text" inputmode="numeric" maxlength="2" placeholder="예) 3" oninput="wgGradeTyping(this)" onblur="wgFmt(this,'grade')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">부모님 전화</label><input id="asParentPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000" oninput="wgPhoneTyping(this)" onblur="wgFmt(this,'phone')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">학생 전화</label><input id="asPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000" oninput="wgPhoneTyping(this)" onblur="wgFmt(this,'phone')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div></div><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">주소</label><input id="asAddress" type="text" placeholder="주소" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">등원차량</label><select id="asPickup" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white;outline:none"><option value="">-- 선택 --</option><option>도보</option><option>6호차</option><option>5호차</option></select></div><div><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">하원차량</label><select id="asDropoff" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;background:white;outline:none"><option value="">-- 선택 --</option><option>도보</option><option>6호차</option><option>5호차</option></select></div></div><div style="display:flex;gap:10px"><button onclick="closeAddStudentModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button id="asSubmitBtn" onclick="submitAddStudent()" style="flex:2;padding:10px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">저장</button></div></div></div><div id="withdrawStudentModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#c62828;margin-bottom:6px">🚪 퇴원 처리</div><div style="font-size:13px;color:#555;margin-bottom:16px"><b id="wsName"></b> 학생을 퇴원 처리합니다.</div><input type="hidden" id="wsPid"><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">퇴원 날짜</label><input id="wsDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="margin-bottom:18px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">퇴원 사유</label><textarea id="wsReason" rows="3" placeholder="퇴원 사유 입력..." style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none;resize:none"></textarea></div><div style="display:flex;gap:10px"><button onclick="closeWithdrawStudentModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitWithdrawStudent()" style="flex:2;padding:10px;background:#c62828;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">퇴원 확인</button></div></div></div><div style="padding:0 18px 8px;text-align:center"><button id="withdrawnToggleBtn" onclick="toggleWithdrawnSection()" style="background:#fff3f3;color:#c62828;border:1.5px solid #f5c6c6;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:600;cursor:pointer">🔽 퇴원생 명단 보기</button></div><div id="withdrawnSection" style="display:none;padding:0 18px 18px"><div style="font-size:12px;font-weight:700;color:#c62828;margin-bottom:8px">🚪 퇴원생 명단</div><table style="width:100%;border-collapse:collapse;font-size:12px;background:white;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)"><thead><tr style="background:#b71c1c;color:white"><th style="padding:8px 10px;text-align:left;white-space:nowrap">이름</th><th style="padding:8px 10px;text-align:left;white-space:nowrap">이전 반</th><th style="padding:8px 10px;text-align:left;white-space:nowrap">퇴원일</th><th style="padding:8px 10px;text-align:left">사유</th><th style="padding:8px 10px;text-align:center;white-space:nowrap">재등원</th></tr></thead><tbody id="withdrawnTable"><tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px">-</td></tr></tbody></table></div><div id="reEnrollModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center"><div style="background:white;border-radius:14px;padding:22px 20px;width:min(94%,360px);box-shadow:0 8px 32px rgba(0,0,0,0.2)"><div style="font-size:15px;font-weight:700;color:#2D6A4F;margin-bottom:6px">🔄 재등원 처리</div><div style="font-size:13px;color:#555;margin-bottom:16px"><b id="reNameLabel"></b> 학생을 재등원 처리합니다.</div><input type="hidden" id="rePid"><div style="margin-bottom:10px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">반 선택</label><select id="reClassSel" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"><option value="">-- 반 선택 --</option></select></div><div style="margin-bottom:18px"><label style="font-size:11px;color:#666;font-weight:600;display:block;margin-bottom:4px">재등원 날짜 (등록일)</label><input id="reDate" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;outline:none"></div><div style="display:flex;gap:10px"><button onclick="closeReEnrollModal()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">취소</button><button onclick="submitReEnroll()" style="flex:2;padding:10px;background:#2D6A4F;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">재등원 확인</button></div></div></div></div><div id="parentPreviewScreen" style="display:none"><div class="container"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px"><div style="flex:1;min-width:180px"><div style="font-size:15px;font-weight:700;color:#363D2E">👪 학부모 페이지 <span style="font-size:11px;font-weight:800;background:#FFF1D6;color:#A86A12;border-radius:7px;padding:2px 7px;margin-left:4px">샘플</span></div><div style="font-size:11px;color:#999;margin-top:2px">학부모님께는 아직 안 보입니다 · 원장님·관리자만 미리 보는 화면이에요</div></div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#F6F8F3;border:1px solid #E4EBDE;border-radius:12px;padding:9px 11px;margin-bottom:14px"><select id="ppClass" onchange="ppLoad()" style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid #DDE5D6;border-radius:9px;font-size:13px;background:#fff"><option value="">반 고르기…</option></select><button onclick="ppWeek(-1)" style="background:#fff;border:1.5px solid #DDE5D6;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;color:#5B6551;cursor:pointer">◀ 지난 주</button><button onclick="ppWeek(0)" style="background:#fff;border:1.5px solid #DDE5D6;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;color:#5B6551;cursor:pointer">이번 주</button><button onclick="ppWeek(1)" style="background:#fff;border:1.5px solid #DDE5D6;border-radius:9px;padding:7px 11px;font-size:12px;font-weight:700;color:#5B6551;cursor:pointer">다음 주 ▶</button></div><div id="ppPage" style="max-width:440px;margin:0 auto"></div></div></div><div id="tuitionScreen" style="display:none">
 
 <!-- ======= modals ======= -->
 <!-- 메모 modal -->
@@ -672,7 +672,7 @@ var _allTeachers = [];  // 전원 (퇴사자 포함) — 로그인할 때 채웁
 //  이 날짜가 보이니, 올린 날짜와 다르면 캐시입니다.
 //  왼쪽 아래 버전을 누르면 최신으로 새로 받습니다.
 // ════════════════════════════════════════════════════════════
-var APP_VERSION = '2026-11-27 10:30';
+var APP_VERSION = '2026-11-27 20:10';
 
 function _paintVersion(){
   ['appVerTag','sideVerTag'].forEach(function(id){
@@ -3505,6 +3505,53 @@ async function fetchStudentsByClass(classId) {
   return rows.map(function(r){ return { id:r.id, name:r.name||'', eng:_stuEn(r),
     school:r.school||'', grade:r.grade||'', parentPhone:r.parent_phone||'' }; });
 }
+// ════════════════════════════════════════════════════════════
+//  형제 할인 — 판단은 데이터베이스(sibling_status 보기)가 합니다
+//
+//    같은 가족 중 재원인 형제가 있으면 할인, 모두 그만두면 자동으로 멈춤.
+//    앱은 그 결과(effective_discount)만 받아서 원비에 씁니다.
+//    RUN_ME_42 를 아직 안 돌렸으면 예전처럼 sibling_discount 를 그대로 씁니다.
+// ════════════════════════════════════════════════════════════
+async function _sibStatusMap(){
+  var rows = await _sbGetSafe('sibling_status',
+    'select=student_id,family_id,family_label,set_discount,effective_discount,'
+    + 'active_sibling_names,other_sibling_names,reason') || [];
+  var m = {};
+  rows.forEach(function(r){ m[r.student_id] = r; });
+  return m;
+}
+//  기타 할인 (장학 · 직원 자녀 · 다과목 …) — 끝나는 달이 지나면 데이터베이스가 0 으로 돌려줍니다
+//    RUN_ME_43 을 안 돌렸으면 빈 목록 → 기타 할인 없음
+async function _otherDiscMap(){
+  var rows = await _sbGetSafe('other_discount_status',
+    'select=student_id,set_discount,reason_text,until_month,effective_discount,state') || [];
+  var m = {};
+  rows.forEach(function(r){ m[r.student_id] = r; });
+  return m;
+}
+function _othApply(r, oth){
+  var v = oth && oth[r.id];
+  return {
+    discount: v ? Number(v.effective_discount || 0) : 0,
+    set:      v ? Number(v.set_discount || 0)       : 0,
+    reason:   v ? (v.reason_text || '')             : '',
+    until:    v ? String(v.until_month || '').slice(0, 7) : '',
+    state:    v ? (v.state || '')                   : ''
+  };
+}
+
+//  학생 한 명의 할인 — 보기가 있으면 그 판단, 없으면 예전 칸
+function _sibApply(r, sib){
+  var raw = r.sibling_discount ? Number(r.sibling_discount) : 0;
+  var v = sib && sib[r.id];
+  return {
+    discount: v ? Number(v.effective_discount || 0) : raw,
+    set:      v ? Number(v.set_discount || 0)       : raw,
+    with:     v ? (v.active_sibling_names || '')    : '',
+    reason:   v ? (v.reason || '')                  : ''
+  };
+}
+
 async function fetchStudentList() {
   var _f = 'id,name,class_id,school,grade,parent_phone,phone,address,pickup_bus,'
          + 'dropoff_bus,enrolled_at,tuition_note,sibling_discount,'
@@ -3512,16 +3559,24 @@ async function fetchStudentList() {
   var rows = await sbGetSoft('students',
     'select=english_name,' + _f + '&status=eq.재원&order=name.asc',
     'select=' + _f + '&status=eq.재원&order=name.asc') || [];
+  var _sib = await _sibStatusMap();
+  var _oth = await _otherDiscMap();
   function pfx(n){ var c=(n||'')[0]||''; return c==='M'||c==='m'?2:c==='H'||c==='h'?3:1; }
   return rows.map(function(r){
     var baseFee = (r.classes && r.classes.programs) ? (r.classes.programs.tuition||null) : null;
-    var discount = r.sibling_discount ? Number(r.sibling_discount) : 0;
+    var sb = _sibApply(r, _sib);
+    var ot = _othApply(r, _oth);
+    var discount = sb.discount + ot.discount;
     var finalFee = baseFee != null ? baseFee - discount : null;
     return { id:r.id, name:_stuKo(r), eng:_stuEn(r),
              className:r.classes?r.classes.name:'', school:r.school||'',
              grade:r.grade||'', parentTel:r.parent_phone||'', studentTel:r.phone||'',
              address:r.address||'', busIn:r.pickup_bus||'', busOut:r.dropoff_bus||'',
              baseFee:baseFee, siblingDiscount:discount, finalFee:finalFee,
+             siblingSet:sb.set, siblingWith:sb.with, siblingReason:sb.reason,
+             sibEff:sb.discount,
+             otherEff:ot.discount, otherSet:ot.set, otherReason:ot.reason,
+             otherUntil:ot.until, otherState:ot.state,
              tuition: finalFee != null ? finalFee : (baseFee != null ? baseFee : ''),
              enrollDate:r.enrolled_at||'', tuitionMemo:r.tuition_note||'' };
   }).sort(function(a,b){
@@ -3701,6 +3756,21 @@ async function updateStudentInfo(pageId, data) {
     u.sibling_discount = (data.siblingDiscount===null || isNaN(data.siblingDiscount) || data.siblingDiscount<=0)
                          ? null : Number(data.siblingDiscount);
   if(Object.keys(u).length) await sbPatch('students','id='+_eq(pageId),u);
+  //  기타 할인 — 따로 저장합니다 (RUN_ME_43 을 안 돌렸어도 다른 칸은 저장되게)
+  if(data.otherDiscount){
+    var od = data.otherDiscount, amt = Number(od.amount || 0);
+    try {
+      await sbPatch('students', 'id='+_eq(pageId), {
+        other_discount:        amt > 0 ? amt : null,
+        other_discount_reason: amt > 0 ? (od.reason || null) : null,
+        other_discount_until:  (amt > 0 && /^\d{4}-\d{2}$/.test(od.until)) ? (od.until + '-01') : null
+      });
+    } catch(e){
+      if(/other_discount|PGRST204|42703/.test(String(e && e.message))){
+        setTimeout(function(){ showToast('기타 할인은 저장되지 않았어요 — RUN_ME_43_기타할인.sql 을 먼저 돌려 주세요.', 5000); }, 900);
+      } else throw e;
+    }
+  }
   await _stuSetEng(pageId, data.englishName);
   _classInfoMapCache=null;
   return { success:true };
@@ -3818,10 +3888,12 @@ async function fetchWithdrawnStudents() {
 async function fetchStudentsWithTuitionData() {
   var rows = await sbGet('students',
     'select=id,name,status,enrolled_at,withdrawn_at,sibling_discount,class_id,classes!class_id(name,programs!program_id(tuition))&status=eq.재원&order=name.asc');
+  var _sib = await _sibStatusMap();
+  var _oth = await _otherDiscMap();
   function pfx(n){ var c=(n||'')[0]||''; return c==='M'||c==='m'?2:c==='H'||c==='h'?3:1; }
   return rows.map(function(r){
     var baseFee = (r.classes&&r.classes.programs) ? (r.classes.programs.tuition||null) : null;
-    var discount = r.sibling_discount ? Number(r.sibling_discount) : 0;
+    var discount = _sibApply(r, _sib).discount + _othApply(r, _oth).discount;
     var finalFee = baseFee!=null ? baseFee-discount : null;
     return { id:r.id, name:r.name||'', status:r.status||'',
              className:r.classes?r.classes.name:'',
@@ -8231,12 +8303,65 @@ function _ppCard(r){
     +       "margin-top:2px'>" + d.getDate() + "</div>"
     +     "<div style='font-size:12.5px;font-weight:800;margin-top:4px'>"
     +       _PP_DAY[d.getDay()] + "</div>"
+    +     (r._due
+          ? "<div style='margin-top:9px;background:#E8A33A;border-radius:8px;padding:4px 7px;"
+            + "line-height:1.2'>"
+            + "<div style='font-size:9px;font-weight:800;letter-spacing:.8px'>⏰ DUE</div>"
+            + "<div style='font-size:12.5px;font-weight:900'>" + _ppShort(r._due) + "</div></div>"
+          : "")
     +     (r.book
           ? "<div style='margin-top:9px;font-size:9.5px;font-weight:700;line-height:1.35;"
             + "color:rgba(255,255,255,.55);word-break:break-word'>" + _plEsc(r.book) + "</div>"
           : "")
     +   "</div>"
     + "</div>";
+}
+
+//  "Wed 11/26"
+function _ppShort(ymd){
+  var d = new Date(ymd + 'T00:00:00');
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()] + ' '
+       + (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+//  그 날짜에 쓰던 시간표 (다음 학기 시간표가 미리 들어가 있을 수 있어서)
+function _ppSchedAt(sched, ymd){
+  var best = null;
+  sched.forEach(function(x){
+    var f = x.effectiveFrom || '';
+    if(f <= ymd && (best === null || f > best)) best = f;
+  });
+  if(best === null) return [];
+  return sched.filter(function(x){ return (x.effectiveFrom || '') === best; });
+}
+
+// ════════════════════════════════════════════════════════════
+//  숙제 마감일 = 같은 교재 · 영역의 다음 수업 날
+//    · 같은 날 뒤 교시는 건너뜁니다 (그날 바로 검사하지 않으니까요)
+//    · 휴강 · 공휴일 · 특별수업 날은 건너뛰고 그 다음 수업으로
+//    · 시간표에서 이 수업을 못 찾으면 마감일을 붙이지 않습니다
+// ════════════════════════════════════════════════════════════
+function _ppDueDate(r, sched, nc){
+  var d0  = new Date(r.date + 'T00:00:00');
+  var wd0 = d0.getDay() || 7;
+  var today = _ppSchedAt(sched, r.date).filter(function(x){ return x.weekday === wd0; });
+  var me = null;
+  if(r.period) me = today.filter(function(x){ return String(x.period) === String(r.period); })[0];
+  if(!me && today.length === 1) me = today[0];
+  if(!me) return null;
+  var key = _ngBookKey(me);
+  for(var i = 1; i <= 35; i++){
+    var d = new Date(d0); d.setDate(d0.getDate() + i);
+    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+           + '-' + String(d.getDate()).padStart(2,'0');
+    var wd = d.getDay() || 7;
+    var hit = _ppSchedAt(sched, ds).filter(function(x){
+      return x.weekday === wd && _ngBookKey(x) === key; })[0];
+    if(!hit) continue;
+    if(_nonClassAt(nc, ds, hit.period)) continue;      // 쉬는 날이면 다음 수업으로
+    return ds;
+  }
+  return null;
 }
 
 async function ppLoad(){
@@ -8275,11 +8400,20 @@ async function ppLoad(){
   page.innerHTML = head
     + "<div style='text-align:center;color:#bbb;padding:40px;font-size:13px'>Loading…</div>";
 
-  var rows = await _sbGetSafe('daily_reports',
-      'select=id,title,date,book,todays_lesson,homework'
-    + '&class_id=eq.' + encodeURIComponent(classId)
-    + '&date=gte.' + wk.start + '&date=lte.' + wk.end
-    + '&order=date.asc') || [];
+  var _rq = '&class_id=eq.' + encodeURIComponent(classId)
+          + '&date=gte.' + wk.start + '&date=lte.' + wk.end + '&order=date.asc';
+  var rows = await _sbGetSafe('daily_reports', 'select=id,title,date,period,book,todays_lesson,homework' + _rq) || [];
+  if(!rows.length) rows = await _sbGetSafe('daily_reports', 'select=id,title,date,book,todays_lesson,homework' + _rq) || [];
+
+  //  마감일 계산 — 반 시간표 + 쉬는 날 (5주 뒤까지)
+  try {
+    var _sched = await fetchClassSchedule(classId) || [];
+    var _till  = new Date(wk.end + 'T00:00:00'); _till.setDate(_till.getDate() + 35);
+    var _tillS = _till.getFullYear() + '-' + String(_till.getMonth()+1).padStart(2,'0')
+               + '-' + String(_till.getDate()).padStart(2,'0');
+    var _nc    = await fetchNonClassDays(wk.start, _tillS) || {};
+    rows.forEach(function(r){ r._due = _ppDueDate(r, _sched, _nc); });
+  } catch(e){ console.warn('[학부모 페이지] 마감일 계산 실패', e); }
 
   //  숙제가 적힌 수업만, 날짜 순서대로
   var list = rows.filter(function(r){ return String(r.homework || '').trim(); });
@@ -18137,6 +18271,8 @@ function openSchedPrintDialog(){
            'A4 가로 1장. 요일 · 시간 · 교재를 한눈에.')
     + card('slip',   'FOR STUDENT PLANNER', '알림장 붙임용 · 5매',
            'A4 세로에 같은 표 5장. 잘라서 알림장에 붙입니다.')
+    + card('newguide', 'FOR NEW STUDENTS', '📄 신규생 수업 · 숙제 교재 안내 · 2장',
+           '요일별 교시 · 교재 · 단어장 · 프린트 · 숙제 검사일 + 신규생 안내. 프린트만 체크하면 됩니다.')
 
     + "<button onclick='schedPrintOne()' style='width:100%;background:#F1F3EE;color:#5B6551;"
     +   "border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:600;"
@@ -18281,8 +18417,340 @@ function runSchedPrint(kind){
             _prSlipHtml(cls, mon, rows, days), cls + "_알림장_시간표");
     return;
   }
+  if(kind === 'newguide'){ ngOpen(cls, rows); return; }
   _prOpen(cls + " 시간표 안내", _prCSS(true),
           _prParentHtml(cls, mon, stu, rows, days, dayTxt), cls + "_시간표_안내문");
+}
+
+// ════════════════════════════════════════════════════════════
+//  📄 신규생 수업 · 숙제 교재 안내 (A4 세로 2장)
+//
+//  시간표에서 자동으로 채우는 것
+//    · 요일 · 교시 · 교재 이름 · 표지 · 영역            ← Class Hub 시간표
+//    · 단어장 — 담임(한국인) 선생님 수업에만             ← Class Hub 단어장
+//    · 숙제 검사일 — 같은 교재 · 영역의 "다음 날" 수업
+//        (같은 날 뒤 교시는 건너뜁니다. 그 주에 없으면 "다음 주 ○요일")
+//  선생님이 고르는 것
+//    · 프린트 (Handy Book · Study Guide …) — 교시마다 체크
+//      지난번에 이 교재로 고른 것을 기억해 두었다가 먼저 체크해 둡니다.
+//    · 검사일 · 단어장도 바꿀 수 있습니다.
+//  두 번째 장은 신규생 적응 안내 (고정 문구)
+// ════════════════════════════════════════════════════════════
+var NG_PRINTS = ['Handy Book', 'Study Guide', 'Translation (직독직해)', 'Dialogue',
+                 'Word List', '단원평가 & Review', 'Grammar WT', 'Reading WT',
+                 'Word Test', 'Storybook', 'Online'];
+var _ngState = null;
+
+function _ngDayKo(d){
+  var w = WG_WEEKDAYS.filter(function(x){ return x.d === d; })[0];
+  return w ? w.ko + '요일' : '';
+}
+function _ngBookKey(r){ return (r.textbookId || r.subject || '') + '|' + (r.section || ''); }
+
+//  숙제 검사일 — 같은 교재 · 영역의 다음 날 수업
+function _ngCheckDay(rows, r){
+  var key = _ngBookKey(r);
+  var same = rows.filter(function(x){ return _ngBookKey(x) === key; })
+                 .sort(function(a, b){ return a.weekday - b.weekday || a.period - b.period; });
+  var later = same.filter(function(x){ return x.weekday > r.weekday; });
+  if(later.length) return _ngDayKo(later[0].weekday);
+  return '다음 주 ' + _ngDayKo(same[0].weekday);
+}
+
+//  담임(한국인) 선생님 수업인가요? — 시간표에 선생님이 없으면 담임 수업으로 봅니다
+function _ngIsKorean(r){
+  if(!r.teacherId) return true;
+  var t = (_allTeachers || []).filter(function(x){ return x.id === r.teacherId; })[0];
+  return !t || t.role !== '원어민';
+}
+
+function _ngMemo(key, list){
+  try {
+    if(list) localStorage.setItem('wgNgPrint:' + key, JSON.stringify(list));
+    else return JSON.parse(localStorage.getItem('wgNgPrint:' + key) || '[]');
+  } catch(e){ return []; }
+}
+
+function ngOpen(className, rows){
+  rows = (rows || []).slice().sort(function(a, b){ return a.weekday - b.weekday || a.period - b.period; });
+  if(!rows.length){ showToast('시간표가 비어 있어요.'); return; }
+  var cls = (_cmData.classes || []).filter(function(x){ return x.id === _schedClassId; })[0] || {};
+  var vocab = cls.vocabBook || '';
+  var days = _schedDayList(rows);
+
+  //  같은 날 안에서 1교시 · 2교시 … (안내문에는 그 반의 몇 번째 수업인지로 적습니다)
+  var idx = {};
+  var items = rows.map(function(r){
+    idx[r.weekday] = (idx[r.weekday] || 0) + 1;
+    var cell = _schedCell(r) || { name:r.subject || '', sub:'', cover:'' };
+    var key = _ngBookKey(r);
+    return { r:r, nth:idx[r.weekday], cell:cell, key:key,
+             vocab: !!vocab && _ngIsKorean(r),
+             prints: _ngMemo(key),
+             extra: '',
+             check: _ngCheckDay(rows, r) };
+  });
+  _ngState = { className:className, vocab:vocab, days:days, items:items };
+
+  //  검사일 고를 거리 — 이번 주 다른 요일 + 다음 주 같은 요일들
+  var checkOpts = days.map(function(w){ return w.ko + '요일'; })
+          .concat(days.map(function(w){ return '다음 주 ' + w.ko + '요일'; }));
+
+  var old = document.getElementById('ngOverlay'); if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'ngOverlay';
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9600;"
+    + "display:flex;align-items:flex-start;justify-content:center;padding:18px;overflow-y:auto";
+  ov.onclick = function(e){ if(e.target === ov) ov.remove(); };
+
+  var h = "<div style='background:#fff;border-radius:16px;width:min(100%,640px);padding:18px 18px 16px;"
+    + "box-shadow:0 14px 42px rgba(0,0,0,.26)'>"
+    + "<div style='display:flex;align-items:center;gap:8px'>"
+    +   "<div style='flex:1'><div style='font-size:15px;font-weight:800;color:#1E3A5F'>"
+    +     "📄 신규생 수업 · 숙제 교재 안내</div>"
+    +   "<div style='font-size:11px;color:#8A94A6;margin-top:2px'>" + _plEsc(className)
+    +     " · 시간표에서 채웠어요 · <b>프린트만 체크</b>하시면 됩니다</div></div>"
+    +   "<button onclick=\"document.getElementById('ngOverlay').remove()\" style='background:none;"
+    +     "border:none;font-size:20px;color:#A8B09C;cursor:pointer'>✕</button></div>"
+    + (vocab ? "" : "<div style='margin-top:10px;font-size:11.5px;color:#B4651A;background:#FFF6E8;"
+        + "border-radius:8px;padding:7px 10px'>이 반은 Class Hub 에 단어장이 안 정해져 있어요 — "
+        + "단어장 줄 없이 만들어집니다.</div>");
+
+  var lastDay = null;
+  items.forEach(function(it, i){
+    if(it.r.weekday !== lastDay){
+      lastDay = it.r.weekday;
+      h += "<div style='margin:14px 0 6px;font-size:12px;font-weight:800;color:#fff;background:#1E3A5F;"
+        +  "border-radius:8px;padding:6px 11px'>" + _ngDayKo(it.r.weekday) + "</div>";
+    }
+    h += "<div style='border:1.5px solid #E3EAF2;border-radius:11px;padding:10px 11px;margin-bottom:7px'>"
+      +  "<div style='display:flex;align-items:center;gap:9px'>"
+      +    "<span style='font-size:11px;font-weight:800;color:#2F6EA5;background:#EEF4FA;border-radius:7px;"
+      +      "padding:3px 8px;white-space:nowrap'>" + it.nth + "교시</span>"
+      +    (it.cell.cover ? "<img src=\"" + _mgAttr(it.cell.cover) + "\" style='width:26px;height:36px;"
+                            + "object-fit:contain;border:1px solid #E3EAF2;background:#fff'>" : "")
+      +    "<div style='flex:1;min-width:0;font-size:12.5px;font-weight:800;color:#1E3A5F'>"
+      +      _plEsc(it.cell.name) + (it.cell.sub ? " <span style='font-weight:600;color:#6B7E95'>"
+                                    + _plEsc(it.cell.sub) + "</span>" : "") + "</div>"
+      +    (vocab ? "<label style='font-size:11px;color:#4A5B70;white-space:nowrap;cursor:pointer'>"
+                  + "<input type='checkbox' id='ngVoc" + i + "'" + (it.vocab ? " checked" : "") + "> 단어장</label>" : "")
+      +  "</div>"
+      +  "<div style='display:flex;flex-wrap:wrap;gap:5px;margin-top:8px'>"
+      +    NG_PRINTS.map(function(p, j){
+             var on = it.prints.indexOf(p) >= 0;
+             return "<button type='button' data-on='" + (on ? 1 : 0) + "' id='ngP" + i + "_" + j + "' "
+               + "onclick='ngToggle(this)' style='" + _ngChipCss(on) + "'>" + _plEsc(p) + "</button>";
+           }).join('')
+      +  "</div>"
+      +  "<div style='display:flex;gap:6px;margin-top:7px;align-items:center;flex-wrap:wrap'>"
+      +    "<input id='ngX" + i + "' placeholder='직접 추가 (쉼표로 여러 개)' value=\""
+      +      _mgAttr(it.prints.filter(function(p){ return NG_PRINTS.indexOf(p) < 0; }).join(', ')) + "\" "
+      +      "style='flex:1;min-width:150px;padding:6px 9px;border:1.5px solid #E3EAF2;border-radius:8px;font-size:12px'>"
+      +    "<span style='font-size:11px;color:#4A5B70;font-weight:700'>숙제 검사일</span>"
+      +    "<select id='ngC" + i + "' style='padding:6px 8px;border:1.5px solid #E3EAF2;border-radius:8px;"
+      +      "font-size:12px;background:#fff'>"
+      +      checkOpts.concat(checkOpts.indexOf(it.check) < 0 ? [it.check] : []).map(function(o){
+               return "<option" + (o === it.check ? " selected" : "") + ">" + _plEsc(o) + "</option>";
+             }).join('')
+      +    "</select>"
+      +  "</div>"
+      + "</div>";
+  });
+
+  h += "<div style='display:flex;gap:8px;margin-top:12px'>"
+    +   "<button onclick=\"document.getElementById('ngOverlay').remove()\" style='flex:1;background:#F1F3EE;"
+    +     "color:#5B6551;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:600;cursor:pointer'>취소</button>"
+    +   "<button onclick='ngMake(this)' style='flex:2;background:#1E3A5F;color:#fff;border:none;"
+    +     "border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer'>미리보기 · 2장</button>"
+    + "</div></div>";
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+}
+
+function _ngChipCss(on){
+  return "border-radius:14px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;"
+    + (on ? "background:#1E3A5F;color:#fff;border:1.5px solid #1E3A5F"
+          : "background:#fff;color:#6B7E95;border:1.5px solid #D8E2EE");
+}
+function ngToggle(b){
+  var on = b.getAttribute('data-on') !== '1';
+  b.setAttribute('data-on', on ? '1' : '0');
+  b.style.cssText = _ngChipCss(on);
+}
+
+//  창에서 고른 것을 모아 2장을 만듭니다
+function ngMake(btn){
+  var st = _ngState; if(!st) return;
+  st.items.forEach(function(it, i){
+    var pr = NG_PRINTS.filter(function(p, j){
+      var b = document.getElementById('ngP' + i + '_' + j);
+      return b && b.getAttribute('data-on') === '1';
+    });
+    var x = String((document.getElementById('ngX' + i) || {}).value || '')
+              .split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+    it.prints = pr.concat(x);
+    var v = document.getElementById('ngVoc' + i);
+    it.vocab = v ? v.checked : false;
+    it.check = (document.getElementById('ngC' + i) || {}).value || it.check;
+    _ngMemo(it.key, it.prints);           // 다음에 이 교재로 만들 때 먼저 체크해 둡니다
+  });
+  var ov = document.getElementById('ngOverlay'); if(ov) ov.remove();
+  _prPreview(st.className + ' 신규생 안내', _ngCSS(),
+             _ngSheet1(st) + _ngSheet2(), st.className + '_신규생_안내', btn);
+}
+
+function _ngCSS(){
+  return "<style>"
+    + "*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}"
+    + ".sheet{width:794px;height:1123px;background:#fff;position:relative;overflow:hidden;"
+    +   "font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#1E3A5F}"
+    + ".ng-eye{font-size:13px;font-weight:700;letter-spacing:.6px;color:#2F6EA5}"
+    + ".ng-card{background:#fff;border-radius:0 0 30px 30px;box-shadow:0 2px 6px rgba(30,58,95,.18);"
+    +   "border:1px solid #E4EAF1;border-top:none}"
+    + ".ng-pill{background:#EEF4FA;border-radius:8px;box-shadow:0 1px 3px rgba(30,58,95,.25)}"
+    + "</style>";
+}
+
+//  1 장 — 요일별 수업 · 숙제 교재
+function _ngSheet1(st){
+  var NAVY = '#1E3A5F', BLUE = '#2F6EA5';
+  var days = st.days;
+  var en  = days.map(function(w){ return w.en.toUpperCase(); }).join(' · ');
+  var ko  = days.map(function(w){ return w.ko; }).join('/');
+  var perDay = {};
+  st.items.forEach(function(it){ perDay[it.r.weekday] = (perDay[it.r.weekday] || 0) + 1; });
+  var counts = days.map(function(w){ return perDay[w.d] || 0; });
+  var sameH = counts.every(function(c){ return c === counts[0]; });
+  var hoursTxt = sameH ? counts[0] + '시간' : '';
+
+  //  한 장에 들어가게 — 줄 수에 맞춰 높이를 정합니다
+  var nRows = st.items.length, nDays = days.length;
+  var avail = 1123 - 262 - 70 - nDays * 64;
+  var rowH  = Math.max(62, Math.min(96, Math.floor(avail / Math.max(1, nRows))));
+  var cvH   = Math.min(66, rowH - 22), cvW = Math.round(cvH * 0.74);
+  var fsB   = rowH < 74 ? 12.5 : 13.5;
+
+  var h = "<div class='sheet'>"
+    + "<div style='height:12px;background:" + BLUE + "'></div>"
+    + "<div style='padding:22px 42px 0'>"
+    +   "<div class='ng-eye'>WILLGROW &nbsp;LANGUAGE ACADEMY</div>"
+    +   "<div style='font-size:34px;font-weight:900;color:" + NAVY + ";margin-top:10px;letter-spacing:-.5px'>"
+    +     "요일별 수업 · 숙제 교재 안내</div>"
+    +   "<div class='ng-eye' style='margin-top:10px'>" + en
+    +     (sameH ? " &nbsp;|&nbsp; " + counts[0] + " HOUR" + (counts[0] > 1 ? "S" : "") + " PER DAY" : "") + "</div>"
+    +   "<div class='ng-pill' style='margin-top:20px;padding:14px 24px;font-size:17px;font-weight:800;"
+    +     "color:" + NAVY + ";background:#EEF4FA'>CLASS &nbsp;" + _plEsc(st.className)
+    +     " &nbsp;&nbsp; | &nbsp;&nbsp; 주 " + nDays + "회 (" + ko + ")" + (hoursTxt ? " · " + hoursTxt : "") + "</div>";
+
+  days.forEach(function(w){
+    var its = st.items.filter(function(it){ return it.r.weekday === w.d; });
+    h += "<div style='margin-top:20px'>"
+      +  "<div style='background:" + NAVY + ";color:#fff;border-radius:7px 7px 0 0;padding:9px 22px;"
+      +    "display:flex;align-items:center'>"
+      +    "<span style='font-size:16px;font-weight:800'>" + w.ko + "요일</span>"
+      +    "<span style='margin-left:auto;font-size:12.5px;font-weight:800'>"
+      +      w.en.toUpperCase() + " &nbsp;|&nbsp; " + its.length + "H</span></div>"
+      +  "<div class='ng-card' style='padding:6px 20px 14px'>";
+    its.forEach(function(it, k){
+      var lines = [];
+      if(it.vocab && st.vocab) lines.push({ h:'단어장', v:[st.vocab] });
+      if(it.prints.length)     lines.push({ h:'프린트', v:it.prints });
+      h += "<div style='display:flex;align-items:stretch;gap:14px;height:" + rowH + "px;padding:6px 0;"
+        +  (k ? "border-top:3px solid #E9EEF4;" : "") + "'>"
+        //  교시
+        +  "<div style='width:62px;display:flex;align-items:center'><div class='ng-pill' style='width:62px;"
+        +    "text-align:center;padding:7px 0;font-size:12.5px;font-weight:700;color:" + BLUE + "'>"
+        +    it.nth + "교시</div></div>"
+        //  교재
+        +  "<div style='width:205px;display:flex;gap:8px;border-right:3px solid #E9EEF4;padding-right:8px'>"
+        +    (it.cell.cover
+              ? "<img src=\"" + _mgAttr(it.cell.cover) + "\" style='width:" + cvW + "px;height:" + cvH + "px;"
+                + "object-fit:contain;align-self:center;flex-shrink:0'>"
+              : "<div style='width:" + cvW + "px;height:" + cvH + "px;align-self:center;background:#EEF2F6;flex-shrink:0'></div>")
+        +    "<div style='display:flex;flex-direction:column;min-width:0'>"
+        +      "<div style='font-size:" + fsB + "px;font-weight:800;color:" + NAVY + ";line-height:1.3;"
+        +        "word-break:keep-all'>" + _plEsc(it.cell.name)
+        +        (it.cell.sub ? "<br>" + _plEsc(it.cell.sub) : "") + "</div>"
+        +      "<div style='margin-top:auto;font-size:11px;font-weight:600;color:" + BLUE + "'>"
+        +        "Student Book + Workbook</div>"
+        +    "</div>"
+        +  "</div>"
+        //  단어장 · 프린트
+        +  "<div style='flex:1;min-width:0;font-size:11.5px;line-height:1.55;color:#3A4B60;"
+        +    "display:flex;flex-direction:column;justify-content:center'>"
+        +    (lines.length ? lines.map(function(L){
+               return "<div style='display:flex;gap:10px'>"
+                 + "<span style='width:56px;flex-shrink:0;font-weight:800;color:" + NAVY + "'>▪ " + L.h + "</span>"
+                 + "<span>" + L.v.map(_plEsc).join('<br>') + "</span></div>";
+             }).join('') : "<span style='color:#B5C0CC'>—</span>")
+        +  "</div>"
+        //  숙제 검사일
+        +  "<div style='width:142px;display:flex;align-items:center'><div class='ng-pill' style='width:142px;"
+        +    "text-align:center;padding:9px 6px'>"
+        +    "<div style='font-size:11.5px;font-weight:700;color:" + BLUE + "'>숙제 검사일</div>"
+        +    "<div style='font-size:13px;font-weight:800;color:" + NAVY + ";margin-top:4px'>"
+        +      _plEsc(it.check) + "</div></div></div>"
+        + "</div>";
+    });
+    h += "</div></div>";
+  });
+
+  h += "</div>"
+    + "<div style='position:absolute;left:42px;right:42px;bottom:26px;border-top:4px solid #E9EEF4;"
+    +   "padding-top:10px;display:flex;align-items:center'>"
+    +   "<span style='font-size:11.5px;color:#3A4B60'>※ 수업별 숙제 자료와 숙제 검사일을 확인해 주세요.</span>"
+    +   "<span style='margin-left:auto'>" + _ngLogo() + "</span>"
+    + "</div></div>";
+  return h;
+}
+
+function _ngLogo(){
+  return "<span style='display:inline-flex;align-items:center;justify-content:center;background:#2A3226;"
+    + "border-radius:6px;padding:5px 10px'><img src='" + WG_LOGO + "' alt='WILLGROW' style='height:18px;display:block'></span>";
+}
+
+//  2 장 — 신규생 안내 (고정 문구)
+function _ngSheet2(){
+  var NAVY = '#1E3A5F', BLUE = '#3C78AE';
+  function head(no, t){
+    return "<div style='display:flex;align-items:center;gap:12px;margin:46px 0 16px'>"
+      + "<span style='width:8px;height:30px;background:" + BLUE + ";border-radius:2px'></span>"
+      + "<span style='font-size:19px;font-weight:800;color:" + NAVY + "'>" + no + "&nbsp; " + t + "</span></div>";
+  }
+  var rows = [['Student Book','수업 시간에 사용하는 기본 교재'],
+              ['Workbook','수업 내용을 복습하는 숙제 교재'],
+              ['단어장','안내받은 단어 범위 학습 및 시험'],
+              ['프린트','복습·쓰기·해석 자료'],
+              ['Online','온라인 학습']];
+  return "<div class='sheet' style='padding:56px 40px 0'>"
+    + "<div style='background:" + NAVY + ";border-radius:18px;padding:22px 30px 26px;"
+    +   "box-shadow:0 3px 8px rgba(30,58,95,.3)'>"
+    +   "<div style='font-size:13px;font-weight:700;letter-spacing:.6px;color:#BFD6EE'>WILLGROW &nbsp;LANGUAGE ACADEMY</div>"
+    +   "<div style='font-size:30px;font-weight:900;color:#fff;margin-top:8px'>신규생 수업 · 숙제 교재 안내</div>"
+    + "</div>"
+    + "<div class='ng-pill' style='margin-top:38px;padding:16px 22px;font-size:13.5px;line-height:2;color:" + NAVY + ";"
+    +   "background:#E6F0F9;border-radius:14px'>안녕하세요. 윌그로우 어학원입니다.<br>"
+    +   "새롭게 시작하는 학생들이 교재와 숙제를 쉽게 익힐 수 있도록 안내드립니다.</div>"
+    + head('01', '수업 교재와 숙제 종류')
+    + "<div style='box-shadow:0 2px 6px rgba(30,58,95,.18)'>"
+    +   rows.map(function(r, i){
+          return "<div style='display:flex;padding:15px 20px;font-size:13.5px;color:" + NAVY + ";"
+            + "background:" + (i % 2 ? '#fff' : '#F4F8FC') + ";" + (i ? "border-top:1px solid #C8D2DC;" : "") + "'>"
+            + "<span style='width:142px;font-weight:600'>" + r[0] + "</span><span>" + r[1] + "</span></div>";
+        }).join('')
+    + "</div>"
+    + head('02', '숙제 확인 순서')
+    + "<div class='ng-pill' style='padding:14px 22px;font-size:13.5px;line-height:2.1;color:" + NAVY + ";"
+    +   "background:#E6F0F9;border-radius:14px;font-weight:600'>"
+    +   "① 교재 확인 &nbsp;→&nbsp; ② Workbook · 프린트 확인<br>③ 단어 범위 확인 &nbsp;→&nbsp; ④ 완료 체크</div>"
+    + head('03', '신규생 적응 및 문의 안내')
+    + "<div class='ng-pill' style='padding:16px 22px;font-size:13.5px;line-height:2.1;color:" + NAVY + ";"
+    +   "background:#E6F0F9;border-radius:14px'>"
+    +   "처음 2주간은 새로운 수업 방식과 교재별 숙제에 익숙해지는 적응 기간입니다.<br>"
+    +   "학생들이 스스로 숙제를 확인하고 준비하는 습관을 기를 수 있도록 지도하겠습니다.<br>"
+    +   "수업이나 숙제와 관련하여 궁금한 점이 있으시면 언제든 편하게 학원으로 문의해 주시기 바랍니다.</div>"
+    + "<div style='position:absolute;right:42px;bottom:34px'>" + _ngLogo() + "</div>"
+    + "</div>";
 }
 
 // ════════════════════════════════════════════════════════════
@@ -19814,7 +20282,7 @@ function renderStudentList(students){
     prevClass = s.className;
     var divider = isNewClass ? "border-top:2px solid #E2E8D8;" : "";
     var bg = isNewClass ? "#F7F8F2" : "#fff";
-    var enc = encodeURIComponent(JSON.stringify({id:s.id,name:s.name,eng:s.eng||'',school:s.school,grade:s.grade,parentTel:s.parentTel,studentTel:s.studentTel,address:s.address,busIn:s.busIn,busOut:s.busOut,enrollDate:s.enrollDate||'',siblingDiscount:s.siblingDiscount||0}));
+    var enc = encodeURIComponent(JSON.stringify({id:s.id,name:s.name,eng:s.eng||'',school:s.school,grade:s.grade,parentTel:s.parentTel,studentTel:s.studentTel,address:s.address,busIn:s.busIn,busOut:s.busOut,enrollDate:s.enrollDate||'',siblingDiscount:s.siblingDiscount||0,siblingSet:(s.siblingSet!=null?s.siblingSet:(s.siblingDiscount||0)),otherSet:s.otherSet||0,otherReason:s.otherReason||'',otherUntil:s.otherUntil||'',otherState:s.otherState||''}));
     return "<tr style='background:"+bg+";"+divider+"'>"
       + "<td style='padding:6px 10px;font-size:12px;font-weight:700;color:#363D2E;white-space:nowrap'>"
       +   (s.className||"-")
@@ -19855,7 +20323,21 @@ function openEditStudentModal(enc){
   var _canFee = (_userRole === '마스터' || _userRole === '관리자');
   if(_sb) _sb.style.display = _canFee ? "" : "none";
   var _sv = document.getElementById("esSibling");
-  if(_sv) _sv.value = (s.siblingDiscount && Number(s.siblingDiscount) > 0) ? Number(s.siblingDiscount) : "";
+  //  칸에는 "정해 둔 할인" 을 보여 줍니다 (지금 멈춰 있어도 값은 남아 있으니까요)
+  var _set = (s.siblingSet != null ? s.siblingSet : s.siblingDiscount);
+  if(_sv) _sv.value = (_set && Number(_set) > 0) ? Number(_set) : "";
+  if(_canFee) esSibLoad(s.id);
+  //  기타 할인 — 원장님 · 관리자만
+  var _ob = document.getElementById("esOthBox");
+  if(_ob) _ob.style.display = _canFee ? "" : "none";
+  document.getElementById("esOthAmt").value    = (s.otherSet && Number(s.otherSet) > 0) ? Number(s.otherSet) : "";
+  document.getElementById("esOthReason").value = s.otherReason || "";
+  document.getElementById("esOthUntil").value  = s.otherUntil || "";
+  var _os = document.getElementById("esOthState");
+  if(_os){
+    _os.textContent = s.otherState || "";
+    _os.style.color = /끝남/.test(s.otherState || "") ? "#B4651A" : "#2D6A4F";
+  }
   document.getElementById("editStudentModal").style.display = "flex";
 }
 function closeEditStudentModal(){ document.getElementById("editStudentModal").style.display="none"; }
@@ -19879,6 +20361,15 @@ function submitEditStudent(){
     var _sv2 = String((document.getElementById("esSibling") || {}).value || "").trim();
     data.siblingDiscount = _sv2 === "" ? null : Number(_sv2);
   }
+  var _obx = document.getElementById("esOthBox");
+  if(_obx && _obx.style.display !== "none"){
+    var _oa = String(document.getElementById("esOthAmt").value || "").trim();
+    data.otherDiscount = {
+      amount: _oa === "" ? null : Number(_oa),
+      reason: String(document.getElementById("esOthReason").value || "").trim(),
+      until:  String(document.getElementById("esOthUntil").value || "").trim()   // "2027-02"
+    };
+  }
   var scrollY = window.scrollY || document.documentElement.scrollTop || 0;
   closeEditStudentModal();
   showToast("저장 중...");
@@ -19899,6 +20390,139 @@ function submitEditStudent(){
   .withFailureHandler(function(e){ showToast("❌ 오류: " + e.message); })
   .updateStudentInfo(id, data);
 }
+//  🏷 기타 할인 비우기 — 저장을 눌러야 반영됩니다
+function esOthClear(){
+  ['esOthAmt','esOthReason','esOthUntil'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  var st = document.getElementById('esOthState');
+  if(st){ st.textContent = '저장을 누르면 기타 할인이 빠집니다'; st.style.color = '#8A9178'; }
+}
+
+// ════════════════════════════════════════════════════════════
+//  👫 형제 묶기 — 학생명단 ✏️ 수정 창 (원장님 · 관리자)
+//
+//  형제끼리 같은 가족 번호(family_id)를 씁니다.
+//  할인이 실제로 붙는지는 데이터베이스(sibling_status)가 정합니다.
+//    → Supabase > Table Editor > 형제할인_현황 에서 바로 확인
+// ════════════════════════════════════════════════════════════
+var _esSibCur = '';          // 지금 열린 학생
+var _esSibFam = '';          // 그 학생의 가족 번호
+
+async function esSibLoad(studentId){
+  _esSibCur = studentId; _esSibFam = '';
+  var chips = document.getElementById('esSibChips');
+  var row   = document.getElementById('esSibLinkRow');
+  var state = document.getElementById('esSibState');
+  if(!chips) return;
+
+  //  형제 찾기 목록 — 재원생 전체
+  var dl = document.getElementById('esSibList');
+  if(dl){
+    dl.innerHTML = (_studentAll || [])
+      .filter(function(x){ return x.id !== studentId; })
+      .map(function(x){ return "<option value='" + _esc(x.name + ' · ' + (x.className || '반 없음')) + "'>"; })
+      .join('');
+  }
+  var f = document.getElementById('esSibFind'); if(f) f.value = '';
+
+  //  이 학생의 가족 번호 — 칸이 없으면 RUN_ME_42 를 아직 안 돌린 것
+  var me = await _sbGetSafe('students', 'select=id,family_id&id=eq.' + encodeURIComponent(studentId));
+  if(!me || !me.length || !('family_id' in me[0])){
+    chips.innerHTML = "<span style='color:#B4651A'>형제를 묶으려면 Supabase 에서 "
+      + "<b>RUN_ME_42_형제.sql</b> 을 먼저 돌려 주세요.</span>";
+    if(row) row.style.display = 'none';
+    if(state) state.innerHTML = '';
+    return;
+  }
+  if(row) row.style.display = 'flex';
+  _esSibFam = me[0].family_id || '';
+
+  //  같은 가족
+  var mates = _esSibFam
+    ? (await _sbGetSafe('students', 'select=id,name,status,classes!class_id(name)'
+        + '&family_id=eq.' + encodeURIComponent(_esSibFam)
+        + '&id=neq.' + encodeURIComponent(studentId) + '&order=name.asc') || [])
+    : [];
+  if(!mates.length){
+    chips.innerHTML = "<span>아직 묶인 형제가 없어요</span>";
+  } else {
+    chips.innerHTML = mates.map(function(m){
+      var on = m.status === '재원';
+      return "<span style='display:inline-flex;align-items:center;gap:4px;background:"
+        + (on ? '#fff' : '#F2F2F2') + ";border:1px solid " + (on ? '#E8D3AA' : '#DDD') + ";"
+        + "border-radius:14px;padding:3px 10px;font-size:12px;font-weight:700;color:"
+        + (on ? '#5B4210' : '#999') + "'>"
+        + _esc(m.name)
+        + "<span style='font-weight:500;font-size:10.5px;color:#B49A6A'>"
+        +   _esc((m.classes && m.classes.name) || '') + " · " + _esc(m.status || '') + "</span>"
+        + "</span>";
+    }).join('')
+    + "<button type='button' onclick='esSibUnlink()' style='margin-left:auto;background:none;"
+    +   "border:none;color:#B49A6A;font-size:11px;text-decoration:underline;cursor:pointer'>"
+    +   "이 학생을 형제 묶음에서 빼기</button>";
+  }
+
+  //  데이터베이스가 판단한 지금 상태
+  var st = await _sbGetSafe('sibling_status',
+    'select=effective_discount,reason&student_id=eq.' + encodeURIComponent(studentId)) || [];
+  if(state){
+    if(st.length){
+      var ok = /적용 중/.test(st[0].reason || '');
+      state.innerHTML = "<span style='color:" + (ok ? '#2D6A4F' : '#8A6A22') + ";font-weight:700'>"
+        + _esc(st[0].reason || '') + "</span>"
+        + (Number(st[0].effective_discount) > 0
+           ? " <span style='color:#8A6A22'>· 지금 -" + Number(st[0].effective_discount) + "만원</span>" : "");
+    } else {
+      state.innerHTML = "<span style='color:#B49A6A'>형제 할인 없음</span>";
+    }
+  }
+}
+
+//  두 학생을 같은 가족으로 — 이미 가족이 있으면 그 가족에 넣고, 둘 다 있으면 하나로 합칩니다
+async function famLink(a, b){
+  var rows = await sbGet('students', 'select=id,family_id&id=in.(' + a + ',' + b + ')');
+  var fa = '', fb = '';
+  rows.forEach(function(r){ if(r.id === a) fa = r.family_id || ''; if(r.id === b) fb = r.family_id || ''; });
+  var fid = fa || fb;
+  if(!fid){
+    var f = await sbInsert('families', { note:null });
+    if(!f || !f.id) throw new Error('가족을 만들지 못했어요');
+    fid = f.id;
+  }
+  //  서로 다른 가족이었으면 b 쪽 가족을 a 쪽으로 옮겨 하나로 만듭니다 (셋째까지 같이)
+  if(fa && fb && fa !== fb) await sbPatch('students', 'family_id=eq.' + fb, { family_id:fa });
+  await sbPatch('students', 'id=in.(' + a + ',' + b + ')', { family_id:fid });
+  return fid;
+}
+//  이 학생만 가족에서 뺍니다 (다른 형제는 그대로)
+async function famUnlink(a){
+  await sbPatch('students', 'id=eq.' + a, { family_id:null });
+}
+
+async function esSibLink(){
+  var v = String((document.getElementById('esSibFind') || {}).value || '').trim();
+  if(!v){ showToast('형제 이름을 적고 목록에서 골라 주세요.'); return; }
+  var hit = (_studentAll || []).filter(function(x){
+    return (x.name + ' · ' + (x.className || '반 없음')) === v;
+  })[0];
+  if(!hit){ showToast('목록에서 골라 주세요 (이름 · 반).'); return; }
+  try {
+    await famLink(_esSibCur, hit.id);
+    showToast('👫 ' + hit.name + ' 와(과) 형제로 묶었어요.');
+    esSibLoad(_esSibCur);
+  } catch(e){ showToast('묶지 못했어요: ' + (e && e.message || '')); }
+}
+
+async function esSibUnlink(){
+  if(!confirm('이 학생을 형제 묶음에서 뺄까요?\n\n'
+    + '· 학생 기록은 지워지지 않습니다 — 묶음만 풀립니다.\n'
+    + '· 같이 다니는 형제가 없어지면 할인이 자동으로 멈춥니다.')) return;
+  try {
+    await famUnlink(_esSibCur);
+    showToast('형제 묶음에서 뺐어요.');
+    esSibLoad(_esSibCur);
+  } catch(e){ showToast('풀지 못했어요: ' + (e && e.message || '')); }
+}
+
 function openWithdrawStudentModal(pid, pname){
   document.getElementById("wsPid").value = pid;
   document.getElementById("wsName").textContent = pname;
@@ -21518,8 +22142,24 @@ function renderTuitionList(students){
       finalFeeStr = Number(s.finalFee)+'만원';
       finalStyle = s.siblingDiscount > 0 ? "color:#B07A2A;font-weight:700" : "color:#2D6A4F;font-weight:700";
     } else { finalFeeStr = "-"; finalStyle = "color:#bbb"; }
-    var discountStr = s.siblingDiscount > 0
-      ? "<span style='font-size:10px;color:#B07A2A;background:#FFF8E7;border-radius:5px;padding:1px 5px;margin-left:4px'>형제 -"+Number(s.siblingDiscount)+"만원</span>" : "";
+    //  할인 표 — 형제 · 기타를 따로 보여 줍니다 (멈춘 할인은 회색 줄)
+    var _sibE = (s.sibEff != null ? s.sibEff : s.siblingDiscount) || 0;
+    var _chip = function(txt, tip, on, warn){
+      return "<span title='"+_esc(tip||'')+"' style='font-size:10px;border-radius:5px;padding:1px 5px;margin-left:4px;"
+        + (on ? "color:#B07A2A;background:#FFF8E7" : "color:#999;background:#F2F2F2;text-decoration:line-through")
+        + "'>" + txt + (warn ? " ⚠" : "") + "</span>";
+    };
+    var discountStr = '';
+    if(_sibE > 0)
+      discountStr += _chip("형제 -"+Number(_sibE)+"만원",
+        (s.siblingWith ? '같이 다니는 형제: '+s.siblingWith+' · ' : '')+(s.siblingReason||''),
+        true, /미지정/.test(s.siblingReason||''));
+    else if(s.siblingSet > 0)
+      discountStr += _chip("형제 -"+Number(s.siblingSet)+"만원", s.siblingReason||'', false);
+    if(s.otherEff > 0)
+      discountStr += _chip((s.otherReason||'할인')+" -"+Number(s.otherEff)+"만원", s.otherState||'', true);
+    else if(s.otherSet > 0)
+      discountStr += _chip((s.otherReason||'할인')+" -"+Number(s.otherSet)+"만원", s.otherState||'', false);
     var memoEsc = (s.tuitionMemo||"").replace(/\\/g,"\\\\").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
     var memoCell = s.tuitionMemo
       ? "<div style='display:flex;align-items:flex-start;gap:5px;text-align:left'>"
@@ -22155,8 +22795,13 @@ async function loadYearlyView(){
 
   var start=yr+'-01-01', end=yr+'-12-31';
   // 납부기록 전체 (paid/unpaid 모두) + 금액 포함
+  //  입학금 · 특강비 칸까지 같이 — RUN_ME_41 을 안 돌렸으면 그 칸 없이 다시 읽습니다
+  var _yq = '&due_date=gte.'+start+'&due_date=lte.'+end;
   var payments = await _sbGetSafe('tuition_payments',
-    'select=student_id,due_date,paid_date,amount&due_date=gte.'+start+'&due_date=lte.'+end);
+    'select=student_id,due_date,paid_date,amount,enroll_fee,special_fee,special_note' + _yq);
+  if(!payments || !payments.length){
+    payments = await _sbGetSafe('tuition_payments', 'select=student_id,due_date,paid_date,amount' + _yq);
+  }
   // 납부일 변경 이력
   var dayChanges = await _sbGetSafe('payment_day_changes','select=student_id,effective_from,new_day&order=effective_from.asc');
   // 이동 모달에서도 쓸 수 있게 전역 저장
@@ -22191,7 +22836,8 @@ function renderYearlyView(yr, payments, dayChanges){
     var prev = payMap[p.student_id][dueMo];
     if(prev && prev.isPaid && !p.paid_date) return;
     if(prev && prev.isPaid && p.paid_date && String(prev.paidDate) > String(p.paid_date)) return;
-    payMap[p.student_id][dueMo]={ dueDay:dueDay, amount:p.amount, isPaid:!!p.paid_date, paidDate:p.paid_date||null, dueDate:p.due_date };
+    payMap[p.student_id][dueMo]={ dueDay:dueDay, amount:p.amount, isPaid:!!p.paid_date, paidDate:p.paid_date||null, dueDate:p.due_date,
+                                  enrollFee:Number(p.enroll_fee||0), specialFee:Number(p.special_fee||0), specialNote:p.special_note||'' };
   });
 
   // 반별 학생 그룹
@@ -22255,8 +22901,19 @@ function renderYearlyView(yr, payments, dayChanges){
           var pMo=parseInt(pd.substring(5,7));
           var pDay=parseInt(pd.substring(8,10));
           var amtStr=rec.amount!=null ? '<div style="font-size:9px;color:#388E3C;margin-top:1px">'+Math.round(rec.amount/10000)+'만</div>' : '';
+          //  입학금 · 특강비가 들어 있으면 작은 표 (마우스를 올리면 자세히)
+          if(rec.enrollFee) amtStr += '<div style="font-size:8.5px;font-weight:800;color:#2D6A4F;background:#fff;border-radius:4px;margin:1px 2px 0;line-height:1.35">🌱입학 '+(Math.round(rec.enrollFee/1000)/10)+'만</div>';
+          if(rec.specialFee) amtStr += '<div style="font-size:8.5px;font-weight:800;color:#A86A12;background:#FFF6E3;border-radius:4px;margin:1px 2px 0;line-height:1.35">✨특강 '+(Math.round(rec.specialFee/1000)/10)+'만</div>';
+          var _tip = '';
+          if(rec.enrollFee || rec.specialFee){
+            var _t = Number(rec.amount||0) - rec.enrollFee - rec.specialFee;
+            _tip = ' title="수강료 '+_t.toLocaleString()+'원'
+                 + (rec.enrollFee ? ' + 입학금 '+rec.enrollFee.toLocaleString()+'원' : '')
+                 + (rec.specialFee ? ' + 특강비'+(rec.specialNote?'('+_esc(rec.specialNote)+')':'')+' '+rec.specialFee.toLocaleString()+'원' : '')
+                 + '"';
+          }
           var fromDue=rec.dueDate||'';
-          html+='<td style="padding:3px 2px;text-align:center;background:#E8F5E9;vertical-align:middle;position:relative" class="yearly-paid-cell">'
+          html+='<td'+_tip+' style="padding:3px 2px;text-align:center;background:#E8F5E9;vertical-align:middle;position:relative" class="yearly-paid-cell">'
             +'<div style="color:#1B5E20;font-weight:700;font-size:11px">'+pMo+'/'+pDay+'</div>'
             +amtStr
             +'<button onclick="openMoveTuitionModal(\''+s.id+'\',\''+fromDue+'\','+m+','+yr+',\''+s.name+'\')" '
